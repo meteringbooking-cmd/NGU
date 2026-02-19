@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complaints</title>
+    <title>Complaints - Scottish Power</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -292,7 +292,7 @@
                 </div>
                 <div class="form-group">
                     <label for="ftl">FTL *</label>
-                    <select id="ftl" required onchange="filterEngineersByFTL()">
+                    <select id="ftl" required>
                         <option value="">Select FTL</option>
                         <option value="Richard Wiecko">Richard Wiecko</option>
                         <option value="Scott Carson">Scott Carson</option>
@@ -480,33 +480,27 @@
             const snap = await getDocs(collection(db, 'employees'));
             allEmployees = [];
             snap.forEach(d => allEmployees.push({ id: d.id, ...d.data() }));
+            populateEngineerDropdown();
         } catch(e) {
             console.error('Error loading employees:', e);
         }
     }
 
-    window.filterEngineersByFTL = function() {
-        const ftl = document.getElementById('ftl').value;
+    window.filterEngineersByFTL = function() {}; // no-op, kept for safety
+
+    function populateEngineerDropdown() {
         const engineerSelect = document.getElementById('engineer');
         engineerSelect.innerHTML = '<option value="">Select Engineer</option>';
-        if (!ftl) { engineerSelect.innerHTML = '<option value="">Select FTL first</option>'; return; }
-        const filtered = allEmployees
-            .filter(emp => {
-                const leader = emp['Team Leader'] || emp.teamLeader || '';
-                return leader === ftl && !emp.leaveDate;
-            })
+        const sorted = [...allEmployees]
+            .filter(emp => !emp.leaveDate)
             .sort((a, b) => (a['Full Name'] || '').localeCompare(b['Full Name'] || ''));
-        if (filtered.length === 0) {
-            engineerSelect.innerHTML = '<option value="">No engineers found</option>';
-            return;
-        }
-        filtered.forEach(emp => {
+        sorted.forEach(emp => {
             const opt = document.createElement('option');
             opt.value = emp['Full Name'] || '';
             opt.textContent = emp['Full Name'] || 'Unnamed';
             engineerSelect.appendChild(opt);
         });
-    };
+    }
 
     // ---- Load & render complaints ----
     let allComplaints = [];
@@ -682,7 +676,7 @@
             // Reset form
             document.getElementById('dateReceived').valueAsDate = new Date();
             document.getElementById('ftl').value = '';
-            document.getElementById('engineer').innerHTML = '<option value="">Select FTL first</option>';
+            document.getElementById('engineer').value = '';
             document.getElementById('jobRef').value = '';
             document.getElementById('targetDate').value = '';
             ['photosList','complaintCardList','jobCardList'].forEach(id => document.getElementById(id).innerHTML = '');
@@ -698,7 +692,7 @@
 
     document.getElementById('resetBtn').addEventListener('click', () => {
         document.getElementById('ftl').value = '';
-        document.getElementById('engineer').innerHTML = '<option value="">Select FTL first</option>';
+        document.getElementById('engineer').value = '';
         document.getElementById('jobRef').value = '';
         document.getElementById('targetDate').value = '';
         document.getElementById('dateReceived').valueAsDate = new Date();
