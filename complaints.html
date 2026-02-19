@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complaints - Scottish Power</title>
+    <title>Complaints</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -291,12 +291,20 @@
                     <input type="date" id="dateReceived" required>
                 </div>
                 <div class="form-group">
-                    <label for="engineer">Engineer *</label>
-                    <input type="text" id="engineer" placeholder="Engineer name" required>
+                    <label for="ftl">FTL *</label>
+                    <select id="ftl" required onchange="filterEngineersByFTL()">
+                        <option value="">Select FTL</option>
+                        <option value="Richard Wiecko">Richard Wiecko</option>
+                        <option value="Scott Carson">Scott Carson</option>
+                        <option value="Stuart Whyte">Stuart Whyte</option>
+                        <option value="FTL 4">FTL 4</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label for="ftl">FTL *</label>
-                    <input type="text" id="ftl" placeholder="FTL name" required>
+                    <label for="engineer">Engineer *</label>
+                    <select id="engineer" required>
+                        <option value="">Select FTL first</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="jobRef">Job Reference *</label>
@@ -464,6 +472,42 @@
     // Default today
     document.getElementById('dateReceived').valueAsDate = new Date();
 
+    // ---- Load employees from Firebase (same collection as Meeting Calendar) ----
+    let allEmployees = [];
+
+    async function loadEmployees() {
+        try {
+            const snap = await getDocs(collection(db, 'employees'));
+            allEmployees = [];
+            snap.forEach(d => allEmployees.push({ id: d.id, ...d.data() }));
+        } catch(e) {
+            console.error('Error loading employees:', e);
+        }
+    }
+
+    window.filterEngineersByFTL = function() {
+        const ftl = document.getElementById('ftl').value;
+        const engineerSelect = document.getElementById('engineer');
+        engineerSelect.innerHTML = '<option value="">Select Engineer</option>';
+        if (!ftl) { engineerSelect.innerHTML = '<option value="">Select FTL first</option>'; return; }
+        const filtered = allEmployees
+            .filter(emp => {
+                const leader = emp['Team Leader'] || emp.teamLeader || '';
+                return leader === ftl && !emp.leaveDate;
+            })
+            .sort((a, b) => (a['Full Name'] || '').localeCompare(b['Full Name'] || ''));
+        if (filtered.length === 0) {
+            engineerSelect.innerHTML = '<option value="">No engineers found</option>';
+            return;
+        }
+        filtered.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = emp['Full Name'] || '';
+            opt.textContent = emp['Full Name'] || 'Unnamed';
+            engineerSelect.appendChild(opt);
+        });
+    };
+
     // ---- Load & render complaints ----
     let allComplaints = [];
     let currentComplaintId = null;
@@ -591,8 +635,8 @@
     // ---- Submit new complaint ----
     document.getElementById('submitBtn').addEventListener('click', async () => {
         const dateReceived = document.getElementById('dateReceived').value;
-        const engineer = document.getElementById('engineer').value.trim();
-        const ftl = document.getElementById('ftl').value.trim();
+        const engineer = document.getElementById('engineer').value;
+        const ftl = document.getElementById('ftl').value;
         const jobRef = document.getElementById('jobRef').value.trim();
         const targetDate = document.getElementById('targetDate').value;
 
@@ -636,11 +680,11 @@
 
             showToast('✓ Complaint submitted successfully.');
             // Reset form
-            ['dateReceived','engineer','ftl','jobRef','targetDate'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el.type === 'date') el.valueAsDate = id === 'dateReceived' ? new Date() : null;
-                else el.value = '';
-            });
+            document.getElementById('dateReceived').valueAsDate = new Date();
+            document.getElementById('ftl').value = '';
+            document.getElementById('engineer').innerHTML = '<option value="">Select FTL first</option>';
+            document.getElementById('jobRef').value = '';
+            document.getElementById('targetDate').value = '';
             ['photosList','complaintCardList','jobCardList'].forEach(id => document.getElementById(id).innerHTML = '');
             ['photosInput','complaintCardInput','jobCardInput'].forEach(id => document.getElementById(id).value = '');
             await loadComplaints();
@@ -653,8 +697,8 @@
     });
 
     document.getElementById('resetBtn').addEventListener('click', () => {
-        document.getElementById('engineer').value = '';
         document.getElementById('ftl').value = '';
+        document.getElementById('engineer').innerHTML = '<option value="">Select FTL first</option>';
         document.getElementById('jobRef').value = '';
         document.getElementById('targetDate').value = '';
         document.getElementById('dateReceived').valueAsDate = new Date();
@@ -663,6 +707,7 @@
     });
 
     // Init
+    loadEmployees();
     loadComplaints();
 </script>
 </body>
