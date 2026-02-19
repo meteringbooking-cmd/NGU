@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complaints</title>
+    <title>Complaints - Scottish Power</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -504,7 +504,7 @@
         const engineerSelect = document.getElementById('engineer');
         engineerSelect.innerHTML = '<option value="">Select Engineer</option>';
         const sorted = [...allEmployees]
-            .filter(emp => !emp.leaveDate)
+            .filter(emp => !emp.leaveDate && (emp['Team Leader'] || emp.teamLeader || '') !== 'Back Office')
             .sort((a, b) => (a['Full Name'] || '').localeCompare(b['Full Name'] || ''));
         sorted.forEach(emp => {
             const opt = document.createElement('option');
