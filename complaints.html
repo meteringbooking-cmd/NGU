@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complaints - Scottish Power</title>
+    <title>Complaints</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -425,6 +425,18 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
+    // Employees live in the pingu-solar project (same as Meeting Calendar)
+    const staffConfig = {
+        apiKey: "AIzaSyAc_yJQ_rkzuOBh-Yxg0Q4eooXtB-tQjm0",
+        authDomain: "pingu-solar.firebaseapp.com",
+        projectId: "pingu-solar",
+        storageBucket: "pingu-solar.firebasestorage.app",
+        messagingSenderId: "232764952866",
+        appId: "1:232764952866:web:5923b7f419de6355d6157b"
+    };
+    const staffApp = initializeApp(staffConfig, 'staffApp');
+    const staffDb = getFirestore(staffApp);
+
     // ---- Helpers ----
     function showToast(msg, type = 'success') {
         const t = document.getElementById('toast');
@@ -477,7 +489,7 @@
 
     async function loadEmployees() {
         try {
-            const snap = await getDocs(collection(db, 'employees'));
+            const snap = await getDocs(collection(staffDb, 'employees'));
             allEmployees = [];
             snap.forEach(d => allEmployees.push({ id: d.id, ...d.data() }));
             populateEngineerDropdown();
