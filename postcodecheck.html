@@ -390,10 +390,55 @@ td {
   padding: 13px 20px;
   border-top: 1px solid var(--stone);
   background: var(--off);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.table-footer-text {
   font-size: 0.7rem;
   color: var(--muted);
 }
-.table-footer span { color: var(--ink); font-weight: 500; }
+.table-footer-text span { color: var(--ink); font-weight: 500; }
+
+/* EXPORT BUTTONS */
+.export-group {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--stone);
+  background: var(--white);
+  color: var(--ink-soft);
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.69rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s, box-shadow 0.14s;
+}
+.export-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+.export-btn:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.export-btn:active { transform: translateY(0); }
+
+.export-btn.flash {
+  background: #2d7a4f;
+  border-color: #2d7a4f;
+  color: var(--white);
+}
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(8px); }
@@ -403,6 +448,7 @@ td {
 @media (max-width: 580px) {
   .page-header { padding: 16px; }
   .main { padding: 20px 12px 60px; }
+  .table-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
 </style>
 </head>
@@ -483,7 +529,35 @@ td {
         <tbody id="tableBody"></tbody>
       </table>
     </div>
-    <div class="table-footer" id="tableFooter"></div>
+    <div class="table-footer">
+      <div class="table-footer-text" id="tableFooterText"></div>
+      <div class="export-group">
+        <button class="export-btn" id="exportCsvBtn" title="Export full results as CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          CSV
+        </button>
+        <button class="export-btn" id="exportSummaryBtn" title="Export county summary as CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Summary CSV
+        </button>
+        <button class="export-btn" id="exportTxtBtn" title="Export postcodes as plain text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          TXT
+        </button>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -525,6 +599,10 @@ const postcodeMap = {
   WV:"West Midlands",YO:"North Yorkshire",ZE:"Shetland"
 };
 
+// Store results globally for export
+let _results = [];
+let _sortedCounts = [];
+
 function getCounty(postcode) {
   const clean = postcode.trim().toUpperCase().replace(/\s+/g,'');
   if (!clean) return null;
@@ -537,6 +615,58 @@ function getCounty(postcode) {
 function parsePostcodes(text) {
   return text.split(/[\n,;\t]+/).map(p => p.trim()).filter(p => p.length > 0);
 }
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function flashBtn(btn) {
+  btn.classList.add('flash');
+  setTimeout(() => btn.classList.remove('flash'), 900);
+}
+
+function exportCSV() {
+  if (!_results.length) return;
+  const rows = [['Postcode', 'Area Code', 'County / Region']];
+  _results.forEach(r => rows.push([r.postcode, r.area || '', r.county || 'Unknown']));
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  downloadFile(csv, 'postcode-results.csv', 'text/csv;charset=utf-8;');
+  flashBtn(document.getElementById('exportCsvBtn'));
+}
+
+function exportSummaryCSV() {
+  if (!_sortedCounts.length) return;
+  const rows = [['County / Region', 'Count', 'Percentage']];
+  const total = _results.length;
+  _sortedCounts.forEach(([county, count]) => {
+    rows.push([county, count, ((count / total) * 100).toFixed(1) + '%']);
+  });
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+  downloadFile(csv, 'postcode-summary.csv', 'text/csv;charset=utf-8;');
+  flashBtn(document.getElementById('exportSummaryBtn'));
+}
+
+function exportTXT() {
+  if (!_results.length) return;
+  const lines = _results.map(r => `${r.postcode.padEnd(12)}${(r.area || '').padEnd(6)}${r.county || 'Unknown'}`);
+  const header = `${'POSTCODE'.padEnd(12)}${'AREA'.padEnd(6)}COUNTY / REGION`;
+  const divider = '─'.repeat(60);
+  const txt = [header, divider, ...lines].join('\n');
+  downloadFile(txt, 'postcode-results.txt', 'text/plain;charset=utf-8;');
+  flashBtn(document.getElementById('exportTxtBtn'));
+}
+
+document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+document.getElementById('exportSummaryBtn').addEventListener('click', exportSummaryCSV);
+document.getElementById('exportTxtBtn').addEventListener('click', exportTXT);
 
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0]; if (!file) return;
@@ -561,23 +691,23 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   const postcodes = parsePostcodes(text);
   if (!postcodes.length) return;
 
-  const results = postcodes.map(pc => ({ postcode: pc, ...getCounty(pc) }));
+  _results = postcodes.map(pc => ({ postcode: pc, ...getCounty(pc) }));
 
   const counts = {};
-  results.forEach(r => { const k = r.county||"Unknown"; counts[k]=(counts[k]||0)+1; });
-  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const maxCount = sorted[0]?.[1]||1;
-  const total = results.length;
-  const known = results.filter(r=>r.county!=='Unknown').length;
-  const numCounties = sorted.filter(([c])=>c!=='Unknown').length;
+  _results.forEach(r => { const k = r.county||"Unknown"; counts[k]=(counts[k]||0)+1; });
+  _sortedCounts = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const maxCount = _sortedCounts[0]?.[1]||1;
+  const total = _results.length;
+  const known = _results.filter(r=>r.county!=='Unknown').length;
+  const numCounties = _sortedCounts.filter(([c])=>c!=='Unknown').length;
 
   const colorMap = {};
-  sorted.filter(([c])=>c!=='Unknown').forEach(([county],i)=>{ colorMap[county]=i%10; });
+  _sortedCounts.filter(([c])=>c!=='Unknown').forEach(([county],i)=>{ colorMap[county]=i%10; });
 
   // Summary bars
   const barsEl = document.getElementById('summaryBars');
   barsEl.innerHTML='';
-  sorted.forEach(([county,count],idx)=>{
+  _sortedCounts.forEach(([county,count],idx)=>{
     const pct = (count/maxCount*100).toFixed(1);
     const ci = colorMap[county]!==undefined ? colorMap[county] : null;
     const isUnk = county==='Unknown';
@@ -615,7 +745,7 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   // Table
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML='';
-  results.forEach(r=>{
+  _results.forEach(r=>{
     const ci = colorMap[r.county]!==undefined ? colorMap[r.county] : null;
     const isUnk = r.county==='Unknown';
     const tr = document.createElement('tr');
@@ -631,7 +761,7 @@ document.getElementById('checkBtn').addEventListener('click', () => {
     tbody.appendChild(tr);
   });
 
-  document.getElementById('tableFooter').innerHTML =
+  document.getElementById('tableFooterText').innerHTML =
     `Showing <span>${total}</span> postcodes across <span>${numCounties}</span> ${numCounties===1?'county':'counties'}`;
 
   document.getElementById('results').style.display = 'block';
