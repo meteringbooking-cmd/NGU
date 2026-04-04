@@ -569,7 +569,7 @@ const STATUS_CONFIG = {
   'Training':        { deducts: false, requiresHours: false, badge: 'badge-training' },
 };
 
-// ── UK Bank Holidays (England & Wales) ────────────────────────────────────
+// ── UK Bank Holidays (England & Wales) 2024-2026 ───────────────────────────
 const BANK_HOLIDAYS = new Set([
   // 2024
   '2024-01-01','2024-03-29','2024-04-01','2024-05-06','2024-05-27',
@@ -584,17 +584,10 @@ const BANK_HOLIDAYS = new Set([
 
 function isWeekend(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  const day = d.getDay(); // 0=Sun, 6=Sat
-  return day === 0 || day === 6;
+  return d.getDay() === 0 || d.getDay() === 6;
 }
-
-function isBankHoliday(dateStr) {
-  return BANK_HOLIDAYS.has(dateStr);
-}
-
-function isWorkingDay(dateStr) {
-  return !isWeekend(dateStr) && !isBankHoliday(dateStr);
-}
+function isBankHoliday(dateStr) { return BANK_HOLIDAYS.has(dateStr); }
+function isWorkingDay(dateStr)  { return !isWeekend(dateStr) && !isBankHoliday(dateStr); }
 
 // ── State ──────────────────────────────────────────────────────────────────
 let employees = JSON.parse(localStorage.getItem('atp_employees') || '[]');
@@ -610,7 +603,7 @@ let showDeductionsOnly = false;
   document.getElementById('logDate').value = today;
   document.getElementById('filterMonth').value = today.substring(0,7);
 
-  // Clean up any existing log entries that fall on weekends/bank holidays
+  // Purge any entries on non-working days (cleanup for legacy data)
   const before = log.length;
   log = log.filter(e => isWorkingDay(e.date));
   if (log.length !== before) save();
@@ -623,7 +616,7 @@ let showDeductionsOnly = false;
 // ── Auto-fill "In" for today ────────────────────────────────────────────────
 function autoFillToday() {
   const today = new Date().toISOString().split('T')[0];
-  if (!isWorkingDay(today)) return; // skip weekends & bank holidays
+  if (!isWorkingDay(today)) return;
   let added = 0;
   employees.forEach(name => {
     const hasEntry = log.some(e => e.date === today && e.employee === name);
@@ -663,13 +656,9 @@ function addEmployee() {
   }
   employees.push(name);
   employees.sort((a,b) => a.localeCompare(b));
-  // Auto-mark new employee as In for today (if a working day)
   const today = new Date().toISOString().split('T')[0];
-  if (isWorkingDay(today)) {
-    const hasEntry = log.some(e => e.date === today && e.employee === name);
-    if (!hasEntry) {
-      log.push({ id: Date.now() + Math.random(), date: today, employee: name, status: 'In', hours: null, deduction: 0 });
-    }
+  if (isWorkingDay(today) && !log.some(e => e.date === today && e.employee === name)) {
+    log.push({ id: Date.now() + Math.random(), date: today, employee: name, status: 'In', hours: null, deduction: 0 });
   }
   save();
   renderEmployees();
@@ -754,38 +743,26 @@ function logEntry() {
   if (!emp)    { toast('Please select an employee.', true); return; }
   if (!status) { toast('Please select a status.', true);   return; }
 
-  // Block weekends and bank holidays
-  if (isWeekend(date)) {
-    toast('Cannot log entries on weekends.', true); return;
-  }
-  if (isBankHoliday(date)) {
-    toast('Cannot log entries on bank holidays.', true); return;
-  }
+  if (isWeekend(date))      { toast('Cannot log entries on weekends.', true);      return; }
+  if (isBankHoliday(date))  { toast('Cannot log entries on bank holidays.', true); return; }
 
   const cfg = STATUS_CONFIG[status];
-  let hours = 0;
-  let deduction = 0;
+  let hours = 0, deduction = 0;
 
   if (cfg.deducts) {
     if (cfg.requiresHours && rawH === '') {
       toast(`Hours are required for ${status}.`, true); return;
     }
-    if (status === 'Half day Holiday') {
-      hours = rawH !== '' ? parseFloat(rawH) : HALF_DAY_HOURS;
-    } else {
-      hours = parseFloat(rawH);
-    }
+    hours = (status === 'Half day Holiday' && rawH === '') ? HALF_DAY_HOURS : parseFloat(rawH);
     if (isNaN(hours) || hours < 0) { toast('Please enter valid hours.', true); return; }
     deduction = hours * HOURLY_RATE;
   }
 
   const entry = { id: Date.now(), date, employee: emp, status, hours: cfg.deducts ? hours : null, deduction };
   const existingIdx = log.findIndex(e => e.date === date && e.employee === emp);
-  if (existingIdx !== -1) {
-    log.splice(existingIdx, 1, entry);
-  } else {
-    log.push(entry);
-  }
+  if (existingIdx !== -1) log.splice(existingIdx, 1, entry);
+  else log.push(entry);
+
   save();
   renderTable();
   toast(`Entry logged for ${emp}.`);
@@ -798,8 +775,7 @@ function logEntry() {
 // ── Deductions toggle ──────────────────────────────────────────────────────
 function toggleDeductionsOnly() {
   showDeductionsOnly = !showDeductionsOnly;
-  const btn = document.getElementById('dedToggle');
-  btn.classList.toggle('active', showDeductionsOnly);
+  document.getElementById('dedToggle').classList.toggle('active', showDeductionsOnly);
   renderTable();
 }
 
@@ -815,7 +791,6 @@ function renderTable() {
     return nameOk && monthOk && dedOk;
   });
 
-  // Sort newest first
   filtered.sort((a,b) => b.date.localeCompare(a.date) || a.employee.localeCompare(b.employee));
 
   const body = document.getElementById('logBody');
@@ -834,19 +809,18 @@ function renderTable() {
   }
 
   const totalDeduction = filtered.reduce((s,e) => s + e.deduction, 0);
-  const cfg = (s) => STATUS_CONFIG[s] || { badge: '' };
+  const cfgOf = s => STATUS_CONFIG[s] || { badge: '' };
 
   body.innerHTML = filtered.map(e => {
     const ded = e.deduction;
-    const dedClass = ded > 0 ? 'nonzero' : 'zero';
+    const dedClass   = ded > 0 ? 'nonzero' : 'zero';
     const dedDisplay = ded > 0 ? `−£${ded.toFixed(2)}` : '—';
     const hoursDisplay = e.hours !== null ? e.hours : '—';
     const [y,m,d] = e.date.split('-');
-    const dateStr = `${d}/${m}/${y}`;
     return `<tr>
-      <td class="td-date">${dateStr}</td>
+      <td class="td-date">${d}/${m}/${y}</td>
       <td class="td-name">${esc(e.employee)}</td>
-      <td><span class="badge ${cfg(e.status).badge}">${esc(e.status)}</span></td>
+      <td><span class="badge ${cfgOf(e.status).badge}">${esc(e.status)}</span></td>
       <td class="right td-hours">${hoursDisplay}</td>
       <td class="right td-deduction ${dedClass}">${dedDisplay}</td>
       <td class="td-action">
@@ -896,32 +870,25 @@ function exportExcel() {
 
   const headers = ['Date', 'Employee Name', 'Attendance Status', 'Hours Absent', 'Total Deduction (£)'];
   const rows = filtered.map(e => [
-    e.date,
-    e.employee,
-    e.status,
+    e.date, e.employee, e.status,
     e.hours !== null ? e.hours : '',
     parseFloat(e.deduction.toFixed(2))
   ]);
-
-  const totalRow = ['', '', '', 'TOTAL DEDUCTION', parseFloat(filtered.reduce((s,e) => s + e.deduction, 0).toFixed(2))];
+  const totalRow = ['', '', '', 'TOTAL DEDUCTION',
+    parseFloat(filtered.reduce((s,e) => s + e.deduction, 0).toFixed(2))];
 
   const wsData = [headers, ...rows, [], totalRow];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-
   ws['!cols'] = [{ wch: 14 }, { wch: 25 }, { wch: 24 }, { wch: 14 }, { wch: 20 }];
 
   const range = XLSX.utils.decode_range(ws['!ref']);
   for (let r = 1; r <= range.e.r; r++) {
     const cell = ws[XLSX.utils.encode_cell({ r, c: 4 })];
-    if (cell && typeof cell.v === 'number') {
-      cell.t = 'n';
-      cell.z = '£#,##0.00';
-    }
+    if (cell && typeof cell.v === 'number') { cell.t = 'n'; cell.z = '£#,##0.00'; }
   }
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Payroll Deductions');
-
   const month = monthFilter ? monthFilter.replace('-','_') : 'all';
   XLSX.writeFile(wb, `payroll_deductions_${month}.xlsx`);
   toast('Excel file downloaded.');
@@ -930,240 +897,8 @@ function exportExcel() {
 // ── Utility ────────────────────────────────────────────────────────────────
 function esc(str) {
   return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-</script>
-</body>
-</html>
-
-  // Employee list panel
-  if (employees.length === 0) {
-    list.innerHTML = '<div class="emp-empty">No employees yet.</div>';
-  } else {
-    list.innerHTML = employees.map(name => `
-      <div class="emp-item">
-        <span class="emp-item-name">${esc(name)}</span>
-        <button class="emp-remove" onclick="removeEmployee('${esc(name)}')" title="Remove">×</button>
-      </div>`).join('');
-  }
-
-  // Dropdown
-  sel.innerHTML = '<option value="">— Select employee —</option>' +
-    employees.map(n => `<option value="${esc(n)}" ${n===prev?'selected':''}>${esc(n)}</option>`).join('');
-
-  document.getElementById('empCount').textContent =
-    `${employees.length} employee${employees.length !== 1 ? 's' : ''}`;
-}
-
-// ── Status change ──────────────────────────────────────────────────────────
-function onStatusChange() {
-  const status = document.getElementById('logStatus').value;
-  const cfg = STATUS_CONFIG[status];
-  const hoursField = document.getElementById('hoursField');
-  const hoursInput = document.getElementById('logHours');
-  const reqMark    = document.getElementById('hoursReqMark');
-  const note       = document.getElementById('hoursNote');
-
-  if (!cfg || !cfg.deducts) {
-    hoursField.style.display = 'none';
-    hoursInput.removeAttribute('required');
-    hoursInput.value = '';
-    return;
-  }
-
-  hoursField.style.display = 'flex';
-  if (status === 'Half day Holiday') {
-    reqMark.textContent = '';
-    hoursInput.removeAttribute('required');
-    hoursInput.placeholder = `Default: ${HALF_DAY_HOURS}h`;
-    note.textContent = `Leave blank to use default ${HALF_DAY_HOURS}-hour deduction.`;
-  } else {
-    reqMark.textContent = '*';
-    hoursInput.setAttribute('required', '');
-    hoursInput.placeholder = 'e.g. 4';
-    note.textContent = 'Hours are required for this status.';
-  }
-}
-
-// ── Log entry ──────────────────────────────────────────────────────────────
-function logEntry() {
-  const date   = document.getElementById('logDate').value;
-  const emp    = document.getElementById('logEmployee').value;
-  const status = document.getElementById('logStatus').value;
-  const rawH   = document.getElementById('logHours').value;
-
-  if (!date)   { toast('Please select a date.', true);     return; }
-  if (!emp)    { toast('Please select an employee.', true); return; }
-  if (!status) { toast('Please select a status.', true);   return; }
-
-  const cfg = STATUS_CONFIG[status];
-  let hours = 0;
-  let deduction = 0;
-
-  if (cfg.deducts) {
-    if (cfg.requiresHours && rawH === '') {
-      toast(`Hours are required for ${status}.`, true); return;
-    }
-    if (status === 'Half day Holiday') {
-      hours = rawH !== '' ? parseFloat(rawH) : HALF_DAY_HOURS;
-    } else {
-      hours = parseFloat(rawH);
-    }
-    if (isNaN(hours) || hours < 0) { toast('Please enter valid hours.', true); return; }
-    deduction = hours * HOURLY_RATE;
-  }
-
-  const entry = { id: Date.now(), date, employee: emp, status, hours: cfg.deducts ? hours : null, deduction };
-  // Replace any existing entry for this employee+date
-  const existingIdx = log.findIndex(e => e.date === date && e.employee === emp);
-  if (existingIdx !== -1) {
-    log.splice(existingIdx, 1, entry);
-  } else {
-    log.push(entry);
-  }
-  save();
-  renderTable();
-  toast(`Entry logged for ${emp}.`);
-
-  // Reset form partially
-  document.getElementById('logStatus').value = '';
-  document.getElementById('logHours').value = '';
-  document.getElementById('hoursField').style.display = 'none';
-}
-
-// ── Table render ───────────────────────────────────────────────────────────
-function renderTable() {
-  const nameFilter  = document.getElementById('filterName').value.trim().toLowerCase();
-  const monthFilter = document.getElementById('filterMonth').value; // "YYYY-MM"
-
-  let filtered = log.filter(e => {
-    const nameOk  = !nameFilter  || e.employee.toLowerCase().includes(nameFilter);
-    const monthOk = !monthFilter || e.date.startsWith(monthFilter);
-    return nameOk && monthOk;
-  });
-
-  // Sort newest first
-  filtered.sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
-
-  const body = document.getElementById('logBody');
-  const foot = document.getElementById('logFoot');
-
-  if (filtered.length === 0) {
-    body.innerHTML = `<tr><td colspan="6" class="table-empty">
-      <div class="table-empty-icon">📋</div>
-      <div class="table-empty-text">${log.length === 0 ? 'No entries yet. Log attendance using the form.' : 'No entries match the current filter.'}</div>
-    </td></tr>`;
-    foot.innerHTML = '';
-    return;
-  }
-
-  const totalDeduction = filtered.reduce((s,e) => s + e.deduction, 0);
-  const cfg = (s) => STATUS_CONFIG[s] || { badge: '' };
-
-  body.innerHTML = filtered.map(e => {
-    const ded = e.deduction;
-    const dedClass = ded > 0 ? 'nonzero' : 'zero';
-    const dedDisplay = ded > 0 ? `−£${ded.toFixed(2)}` : '—';
-    const hoursDisplay = e.hours !== null ? e.hours : '—';
-    const [y,m,d] = e.date.split('-');
-    const dateStr = `${d}/${m}/${y}`;
-    return `<tr>
-      <td class="td-date">${dateStr}</td>
-      <td class="td-name">${esc(e.employee)}</td>
-      <td><span class="badge ${cfg(e.status).badge}">${esc(e.status)}</span></td>
-      <td class="right td-hours">${hoursDisplay}</td>
-      <td class="right td-deduction ${dedClass}">${dedDisplay}</td>
-      <td class="td-action">
-        <button class="btn btn-ghost btn-sm" onclick="deleteEntry(${e.id})" title="Delete entry">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-
-  foot.innerHTML = `<tr>
-    <td colspan="3" class="tfoot-label">Total Deductions (filtered)</td>
-    <td></td>
-    <td class="tfoot-total">−£${totalDeduction.toFixed(2)}</td>
-    <td></td>
-  </tr>`;
-}
-
-function deleteEntry(id) {
-  log = log.filter(e => e.id !== id);
-  save();
-  renderTable();
-  toast('Entry deleted.');
-}
-
-function clearLog() {
-  if (!confirm('Clear ALL log entries? This cannot be undone.')) return;
-  log = [];
-  save();
-  renderTable();
-  toast('Log cleared.');
-}
-
-// ── Excel Export ───────────────────────────────────────────────────────────
-function exportExcel() {
-  if (log.length === 0) { toast('No data to export.', true); return; }
-
-  const nameFilter  = document.getElementById('filterName').value.trim().toLowerCase();
-  const monthFilter = document.getElementById('filterMonth').value;
-
-  let filtered = log.filter(e => {
-    const nameOk  = !nameFilter  || e.employee.toLowerCase().includes(nameFilter);
-    const monthOk = !monthFilter || e.date.startsWith(monthFilter);
-    return nameOk && monthOk;
-  });
-  filtered.sort((a,b) => a.employee.localeCompare(b.employee) || a.date.localeCompare(b.date));
-
-  // Build worksheet data
-  const headers = ['Date', 'Employee Name', 'Attendance Status', 'Hours Absent', 'Total Deduction (£)'];
-  const rows = filtered.map(e => [
-    e.date,
-    e.employee,
-    e.status,
-    e.hours !== null ? e.hours : '',
-    parseFloat(e.deduction.toFixed(2))
-  ]);
-
-  const totalRow = ['', '', '', 'TOTAL DEDUCTION', parseFloat(filtered.reduce((s,e) => s + e.deduction, 0).toFixed(2))];
-
-  const wsData = [headers, ...rows, [], totalRow];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-  // Column widths
-  ws['!cols'] = [{ wch: 14 }, { wch: 25 }, { wch: 24 }, { wch: 14 }, { wch: 20 }];
-
-  // Format deduction column as currency (column E = index 4)
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for (let r = 1; r <= range.e.r; r++) {
-    const cell = ws[XLSX.utils.encode_cell({ r, c: 4 })];
-    if (cell && typeof cell.v === 'number') {
-      cell.t = 'n';
-      cell.z = '£#,##0.00';
-    }
-  }
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Payroll Deductions');
-
-  const month = monthFilter ? monthFilter.replace('-','_') : 'all';
-  XLSX.writeFile(wb, `payroll_deductions_${month}.xlsx`);
-  toast('Excel file downloaded.');
-}
-
-// ── Utility ────────────────────────────────────────────────────────────────
-function esc(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 </script>
 </body>
