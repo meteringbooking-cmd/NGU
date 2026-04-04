@@ -567,8 +567,23 @@ let log       = JSON.parse(localStorage.getItem('atp_log')       || '[]');
   document.getElementById('filterMonth').value = today.substring(0,7);
 
   renderEmployees();
+  autoFillToday();
   renderTable();
 })();
+
+// ── Auto-fill "In" for today ────────────────────────────────────────────────
+function autoFillToday() {
+  const today = new Date().toISOString().split('T')[0];
+  let added = 0;
+  employees.forEach(name => {
+    const hasEntry = log.some(e => e.date === today && e.employee === name);
+    if (!hasEntry) {
+      log.push({ id: Date.now() + Math.random(), date: today, employee: name, status: 'In', hours: null, deduction: 0 });
+      added++;
+    }
+  });
+  if (added > 0) save();
+}
 
 // ── Persistence ────────────────────────────────────────────────────────────
 function save() {
@@ -598,8 +613,15 @@ function addEmployee() {
   }
   employees.push(name);
   employees.sort((a,b) => a.localeCompare(b));
+  // Auto-mark new employee as In for today
+  const today = new Date().toISOString().split('T')[0];
+  const hasEntry = log.some(e => e.date === today && e.employee === name);
+  if (!hasEntry) {
+    log.push({ id: Date.now() + Math.random(), date: today, employee: name, status: 'In', hours: null, deduction: 0 });
+  }
   save();
   renderEmployees();
+  renderTable();
   input.value = '';
   input.focus();
   toast(`${name} added.`);
@@ -700,7 +722,13 @@ function logEntry() {
   }
 
   const entry = { id: Date.now(), date, employee: emp, status, hours: cfg.deducts ? hours : null, deduction };
-  log.push(entry);
+  // Replace any existing entry for this employee+date
+  const existingIdx = log.findIndex(e => e.date === date && e.employee === emp);
+  if (existingIdx !== -1) {
+    log.splice(existingIdx, 1, entry);
+  } else {
+    log.push(entry);
+  }
   save();
   renderTable();
   toast(`Entry logged for ${emp}.`);
