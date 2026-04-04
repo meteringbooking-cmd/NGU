@@ -822,7 +822,7 @@ function exportExcel() {
     const monthOk = !monthFilter || e.date.startsWith(monthFilter);
     return nameOk && monthOk;
   });
-  filtered.sort((a,b) => a.date.localeCompare(b.date) || a.id - b.id);
+  filtered.sort((a,b) => a.employee.localeCompare(b.employee) || a.date.localeCompare(b.date));
 
   // Build worksheet data
   const headers = ['Date', 'Employee Name', 'Attendance Status', 'Hours Absent', 'Total Deduction (£)'];
