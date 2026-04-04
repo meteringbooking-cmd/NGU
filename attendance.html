@@ -3,902 +3,1027 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attendance & Payroll Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<title>Establishment Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f4f3ef;
-    --surface: #ffffff;
-    --surface-2: #f9f8f5;
-    --border: #e2e0d8;
-    --border-strong: #c8c5ba;
-    --text: #1a1917;
-    --text-muted: #6b6860;
-    --text-faint: #a09d96;
-    --accent: #2d5a3d;
-    --accent-light: #e8f0ea;
-    --accent-mid: #4a8a60;
-    --danger: #8b2020;
-    --danger-light: #f5e8e8;
-    --warning: #7a5200;
-    --warning-light: #fdf3e0;
-    --mono: 'DM Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
-    --radius: 8px;
-    --radius-lg: 12px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-  }
+:root {
+  --bg: #0A1628;
+  --bg2: #111f38;
+  --bg3: #1a2942;
+  --border: #2a3f5f;
+  --border2: #1e3050;
+  --text: #E8EDF2;
+  --muted: #7a8fa8;
+  --faint: #3a5070;
+  --accent: #00A3E0;
+  --accent2: #005EB8;
+  --green: #10B981;
+  --amber: #F59E0B;
+  --red: #EF4444;
+  --purple: #8B5CF6;
+  --cell-in: #0d2a1a;
+  --cell-in-text: #4ade80;
+  --cell-hol: #1a1a2e;
+  --cell-hol-text: #818cf8;
+  --cell-sick: #2a1010;
+  --cell-sick-text: #f87171;
+  --cell-aaup: #2a1f00;
+  --cell-aaup-text: #fbbf24;
+  --cell-aap: #0d1f2a;
+  --cell-aap-text: #38bdf8;
+  --cell-hdh: #1f1030;
+  --cell-hdh-text: #c084fc;
+  --cell-train: #1a1a10;
+  --cell-train-text: #a3e635;
+  --cell-wknd: #0d1525;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.5;
-  }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-  /* ── Header ── */
-  header {
-    background: var(--text);
-    color: #fff;
-    padding: 0 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .header-logo {
-    width: 28px; height: 28px;
-    background: var(--accent);
-    border-radius: 6px;
-    display: grid;
-    place-items: center;
-  }
-  .header-logo svg { width: 16px; height: 16px; }
-  .header-title {
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-  }
-  .header-sub {
-    font-size: 11px;
-    font-family: var(--mono);
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .header-date {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: rgba(255,255,255,0.5);
-  }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 10% 20%, rgba(0,163,224,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 80%, rgba(0,94,184,0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
 
-  /* ── Layout ── */
-  .page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 24px;
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 24px;
-    align-items: start;
-  }
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(10, 22, 40, 0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 16px;
+}
 
-  /* ── Panels ── */
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .panel-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .panel-title {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .panel-body { padding: 20px; }
+.header-left { display: flex; align-items: center; gap: 16px; }
 
-  /* ── Sidebar ── */
-  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+.logo-mark {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
 
-  /* ── Form Elements ── */
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  input[type="text"],
-  input[type="date"],
-  input[type="number"],
-  select {
-    font-family: var(--sans);
-    font-size: 13.5px;
-    color: var(--text);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 9px 12px;
-    width: 100%;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  input:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(45,90,61,0.12);
-    background: #fff;
-  }
-  select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6860' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 32px;
-  }
-  input::placeholder { color: var(--text-faint); }
+.header-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.header-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
 
-  /* ── Buttons ── */
-  .btn {
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    border: none;
-    border-radius: var(--radius);
-    padding: 9px 16px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    width: 100%;
-  }
-  .btn-primary:hover { background: #234d33; }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-  .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
-  .btn-excel {
-    background: #1d6f42;
-    color: #fff;
-    font-size: 12px;
-    padding: 8px 14px;
-  }
-  .btn-excel:hover { background: #165333; }
-  .btn-sm { padding: 5px 10px; font-size: 11px; }
+.header-right { display: flex; align-items: center; gap: 10px; }
 
-  /* ── Employee list ── */
-  .emp-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 220px;
-    overflow-y: auto;
-    padding-right: 2px;
-  }
-  .emp-list::-webkit-scrollbar { width: 4px; }
-  .emp-list::-webkit-scrollbar-track { background: transparent; }
-  .emp-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
-  .emp-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 13px;
-    animation: slideIn 0.2s ease;
-  }
-  .emp-item-name { font-weight: 500; }
-  .emp-remove {
-    background: none; border: none; cursor: pointer;
-    color: var(--text-faint); font-size: 16px; line-height: 1;
-    padding: 0 2px; transition: color 0.15s;
-  }
-  .emp-remove:hover { color: var(--danger); }
-  .emp-empty {
-    text-align: center; padding: 20px; color: var(--text-faint);
-    font-size: 12px; font-style: italic;
-  }
+/* Month nav */
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+.month-nav-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+.month-nav-btn:hover { background: var(--border); color: var(--text); }
+.month-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 110px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
 
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+.btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #fff;
+}
+.btn-accent:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-ghost {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--accent); }
 
-  /* ── Hours hint ── */
-  .hours-note {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-style: italic;
-    margin-top: 2px;
-  }
-  .field-hidden { display: none; }
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg2);
+  position: relative;
+  z-index: 1;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-  /* ── Status badges ── */
-  .badge {
-    display: inline-block;
-    font-size: 10.5px;
-    font-weight: 600;
-    font-family: var(--mono);
-    padding: 2px 8px;
-    border-radius: 99px;
-    letter-spacing: 0.04em;
-  }
-  .badge-in      { background: #e8f0ea; color: #2d5a3d; }
-  .badge-holiday { background: #e8eaf0; color: #2d3a5a; }
-  .badge-halfhol { background: #eae8f0; color: #4a3a7a; }
-  .badge-sick    { background: var(--danger-light); color: var(--danger); }
-  .badge-aaup    { background: var(--warning-light); color: var(--warning); }
-  .badge-aap     { background: #e8f5f0; color: #1a5a45; }
-  .badge-training{ background: #f0ece8; color: #5a4020; }
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+.legend-dot {
+  width: 20px; height: 16px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  font-weight: 600;
+}
 
-  /* ── Main table area ── */
-  .main-content { display: flex; flex-direction: column; gap: 20px; }
+.toolbar-actions { display: flex; align-items: center; gap: 8px; }
 
-  /* ── Table ── */
-  .table-wrap { overflow-x: auto; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  thead tr {
-    background: var(--surface-2);
-    border-bottom: 2px solid var(--border);
-  }
-  th {
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-  th.right, td.right { text-align: right; }
-  td {
-    padding: 11px 14px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: middle;
-  }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface-2); }
-  .td-date {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-  .td-name { font-weight: 500; }
-  .td-hours {
-    font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--text-muted);
-  }
-  .td-deduction {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .td-deduction.zero { color: var(--text-faint); }
-  .td-deduction.nonzero { color: var(--danger); }
-  .td-action { text-align: right; }
+/* ── Staff search ── */
+.staff-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.staff-search {
+  font-family: var(--sans);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 6px 12px 6px 30px;
+  outline: none;
+  width: 160px;
+  transition: border-color 0.15s;
+}
+.staff-search:focus { border-color: var(--accent); }
+.staff-search-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--muted);
+  font-size: 12px;
+  pointer-events: none;
+}
 
-  /* ── Table footer ── */
-  tfoot tr td {
-    border-top: 2px solid var(--border);
-    border-bottom: none;
-    background: var(--surface-2);
-    padding: 12px 14px;
-    font-weight: 600;
-  }
-  .tfoot-label {
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .tfoot-total {
-    font-family: var(--mono);
-    font-size: 15px;
-    color: var(--danger);
-    font-weight: 700;
-    text-align: right;
-  }
+/* ── Grid wrapper ── */
+.grid-outer {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  max-height: calc(100vh - 130px);
+}
 
-  /* ── Empty state ── */
-  .table-empty {
-    text-align: center;
-    padding: 48px 20px;
-    color: var(--text-faint);
-  }
-  .table-empty-icon { font-size: 36px; margin-bottom: 10px; }
-  .table-empty-text { font-size: 13px; }
+/* ── Table ── */
+.report-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+}
 
-  /* ── Filter bar ── */
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .toolbar-left { flex: 1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .filter-input {
-    font-family: var(--sans);
-    font-size: 12.5px;
-    color: var(--text);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 7px 11px;
-    outline: none;
-    transition: border-color 0.15s;
-    width: 170px;
-  }
-  .filter-input:focus { border-color: var(--accent); }
+/* Sticky column — staff names */
+.col-staff {
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  background: var(--bg2);
+  min-width: 180px;
+  max-width: 180px;
+  border-right: 2px solid var(--border);
+}
 
-  /* ── Toast ── */
-  #toast {
-    position: fixed;
-    bottom: 24px; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--text);
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 99px;
-    font-size: 13px;
-    font-weight: 500;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  #toast.error { background: var(--danger); }
+/* Sticky header row */
+.report-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg3);
+  border-bottom: 2px solid var(--border);
+  padding: 0;
+  height: 56px;
+}
+/* Corner cell — sticky both */
+.report-table thead th.col-staff {
+  z-index: 40;
+  background: var(--bg3);
+}
 
-  .btn-toggle {
-    background: var(--surface);
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    font-size: 12px;
-    padding: 7px 12px;
-    gap: 6px;
-  }
-  .btn-toggle:hover { background: var(--surface-2); color: var(--text); }
-  .btn-toggle.active {
-    background: var(--warning-light);
-    color: var(--warning);
-    border-color: #e0b060;
-    font-weight: 600;
-  }
-  @media (max-width: 800px) {
-    .page { grid-template-columns: 1fr; }
-    header { padding: 0 16px; }
-    .page { padding: 16px; }
-  }
+.th-staff-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px 14px;
+  height: 100%;
+}
+.th-staff-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.th-staff-count {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.th-day-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2px;
+  padding: 6px 2px;
+  min-width: 46px;
+}
+.th-day-name {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.th-day-num {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+}
+.th-day-inner.today { background: rgba(0,163,224,0.08); border-bottom: 2px solid var(--accent); }
+.th-day-inner.today .th-day-num { color: var(--accent); }
+.th-day-inner.weekend { background: var(--cell-wknd); }
+.th-day-inner.weekend .th-day-name,
+.th-day-inner.weekend .th-day-num { color: var(--faint); }
+
+/* Body rows */
+.report-table tbody tr { transition: background 0.1s; }
+.report-table tbody tr:hover .col-staff { background: var(--bg3); }
+.report-table tbody tr:hover td:not(.col-staff):not(.cell-wknd) { filter: brightness(1.12); }
+
+.td-staff {
+  padding: 0 14px;
+  height: 42px;
+  border-bottom: 1px solid var(--border2);
+  border-right: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.staff-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: grid; place-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: var(--mono);
+}
+.staff-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Day cells */
+.report-table tbody td.cell-day {
+  height: 42px;
+  min-width: 46px;
+  border-bottom: 1px solid var(--border2);
+  border-right: 1px solid var(--border2);
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  position: relative;
+}
+.report-table tbody td.cell-wknd {
+  background: var(--cell-wknd);
+  cursor: default;
+  border-right: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+}
+
+/* Status chips inside cells */
+.cell-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 24px;
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform 0.1s;
+  position: relative;
+}
+.cell-day:hover .cell-chip { transform: scale(1.1); }
+
+/* Status colours */
+.s-In       { background: var(--cell-in);   color: var(--cell-in-text); }
+.s-Holiday  { background: var(--cell-hol);  color: var(--cell-hol-text); }
+.s-Half     { background: var(--cell-hdh);  color: var(--cell-hdh-text); }
+.s-Sick     { background: var(--cell-sick); color: var(--cell-sick-text); }
+.s-AAUP     { background: var(--cell-aaup); color: var(--cell-aaup-text); }
+.s-AAP      { background: var(--cell-aap);  color: var(--cell-aap-text); }
+.s-Training { background: var(--cell-train);color: var(--cell-train-text); }
+.s-BH       { background: var(--cell-hol);  color: var(--cell-hol-text); }
+
+/* Today column highlight */
+.cell-today { background: rgba(0,163,224,0.04); }
+
+/* Totals row */
+.totals-row td {
+  background: var(--bg3);
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+  height: 36px;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-align: center;
+  vertical-align: middle;
+  color: var(--muted);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+.totals-row td.col-staff {
+  z-index: 20;
+  text-align: left;
+  padding: 0 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Edit dropdown popup ── */
+.cell-popup {
+  position: absolute;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+  z-index: 500;
+  min-width: 160px;
+  overflow: hidden;
+  animation: popIn 0.15s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.popup-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.popup-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: 12px;
+  font-weight: 500;
+}
+.popup-option:hover { background: var(--bg); }
+.popup-dot {
+  width: 24px; height: 18px;
+  border-radius: 4px;
+  display: grid; place-items: center;
+  font-size: 8.5px;
+  font-family: var(--mono);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ── Loading overlay ── */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,22,40,0.85);
+  backdrop-filter: blur(6px);
+  display: grid; place-items: center;
+  z-index: 900;
+}
+.loading-overlay.hidden { display: none; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: center; }
+
+/* ── Save indicator ── */
+.save-pill {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-family: var(--mono);
+  color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+  z-index: 800;
+  transition: all 0.3s;
+  transform: translateY(80px);
+}
+.save-pill.show { transform: translateY(0); }
+.save-pill.saved { border-color: var(--green); color: var(--green); }
+.save-pill.saving { border-color: var(--accent); color: var(--accent); }
+.save-pill.error { border-color: var(--red); color: var(--red); }
+.save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 70px; left: 50%; transform: translateX(-50%) translateY(60px);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-family: var(--mono);
+  z-index: 900;
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Scrollbars */
+.grid-outer::-webkit-scrollbar { width: 6px; height: 6px; }
+.grid-outer::-webkit-scrollbar-track { background: var(--bg2); }
+.grid-outer::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+.grid-outer::-webkit-scrollbar-thumb:hover { background: var(--faint); }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 20px; color: var(--muted); text-align: center;
+  gap: 12px;
+}
+.empty-state-icon { font-size: 48px; opacity: 0.4; }
+.empty-state-text { font-size: 14px; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-brand">
-    <div class="header-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
-        <path d="M9 16l2 2 4-4"/>
-      </svg>
-    </div>
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div>
+    <div class="spinner"></div>
+    <div class="loading-text">Loading establishment data…</div>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo-mark">📋</div>
     <div>
-      <div class="header-title">Attendance & Payroll Tracker</div>
-      <div class="header-sub">HR Management System</div>
+      <div class="header-title">Establishment Report</div>
+      <div class="header-sub">Attendance Overview</div>
     </div>
   </div>
-  <div class="header-date" id="headerDate"></div>
+  <div class="header-right">
+    <div class="month-nav">
+      <button class="month-nav-btn" id="prevMonth" title="Previous month">‹</button>
+      <span class="month-label" id="monthLabel">—</span>
+      <button class="month-nav-btn" id="nextMonth" title="Next month">›</button>
+    </div>
+    <button class="btn btn-accent" id="addStaffBtn">+ Add Staff</button>
+  </div>
 </header>
 
-<div class="page">
-
-  <!-- ── Sidebar ── -->
-  <div class="sidebar">
-
-    <!-- Staff Management -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Staff Management</span>
-        <span id="empCount" style="font-family:var(--mono);font-size:11px;color:var(--text-faint);">0 employees</span>
-      </div>
-      <div class="panel-body" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="field">
-          <label for="newEmpName">Add Employee</label>
-          <input type="text" id="newEmpName" placeholder="Full name…" autocomplete="off">
-        </div>
-        <button class="btn btn-primary" onclick="addEmployee()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Add Employee
-        </button>
-        <div class="emp-list" id="empList">
-          <div class="emp-empty">No employees yet.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Log Attendance -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Log Attendance</span>
-      </div>
-      <div class="panel-body" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="field">
-          <label for="logDate">Date</label>
-          <input type="date" id="logDate">
-        </div>
-        <div class="field">
-          <label for="logEmployee">Employee</label>
-          <select id="logEmployee">
-            <option value="">— Select employee —</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="logStatus">Status</label>
-          <select id="logStatus" onchange="onStatusChange()">
-            <option value="">— Select status —</option>
-            <option value="In">In</option>
-            <option value="Holiday">Holiday</option>
-            <option value="Half day Holiday">Half day Holiday</option>
-            <option value="Sick">Sick</option>
-            <option value="AAUP">AAUP (Authorised Absence Unpaid)</option>
-            <option value="AAP">AAP (Authorised Absence Paid)</option>
-            <option value="Training">Training</option>
-          </select>
-        </div>
-        <div class="field" id="hoursField" style="display:none;">
-          <label for="logHours">Hours <span id="hoursReqMark" style="color:var(--danger);"></span></label>
-          <input type="number" id="logHours" placeholder="e.g. 4" min="0" max="24" step="0.5">
-          <span class="hours-note" id="hoursNote"></span>
-        </div>
-        <button class="btn btn-primary" onclick="logEntry()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-          Log Entry
-        </button>
-      </div>
-    </div>
-
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot s-In">In</div> In</div>
+    <div class="legend-item"><div class="legend-dot s-Holiday">H</div> Holiday</div>
+    <div class="legend-item"><div class="legend-dot s-Half">½H</div> Half-day Hol</div>
+    <div class="legend-item"><div class="legend-dot s-Sick">S</div> Sick</div>
+    <div class="legend-item"><div class="legend-dot s-AAUP">AU</div> AAUP</div>
+    <div class="legend-item"><div class="legend-dot s-AAP">AP</div> AAP</div>
+    <div class="legend-item"><div class="legend-dot s-Training">Tr</div> Training</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cell-wknd);color:var(--faint);">—</div> Weekend</div>
+    <div class="legend-item"><div class="legend-dot s-BH">BH</div> Bank Hol</div>
   </div>
-
-  <!-- ── Main content ── -->
-  <div class="main-content">
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Attendance Log</span>
-        <div class="toolbar">
-          <div class="toolbar-left">
-            <input class="filter-input" type="text" id="filterName" placeholder="Filter by name…" oninput="renderTable()">
-            <input class="filter-input" type="month" id="filterMonth" oninput="renderTable()" style="width:140px;">
-            <button class="btn btn-toggle" id="dedToggle" onclick="toggleDeductionsOnly()" title="Show only entries with a salary deduction">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-              Deductions Only
-            </button>
-          </div>
-          <button class="btn btn-excel" onclick="exportExcel()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Download Excel
-          </button>
-          <button class="btn btn-ghost btn-sm" onclick="clearLog()" title="Clear all log entries">Clear Log</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table id="logTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Employee</th>
-              <th>Status</th>
-              <th class="right">Hours</th>
-              <th class="right">Salary Deduction (£)</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="logBody">
-            <tr><td colspan="6" class="table-empty">
-              <div class="table-empty-icon">📋</div>
-              <div class="table-empty-text">No entries yet. Log attendance using the form.</div>
-            </td></tr>
-          </tbody>
-          <tfoot id="logFoot"></tfoot>
-        </table>
-      </div>
+  <div class="toolbar-actions">
+    <div class="staff-search-wrap">
+      <span class="staff-search-icon">⌕</span>
+      <input class="staff-search" type="text" id="staffSearch" placeholder="Search staff…">
     </div>
+    <button class="btn btn-ghost" id="todayBtn">Today</button>
   </div>
+</div>
 
+<!-- Grid -->
+<div class="grid-outer" id="gridOuter">
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="empty-state-icon">👥</div>
+    <div class="empty-state-text">No staff found. Add staff to get started.</div>
+  </div>
+  <table class="report-table" id="reportTable" style="display:none;">
+    <thead id="tableHead"></thead>
+    <tbody id="tableBody"></tbody>
+    <tfoot id="tableFoot"></tfoot>
+  </table>
+</div>
+
+<!-- Status popup -->
+<div class="cell-popup" id="cellPopup" style="display:none;"></div>
+
+<!-- Save pill -->
+<div class="save-pill" id="savePill">
+  <div class="save-dot"></div>
+  <span id="savePillText">Saving…</span>
 </div>
 
 <div id="toast"></div>
 
-<script>
-// ── Constants ──────────────────────────────────────────────────────────────
-const HOURLY_RATE = 19.95192307692308;
-const HALF_DAY_HOURS = 4;
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import {
+  getFirestore, collection, doc,
+  getDocs, setDoc, deleteDoc, query, where
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-const STATUS_CONFIG = {
-  'In':              { deducts: false, requiresHours: false, badge: 'badge-in' },
-  'Holiday':         { deducts: false, requiresHours: false, badge: 'badge-holiday' },
-  'Half day Holiday':{ deducts: true,  requiresHours: false, badge: 'badge-halfhol', defaultHours: HALF_DAY_HOURS },
-  'Sick':            { deducts: true,  requiresHours: true,  badge: 'badge-sick' },
-  'AAUP':            { deducts: true,  requiresHours: true,  badge: 'badge-aaup' },
-  'AAP':             { deducts: false, requiresHours: false, badge: 'badge-aap' },
-  'Training':        { deducts: false, requiresHours: false, badge: 'badge-training' },
+const firebaseConfig = {
+  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+  authDomain: "oesperformance-a54c0.firebaseapp.com",
+  projectId: "oesperformance-a54c0",
+  storageBucket: "oesperformance-a54c0.firebasestorage.app",
+  messagingSenderId: "484894102454",
+  appId: "1:484894102454:web:17535ee497eac2d90d6717"
 };
 
-// ── UK Bank Holidays (England & Wales) 2024-2026 ───────────────────────────
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── UK Bank Holidays (England & Wales) ────────────────────────────────────
 const BANK_HOLIDAYS = new Set([
-  // 2024
   '2024-01-01','2024-03-29','2024-04-01','2024-05-06','2024-05-27',
   '2024-08-26','2024-12-25','2024-12-26',
-  // 2025
   '2025-01-01','2025-04-18','2025-04-21','2025-05-05','2025-05-26',
   '2025-08-25','2025-12-25','2025-12-26',
-  // 2026
   '2026-01-01','2026-04-03','2026-04-06','2026-05-04','2026-05-25',
   '2026-08-31','2026-12-25','2026-12-28',
 ]);
 
-function isWeekend(dateStr) {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.getDay() === 0 || d.getDay() === 6;
+const STATUS_OPTIONS = [
+  { code:'In',       label:'In',              abbr:'In',  cls:'s-In' },
+  { code:'Holiday',  label:'Holiday',         abbr:'H',   cls:'s-Holiday' },
+  { code:'Half day Holiday', label:'Half-day Holiday', abbr:'½H', cls:'s-Half' },
+  { code:'Sick',     label:'Sick',            abbr:'S',   cls:'s-Sick' },
+  { code:'AAUP',     label:'AAUP (Unpaid)',   abbr:'AU',  cls:'s-AAUP' },
+  { code:'AAP',      label:'AAP (Paid)',      abbr:'AP',  cls:'s-AAP' },
+  { code:'Training', label:'Training',        abbr:'Tr',  cls:'s-Training' },
+];
+
+function dateKey(year, month1, day) {
+  return `${year}-${String(month1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
-function isBankHoliday(dateStr) { return BANK_HOLIDAYS.has(dateStr); }
-function isWorkingDay(dateStr)  { return !isWeekend(dateStr) && !isBankHoliday(dateStr); }
+function isWeekend(year, month1, day) {
+  const d = new Date(year, month1 - 1, day).getDay();
+  return d === 0 || d === 6;
+}
+function isBankHoliday(key) { return BANK_HOLIDAYS.has(key); }
+function daysInMonth(year, month1) { return new Date(year, month1, 0).getDate(); }
+function dayName(year, month1, day) {
+  return new Date(year, month1 - 1, day).toLocaleDateString('en-GB', { weekday:'short' });
+}
 
 // ── State ──────────────────────────────────────────────────────────────────
-let employees = JSON.parse(localStorage.getItem('atp_employees') || '[]');
-let log       = JSON.parse(localStorage.getItem('atp_log')       || '[]');
-let showDeductionsOnly = false;
+const now = new Date();
+let viewYear  = now.getFullYear();
+let viewMonth = now.getMonth() + 1; // 1-based
+let staff = [];       // [{id, name}]
+let entries = {};     // { staffId: { 'YYYY-MM-DD': 'Status' } }
+let searchQ = '';
 
-// ── Init ───────────────────────────────────────────────────────────────────
-(function init() {
-  document.getElementById('headerDate').textContent =
-    new Date().toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+// ── Elements ──────────────────────────────────────────────────────────────
+const monthLabel  = document.getElementById('monthLabel');
+const tableHead   = document.getElementById('tableHead');
+const tableBody   = document.getElementById('tableBody');
+const tableFoot   = document.getElementById('tableFoot');
+const reportTable = document.getElementById('reportTable');
+const emptyState  = document.getElementById('emptyState');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const cellPopup   = document.getElementById('cellPopup');
+const savePill    = document.getElementById('savePill');
+const savePillText= document.getElementById('savePillText');
 
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('logDate').value = today;
-  document.getElementById('filterMonth').value = today.substring(0,7);
+// ── Init ──────────────────────────────────────────────────────────────────
+document.getElementById('prevMonth').addEventListener('click', () => { changeMonth(-1); });
+document.getElementById('nextMonth').addEventListener('click', () => { changeMonth(1); });
+document.getElementById('todayBtn').addEventListener('click',  goToday);
+document.getElementById('addStaffBtn').addEventListener('click', promptAddStaff);
+document.getElementById('staffSearch').addEventListener('input', e => { searchQ = e.target.value.trim().toLowerCase(); renderGrid(); });
+document.addEventListener('click', handleDocClick);
 
-  // Purge any entries on non-working days (cleanup for legacy data)
-  const before = log.length;
-  log = log.filter(e => isWorkingDay(e.date));
-  if (log.length !== before) save();
+loadAll();
 
-  renderEmployees();
-  autoFillToday();
-  renderTable();
-})();
+// ── Firebase ──────────────────────────────────────────────────────────────
+async function loadAll() {
+  showLoading(true);
+  try {
+    // Load staff
+    const staffSnap = await getDocs(collection(db, 'Establishment Report'));
+    staff = [];
+    entries = {};
+    staffSnap.forEach(d => {
+      const data = d.data();
+      if (data._type === 'staff') {
+        staff.push({ id: d.id, name: data.name });
+        entries[d.id] = {};
+      }
+    });
+    staff.sort((a,b) => a.name.localeCompare(b.name));
 
-// ── Auto-fill "In" for today ────────────────────────────────────────────────
-function autoFillToday() {
-  const today = new Date().toISOString().split('T')[0];
-  if (!isWorkingDay(today)) return;
-  let added = 0;
-  employees.forEach(name => {
-    const hasEntry = log.some(e => e.date === today && e.employee === name);
-    if (!hasEntry) {
-      log.push({ id: Date.now() + Math.random(), date: today, employee: name, status: 'In', hours: null, deduction: 0 });
-      added++;
-    }
+    // Load entries for current month
+    await loadEntriesForMonth(viewYear, viewMonth);
+  } catch(e) {
+    console.error(e);
+    toast('Error loading data', true);
+  }
+  showLoading(false);
+  renderGrid();
+}
+
+async function loadEntriesForMonth(year, month) {
+  const prefix = `${year}-${String(month).padStart(2,'0')}`;
+  try {
+    const q = query(collection(db, 'Establishment Report'), where('_type','==','entry'), where('month','==',prefix));
+    const snap = await getDocs(q);
+    snap.forEach(d => {
+      const data = d.data();
+      if (!entries[data.staffId]) entries[data.staffId] = {};
+      entries[data.staffId][data.date] = data.status;
+    });
+  } catch(e) {
+    console.error('Error loading entries:', e);
+  }
+}
+
+async function saveEntry(staffId, dateStr, status) {
+  showSave('saving');
+  const docId = `entry_${staffId}_${dateStr}`;
+  const prefix = dateStr.substring(0,7);
+  try {
+    await setDoc(doc(db, 'Establishment Report', docId), {
+      _type: 'entry',
+      staffId,
+      date: dateStr,
+      month: prefix,
+      status,
+      updatedAt: new Date().toISOString()
+    });
+    showSave('saved');
+  } catch(e) {
+    console.error(e);
+    showSave('error');
+    toast('Save failed', true);
+  }
+}
+
+async function saveStaffMember(id, name) {
+  try {
+    await setDoc(doc(db, 'Establishment Report', id), {
+      _type: 'staff',
+      name,
+      createdAt: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error(e);
+    toast('Error saving staff', true);
+  }
+}
+
+async function deleteStaffMember(id) {
+  try {
+    await deleteDoc(doc(db, 'Establishment Report', id));
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function changeMonth(delta) {
+  viewMonth += delta;
+  if (viewMonth > 12) { viewMonth = 1; viewYear++; }
+  if (viewMonth < 1)  { viewMonth = 12; viewYear--; }
+  // Clear entries for fresh load
+  staff.forEach(s => { entries[s.id] = {}; });
+  showLoading(true);
+  loadEntriesForMonth(viewYear, viewMonth).then(() => {
+    showLoading(false);
+    renderGrid();
   });
-  if (added > 0) save();
 }
 
-// ── Persistence ────────────────────────────────────────────────────────────
-function save() {
-  localStorage.setItem('atp_employees', JSON.stringify(employees));
-  localStorage.setItem('atp_log', JSON.stringify(log));
+function goToday() {
+  const n = new Date();
+  viewYear  = n.getFullYear();
+  viewMonth = n.getMonth() + 1;
+  staff.forEach(s => { entries[s.id] = {}; });
+  showLoading(true);
+  loadEntriesForMonth(viewYear, viewMonth).then(() => {
+    showLoading(false);
+    renderGrid();
+    // Scroll to today column
+    setTimeout(() => {
+      const todayEl = document.querySelector('.th-day-inner.today');
+      if (todayEl) todayEl.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+    }, 100);
+  });
 }
 
-// ── Toast ──────────────────────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────────────
+function renderGrid() {
+  const days = daysInMonth(viewYear, viewMonth);
+  const todayStr = dateKey(now.getFullYear(), now.getMonth()+1, now.getDate());
+
+  monthLabel.textContent = new Date(viewYear, viewMonth-1, 1)
+    .toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+
+  const filtered = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+
+  if (filtered.length === 0) {
+    reportTable.style.display = 'none';
+    emptyState.style.display  = 'flex';
+    return;
+  }
+  emptyState.style.display  = 'none';
+  reportTable.style.display = 'table';
+
+  // ── Header ──
+  let headHTML = '<tr>';
+  headHTML += `<th class="col-staff"><div class="th-staff-inner"><div class="th-staff-label">Staff</div><div class="th-staff-count">${filtered.length}</div></div></th>`;
+  for (let d = 1; d <= days; d++) {
+    const key = dateKey(viewYear, viewMonth, d);
+    const wknd = isWeekend(viewYear, viewMonth, d);
+    const bh   = isBankHoliday(key);
+    const isToday = key === todayStr;
+    let cls = '';
+    if (wknd || bh) cls = 'weekend';
+    if (isToday)    cls = 'today';
+    headHTML += `<th><div class="th-day-inner ${cls}"><div class="th-day-name">${dayName(viewYear, viewMonth, d)}</div><div class="th-day-num">${d}</div></div></th>`;
+  }
+  headHTML += '</tr>';
+  tableHead.innerHTML = headHTML;
+
+  // ── Body ──
+  let bodyHTML = '';
+  filtered.forEach(s => {
+    const initials = s.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    bodyHTML += `<tr data-staff-id="${s.id}">`;
+    bodyHTML += `<td class="col-staff"><div class="td-staff"><div class="staff-avatar">${initials}</div><span class="staff-name" title="${esc(s.name)}">${esc(s.name)}</span></div></td>`;
+
+    for (let d = 1; d <= days; d++) {
+      const key  = dateKey(viewYear, viewMonth, d);
+      const wknd = isWeekend(viewYear, viewMonth, d);
+      const bh   = isBankHoliday(key);
+      const isToday = key === todayStr;
+
+      if (wknd) {
+        bodyHTML += `<td class="cell-wknd"></td>`;
+        continue;
+      }
+
+      let status, abbr, cls;
+      if (bh) {
+        status = 'Holiday'; abbr = 'BH'; cls = 's-BH';
+      } else {
+        const stored = entries[s.id]?.[key];
+        const opt = STATUS_OPTIONS.find(o => o.code === stored) || STATUS_OPTIONS[0];
+        status = opt.code; abbr = opt.abbr; cls = opt.cls;
+      }
+
+      const todayCls = isToday ? 'cell-today' : '';
+      bodyHTML += `<td class="cell-day ${todayCls}" data-date="${key}" data-staff="${s.id}" data-bh="${bh?'1':'0'}">
+        <span class="cell-chip ${cls}">${abbr}</span>
+      </td>`;
+    }
+    bodyHTML += '</tr>';
+  });
+  tableBody.innerHTML = bodyHTML;
+
+  // ── Footer totals ──
+  let footHTML = '<tr class="totals-row">';
+  footHTML += `<td class="col-staff">Summary</td>`;
+  for (let d = 1; d <= days; d++) {
+    const key  = dateKey(viewYear, viewMonth, d);
+    const wknd = isWeekend(viewYear, viewMonth, d);
+    const bh   = isBankHoliday(key);
+    if (wknd) { footHTML += `<td></td>`; continue; }
+    if (bh)   { footHTML += `<td style="color:var(--cell-hol-text);">BH</td>`; continue; }
+    // Count people "In"
+    const inCount = filtered.filter(s => {
+      const st = entries[s.id]?.[key];
+      return !st || st === 'In';
+    }).length;
+    const pct = filtered.length ? Math.round(inCount/filtered.length*100) : 0;
+    const col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
+    footHTML += `<td style="color:${col};font-size:10px;">${inCount}</td>`;
+  }
+  footHTML += '</tr>';
+  tableFoot.innerHTML = footHTML;
+
+  // ── Attach cell click listeners ──
+  tableBody.querySelectorAll('.cell-day[data-bh="0"]').forEach(cell => {
+    cell.addEventListener('click', onCellClick);
+  });
+}
+
+// ── Cell click → popup ────────────────────────────────────────────────────
+function onCellClick(e) {
+  e.stopPropagation();
+  const cell = e.currentTarget;
+  const dateStr = cell.dataset.date;
+  const staffId = cell.dataset.staff;
+
+  // Position popup
+  const rect = cell.getBoundingClientRect();
+  cellPopup.style.display = 'block';
+  // Build options
+  const currentStatus = entries[staffId]?.[dateStr] || 'In';
+  let html = `<div class="popup-header">${dateStr}</div>`;
+  STATUS_OPTIONS.forEach(opt => {
+    const active = opt.code === currentStatus ? 'style="background:var(--bg);"' : '';
+    html += `<div class="popup-option" data-code="${opt.code}" data-staff="${staffId}" data-date="${dateStr}" ${active}>
+      <div class="popup-dot ${opt.cls}">${opt.abbr}</div>
+      <span>${opt.label}</span>
+      ${opt.code === currentStatus ? '<span style="margin-left:auto;font-size:10px;color:var(--accent)">✓</span>' : ''}
+    </div>`;
+  });
+  cellPopup.innerHTML = html;
+
+  // Smart positioning
+  const popW = 168, popH = STATUS_OPTIONS.length * 36 + 36;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let top  = rect.bottom + 4;
+  let left = rect.left;
+  if (top + popH > vh)  top  = rect.top - popH - 4;
+  if (left + popW > vw) left = vw - popW - 8;
+  if (left < 4)         left = 4;
+  cellPopup.style.top  = `${top + window.scrollY}px`;
+  cellPopup.style.left = `${left}px`;
+  cellPopup.style.position = 'fixed';
+  cellPopup.style.top  = `${top}px`;
+
+  cellPopup.querySelectorAll('.popup-option').forEach(opt => {
+    opt.addEventListener('click', async e2 => {
+      e2.stopPropagation();
+      const code = opt.dataset.code;
+      const sid  = opt.dataset.staff;
+      const dt   = opt.dataset.date;
+      if (!entries[sid]) entries[sid] = {};
+      entries[sid][dt] = code;
+      cellPopup.style.display = 'none';
+      renderGrid();
+      await saveEntry(sid, dt, code);
+    });
+  });
+}
+
+function handleDocClick() { cellPopup.style.display = 'none'; }
+
+// ── Add staff ─────────────────────────────────────────────────────────────
+async function promptAddStaff() {
+  const name = prompt('Enter staff member name:');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (staff.some(s => s.name.toLowerCase() === trimmed.toLowerCase())) {
+    toast('Staff member already exists'); return;
+  }
+  const id = 'staff_' + Date.now();
+  staff.push({ id, name: trimmed });
+  entries[id] = {};
+  staff.sort((a,b) => a.name.localeCompare(b.name));
+  await saveStaffMember(id, trimmed);
+  renderGrid();
+  toast(`${trimmed} added`);
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────
+function showLoading(show) {
+  loadingOverlay.classList.toggle('hidden', !show);
+}
+
+let savePillTimer;
+function showSave(state) {
+  savePill.className = `save-pill show ${state}`;
+  savePillText.textContent = state === 'saving' ? 'Saving…' : state === 'saved' ? 'Saved ✓' : 'Error saving';
+  clearTimeout(savePillTimer);
+  if (state !== 'saving') {
+    savePillTimer = setTimeout(() => { savePill.classList.remove('show'); }, 2500);
+  }
+}
+
 let toastTimer;
 function toast(msg, isError = false) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = isError ? 'error' : '';
-  void el.offsetWidth;
+  el.style.borderColor = isError ? 'var(--red)' : 'var(--border)';
+  el.style.color = isError ? 'var(--red)' : 'var(--text)';
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// ── Employees ──────────────────────────────────────────────────────────────
-function addEmployee() {
-  const input = document.getElementById('newEmpName');
-  const name = input.value.trim();
-  if (!name) { toast('Please enter a name.', true); input.focus(); return; }
-  if (employees.map(e=>e.toLowerCase()).includes(name.toLowerCase())) {
-    toast('Employee already exists.', true); input.select(); return;
-  }
-  employees.push(name);
-  employees.sort((a,b) => a.localeCompare(b));
-  const today = new Date().toISOString().split('T')[0];
-  if (isWorkingDay(today) && !log.some(e => e.date === today && e.employee === name)) {
-    log.push({ id: Date.now() + Math.random(), date: today, employee: name, status: 'In', hours: null, deduction: 0 });
-  }
-  save();
-  renderEmployees();
-  renderTable();
-  input.value = '';
-  input.focus();
-  toast(`${name} added.`);
-}
-
-document.getElementById('newEmpName').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addEmployee();
-});
-
-function removeEmployee(name) {
-  if (!confirm(`Remove "${name}" from the employee list?\n\nTheir logged entries will be kept.`)) return;
-  employees = employees.filter(e => e !== name);
-  save();
-  renderEmployees();
-  toast(`${name} removed.`);
-}
-
-function renderEmployees() {
-  const list = document.getElementById('empList');
-  const sel  = document.getElementById('logEmployee');
-  const prev = sel.value;
-
-  if (employees.length === 0) {
-    list.innerHTML = '<div class="emp-empty">No employees yet.</div>';
-  } else {
-    list.innerHTML = employees.map(name => `
-      <div class="emp-item">
-        <span class="emp-item-name">${esc(name)}</span>
-        <button class="emp-remove" onclick="removeEmployee('${esc(name)}')" title="Remove">×</button>
-      </div>`).join('');
-  }
-
-  sel.innerHTML = '<option value="">— Select employee —</option>' +
-    employees.map(n => `<option value="${esc(n)}" ${n===prev?'selected':''}>${esc(n)}</option>`).join('');
-
-  document.getElementById('empCount').textContent =
-    `${employees.length} employee${employees.length !== 1 ? 's' : ''}`;
-}
-
-// ── Status change ──────────────────────────────────────────────────────────
-function onStatusChange() {
-  const status = document.getElementById('logStatus').value;
-  const cfg = STATUS_CONFIG[status];
-  const hoursField = document.getElementById('hoursField');
-  const hoursInput = document.getElementById('logHours');
-  const reqMark    = document.getElementById('hoursReqMark');
-  const note       = document.getElementById('hoursNote');
-
-  if (!cfg || !cfg.deducts) {
-    hoursField.style.display = 'none';
-    hoursInput.removeAttribute('required');
-    hoursInput.value = '';
-    return;
-  }
-
-  hoursField.style.display = 'flex';
-  if (status === 'Half day Holiday') {
-    reqMark.textContent = '';
-    hoursInput.removeAttribute('required');
-    hoursInput.placeholder = `Default: ${HALF_DAY_HOURS}h`;
-    note.textContent = `Leave blank to use default ${HALF_DAY_HOURS}-hour deduction.`;
-  } else {
-    reqMark.textContent = '*';
-    hoursInput.setAttribute('required', '');
-    hoursInput.placeholder = 'e.g. 4';
-    note.textContent = 'Hours are required for this status.';
-  }
-}
-
-// ── Log entry ──────────────────────────────────────────────────────────────
-function logEntry() {
-  const date   = document.getElementById('logDate').value;
-  const emp    = document.getElementById('logEmployee').value;
-  const status = document.getElementById('logStatus').value;
-  const rawH   = document.getElementById('logHours').value;
-
-  if (!date)   { toast('Please select a date.', true);     return; }
-  if (!emp)    { toast('Please select an employee.', true); return; }
-  if (!status) { toast('Please select a status.', true);   return; }
-
-  if (isWeekend(date))      { toast('Cannot log entries on weekends.', true);      return; }
-  if (isBankHoliday(date))  { toast('Cannot log entries on bank holidays.', true); return; }
-
-  const cfg = STATUS_CONFIG[status];
-  let hours = 0, deduction = 0;
-
-  if (cfg.deducts) {
-    if (cfg.requiresHours && rawH === '') {
-      toast(`Hours are required for ${status}.`, true); return;
-    }
-    hours = (status === 'Half day Holiday' && rawH === '') ? HALF_DAY_HOURS : parseFloat(rawH);
-    if (isNaN(hours) || hours < 0) { toast('Please enter valid hours.', true); return; }
-    deduction = hours * HOURLY_RATE;
-  }
-
-  const entry = { id: Date.now(), date, employee: emp, status, hours: cfg.deducts ? hours : null, deduction };
-  const existingIdx = log.findIndex(e => e.date === date && e.employee === emp);
-  if (existingIdx !== -1) log.splice(existingIdx, 1, entry);
-  else log.push(entry);
-
-  save();
-  renderTable();
-  toast(`Entry logged for ${emp}.`);
-
-  document.getElementById('logStatus').value = '';
-  document.getElementById('logHours').value = '';
-  document.getElementById('hoursField').style.display = 'none';
-}
-
-// ── Deductions toggle ──────────────────────────────────────────────────────
-function toggleDeductionsOnly() {
-  showDeductionsOnly = !showDeductionsOnly;
-  document.getElementById('dedToggle').classList.toggle('active', showDeductionsOnly);
-  renderTable();
-}
-
-// ── Table render ───────────────────────────────────────────────────────────
-function renderTable() {
-  const nameFilter  = document.getElementById('filterName').value.trim().toLowerCase();
-  const monthFilter = document.getElementById('filterMonth').value;
-
-  let filtered = log.filter(e => {
-    const nameOk  = !nameFilter  || e.employee.toLowerCase().includes(nameFilter);
-    const monthOk = !monthFilter || e.date.startsWith(monthFilter);
-    const dedOk   = !showDeductionsOnly || e.deduction > 0;
-    return nameOk && monthOk && dedOk;
-  });
-
-  filtered.sort((a,b) => b.date.localeCompare(a.date) || a.employee.localeCompare(b.employee));
-
-  const body = document.getElementById('logBody');
-  const foot = document.getElementById('logFoot');
-
-  if (filtered.length === 0) {
-    const msg = showDeductionsOnly
-      ? 'No entries with deductions match the current filter.'
-      : (log.length === 0 ? 'No entries yet. Log attendance using the form.' : 'No entries match the current filter.');
-    body.innerHTML = `<tr><td colspan="6" class="table-empty">
-      <div class="table-empty-icon">📋</div>
-      <div class="table-empty-text">${msg}</div>
-    </td></tr>`;
-    foot.innerHTML = '';
-    return;
-  }
-
-  const totalDeduction = filtered.reduce((s,e) => s + e.deduction, 0);
-  const cfgOf = s => STATUS_CONFIG[s] || { badge: '' };
-
-  body.innerHTML = filtered.map(e => {
-    const ded = e.deduction;
-    const dedClass   = ded > 0 ? 'nonzero' : 'zero';
-    const dedDisplay = ded > 0 ? `−£${ded.toFixed(2)}` : '—';
-    const hoursDisplay = e.hours !== null ? e.hours : '—';
-    const [y,m,d] = e.date.split('-');
-    return `<tr>
-      <td class="td-date">${d}/${m}/${y}</td>
-      <td class="td-name">${esc(e.employee)}</td>
-      <td><span class="badge ${cfgOf(e.status).badge}">${esc(e.status)}</span></td>
-      <td class="right td-hours">${hoursDisplay}</td>
-      <td class="right td-deduction ${dedClass}">${dedDisplay}</td>
-      <td class="td-action">
-        <button class="btn btn-ghost btn-sm" onclick="deleteEntry(${e.id})" title="Delete entry">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-
-  const footLabel = showDeductionsOnly ? 'Total Deductions (deductions only)' : 'Total Deductions (filtered)';
-  foot.innerHTML = `<tr>
-    <td colspan="3" class="tfoot-label">${footLabel}</td>
-    <td></td>
-    <td class="tfoot-total">−£${totalDeduction.toFixed(2)}</td>
-    <td></td>
-  </tr>`;
-}
-
-function deleteEntry(id) {
-  log = log.filter(e => e.id !== id);
-  save();
-  renderTable();
-  toast('Entry deleted.');
-}
-
-function clearLog() {
-  if (!confirm('Clear ALL log entries? This cannot be undone.')) return;
-  log = [];
-  save();
-  renderTable();
-  toast('Log cleared.');
-}
-
-// ── Excel Export ───────────────────────────────────────────────────────────
-function exportExcel() {
-  if (log.length === 0) { toast('No data to export.', true); return; }
-
-  const nameFilter  = document.getElementById('filterName').value.trim().toLowerCase();
-  const monthFilter = document.getElementById('filterMonth').value;
-
-  let filtered = log.filter(e => {
-    const nameOk  = !nameFilter  || e.employee.toLowerCase().includes(nameFilter);
-    const monthOk = !monthFilter || e.date.startsWith(monthFilter);
-    const dedOk   = !showDeductionsOnly || e.deduction > 0;
-    return nameOk && monthOk && dedOk;
-  });
-  filtered.sort((a,b) => a.employee.localeCompare(b.employee) || a.date.localeCompare(b.date));
-
-  const headers = ['Date', 'Employee Name', 'Attendance Status', 'Hours Absent', 'Total Deduction (£)'];
-  const rows = filtered.map(e => [
-    e.date, e.employee, e.status,
-    e.hours !== null ? e.hours : '',
-    parseFloat(e.deduction.toFixed(2))
-  ]);
-  const totalRow = ['', '', '', 'TOTAL DEDUCTION',
-    parseFloat(filtered.reduce((s,e) => s + e.deduction, 0).toFixed(2))];
-
-  const wsData = [headers, ...rows, [], totalRow];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols'] = [{ wch: 14 }, { wch: 25 }, { wch: 24 }, { wch: 14 }, { wch: 20 }];
-
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for (let r = 1; r <= range.e.r; r++) {
-    const cell = ws[XLSX.utils.encode_cell({ r, c: 4 })];
-    if (cell && typeof cell.v === 'number') { cell.t = 'n'; cell.z = '£#,##0.00'; }
-  }
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Payroll Deductions');
-  const month = monthFilter ? monthFilter.replace('-','_') : 'all';
-  XLSX.writeFile(wb, `payroll_deductions_${month}.xlsx`);
-  toast('Excel file downloaded.');
-}
-
-// ── Utility ────────────────────────────────────────────────────────────────
 function esc(str) {
   return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
