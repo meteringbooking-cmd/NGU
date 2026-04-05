@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 [data-theme="dark"] {
   --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942;
@@ -46,33 +46,23 @@
 html{scroll-behavior:smooth;}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
 [data-theme="dark"] body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 10% 20%,rgba(0,163,224,.06) 0%,transparent 55%),radial-gradient(ellipse at 90% 80%,rgba(0,94,184,.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
-
-/* HEADER */
 .header{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px;}
 .header-left{display:flex;align-items:center;gap:12px;}
 .logo-mark{width:34px;height:34px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:8px;display:grid;place-items:center;font-size:15px;flex-shrink:0;}
 .header-title{font-size:14px;font-weight:600;}
 .header-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
 .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-
-/* MONTH NAV */
 .month-nav{display:flex;align-items:center;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:3px;}
 .month-nav-btn{background:none;border:none;color:var(--muted);cursor:pointer;width:26px;height:26px;border-radius:5px;display:grid;place-items:center;font-size:13px;transition:all .12s;}
 .month-nav-btn:hover{background:var(--border);color:var(--text);}
 .month-label{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--text);min-width:108px;text-align:center;letter-spacing:.04em;}
-
-/* BUTTONS */
 .btn{font-family:var(--sans);font-size:11.5px;font-weight:500;border:none;border-radius:7px;padding:6px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
-.btn-accent{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;}
-.btn-accent:hover{opacity:.85;transform:translateY(-1px);}
 .btn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
 .btn-ghost:hover{color:var(--text);border-color:var(--accent);}
 .btn-export{background:var(--bg3);border:1px solid var(--border);color:var(--green);}
 .btn-export:hover{background:rgba(16,185,129,.1);border-color:var(--green);}
 .theme-btn{width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;font-size:15px;transition:all .15s;color:var(--muted);}
 .theme-btn:hover{border-color:var(--accent);color:var(--text);}
-
-/* TOOLBAR */
 .toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border2);background:var(--bg2);position:relative;z-index:1;gap:10px;flex-wrap:wrap;}
 .legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .legend-item{display:flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--muted);}
@@ -82,32 +72,22 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .staff-search{font-family:var(--sans);font-size:11.5px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:5px 10px 5px 28px;outline:none;width:150px;transition:border-color .15s;}
 .staff-search:focus{border-color:var(--accent);}
 .search-icon{position:absolute;left:8px;color:var(--muted);font-size:11px;pointer-events:none;}
-
-/* GRID */
 .grid-outer{position:relative;z-index:1;overflow:auto;max-height:calc(100vh - 120px);}
 .grid-outer::-webkit-scrollbar{width:6px;height:6px;}
 .grid-outer::-webkit-scrollbar-track{background:var(--bg2);}
 .grid-outer::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
-
-/* TABLE */
 .report-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
-
-/* Sticky columns */
 .col-staff{position:sticky;left:0;z-index:30;background:var(--bg2);min-width:200px;max-width:200px;border-right:2px solid var(--border);}
 .col-ded{position:sticky;left:200px;z-index:30;background:var(--bg2);min-width:92px;max-width:92px;border-right:2px solid var(--border);text-align:right;}
-
-/* Sticky header */
 .report-table thead th{position:sticky;top:0;z-index:20;background:var(--bg3);border-bottom:2px solid var(--border);padding:0;height:54px;}
 .report-table thead th.col-staff{z-index:41;background:var(--bg3);}
 .report-table thead th.col-ded{z-index:40;background:var(--bg3);}
-
 .th-staff-inner{display:flex;flex-direction:column;justify-content:flex-end;padding:7px 12px;height:100%;}
 .th-staff-label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
 .th-staff-count{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--accent);line-height:1;}
 .th-ded-inner{display:flex;flex-direction:column;justify-content:flex-end;padding:7px 10px;height:100%;align-items:flex-end;}
 .th-ded-label{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
 .th-ded-total{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--red);line-height:1;}
-
 .th-day-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1px;padding:5px 2px;min-width:44px;}
 .th-day-name{font-size:8.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
 .th-day-num{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text);line-height:1;}
@@ -115,24 +95,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .th-day-inner.is-today .th-day-num{color:var(--accent);}
 .th-day-inner.is-wknd{background:var(--cell-wknd);}
 .th-day-inner.is-wknd .th-day-name,.th-day-inner.is-wknd .th-day-num{color:var(--faint);}
-
-/* Body */
 .report-table tbody tr:hover .col-staff,.report-table tbody tr:hover .col-ded{filter:brightness(1.08);}
 .report-table tbody tr:hover td.cell-day:not(.cell-wknd){filter:brightness(1.1);}
-
 .td-staff-inner{display:flex;align-items:center;gap:8px;padding:0 12px;height:40px;border-bottom:1px solid var(--border2);}
 .staff-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:grid;place-items:center;font-size:9px;font-weight:600;color:#fff;flex-shrink:0;font-family:var(--mono);}
 .staff-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
 .td-ded-inner{display:flex;align-items:center;justify-content:flex-end;padding:0 10px;height:40px;border-bottom:1px solid var(--border2);}
 .ded-amount{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--red);}
 .ded-zero{color:var(--faint);}
-
-/* Cells */
 .cell-day{height:40px;min-width:44px;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);padding:0;text-align:center;vertical-align:middle;cursor:pointer;position:relative;}
 .cell-wknd{background:var(--cell-wknd);cursor:default;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);height:40px;min-width:44px;}
 .cell-today-col{background:rgba(0,163,224,.04);}
-
 .cell-chip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;transition:transform .1s;}
 .cell-day:hover .cell-chip{transform:scale(1.12);}
 .s-In{background:var(--cell-in);color:var(--cell-in-t);}
@@ -143,13 +116,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .s-AAP{background:var(--cell-aap);color:var(--cell-aap-t);}
 .s-Training{background:var(--cell-train);color:var(--cell-train-t);}
 .s-BH{background:var(--cell-hol);color:var(--cell-hol-t);}
-
-/* Footer */
 .totals-row td{background:var(--bg3);border-top:2px solid var(--border);height:34px;font-family:var(--mono);font-size:10px;text-align:center;vertical-align:middle;color:var(--muted);position:sticky;bottom:0;z-index:10;}
 .totals-row td.col-staff{z-index:21;text-align:left;padding:0 12px;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
 .totals-row td.col-ded{z-index:20;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--red);text-align:right;padding:0 10px;}
-
-/* POPUP */
 .cell-popup{position:fixed;z-index:600;background:var(--bg3);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);min-width:200px;overflow:hidden;animation:popIn .14s cubic-bezier(.34,1.56,.64,1);}
 @keyframes popIn{from{opacity:0;transform:scale(.88);}to{opacity:1;transform:scale(1);}}
 .popup-header{padding:7px 11px;border-bottom:1px solid var(--border);font-size:9.5px;font-family:var(--mono);color:var(--muted);letter-spacing:.07em;text-transform:uppercase;}
@@ -157,7 +126,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .popup-option:hover,.popup-option.active{background:var(--bg);}
 .popup-chip{width:26px;height:18px;border-radius:3px;display:grid;place-items:center;font-size:8px;font-family:var(--mono);font-weight:600;flex-shrink:0;}
 .popup-check{margin-left:auto;font-size:10px;color:var(--accent);}
-
 .popup-hours-row{padding:8px 11px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg);}
 .popup-hours-label{font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap;}
 .popup-hours-input{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:4px 8px;width:68px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;}
@@ -165,8 +133,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .popup-hours-calc{font-family:var(--mono);font-size:10px;color:var(--red);margin-left:auto;white-space:nowrap;}
 .popup-save-btn{width:100%;padding:8px;border:none;border-top:1px solid var(--border);background:rgba(0,163,224,.1);color:var(--accent);font-family:var(--sans);font-size:11.5px;font-weight:600;cursor:pointer;transition:background .15s;}
 .popup-save-btn:hover{background:rgba(0,163,224,.2);}
-
-/* EXPORT MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:800;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--bg3);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:popIn .2s cubic-bezier(.34,1.56,.64,1);}
@@ -187,24 +153,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .modal-ded-name{font-weight:500;}
 .modal-ded-amt{font-family:var(--mono);font-weight:600;color:var(--red);}
 .modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
-
-/* OVERLAYS */
 .loading-overlay{position:fixed;inset:0;background:rgba(10,22,40,.85);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:900;}
 .loading-overlay.hidden{display:none;}
 .spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loading-text{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;}
-
 .save-pill{position:fixed;bottom:18px;right:18px;background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:7px 14px;font-size:11px;font-family:var(--mono);color:var(--muted);display:flex;align-items:center;gap:7px;z-index:700;transition:all .25s;transform:translateY(70px);}
 .save-pill.show{transform:translateY(0);}
 .save-pill.saved{border-color:var(--green);color:var(--green);}
 .save-pill.saving{border-color:var(--accent);color:var(--accent);}
 .save-pill.error{border-color:var(--red);color:var(--red);}
 .save-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
-
 #toast{position:fixed;bottom:66px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:99px;font-size:11.5px;font-family:var(--mono);z-index:850;transition:transform .22s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);}
-
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);text-align:center;gap:10px;}
 .empty-state-icon{font-size:44px;opacity:.4;}
 .empty-state-text{font-size:13px;}
@@ -213,7 +174,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
-  <div><div class="spinner"></div><div class="loading-text">Loading establishment data…</div></div>
+  <div><div class="spinner"></div><div class="loading-text" id="loadingText">Loading establishment data…</div></div>
 </div>
 
 <header class="header">
@@ -232,7 +193,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
     <button class="btn btn-ghost" id="todayBtn">Today</button>
     <button class="btn btn-export" id="exportBtn">↓ Export</button>
-    <button class="btn btn-accent" id="addStaffBtn">+ Staff</button>
     <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
   </div>
 </header>
@@ -260,7 +220,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="grid-outer" id="gridOuter">
   <div class="empty-state" id="emptyState" style="display:none;">
     <div class="empty-state-icon">👥</div>
-    <div class="empty-state-text">No staff yet. Click "+ Staff" to add someone.</div>
+    <div class="empty-state-text">No staff found. Add employees via the Employee Database.</div>
   </div>
   <table class="report-table" id="reportTable" style="display:none;">
     <thead id="tableHead"></thead>
@@ -292,7 +252,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="exportCancel">Cancel</button>
-      <button class="btn btn-accent" id="exportConfirm">⬇ Download Excel</button>
+      <button class="btn btn-export" id="exportConfirm">⬇ Download Excel</button>
     </div>
   </div>
 </div>
@@ -345,21 +305,22 @@ const dname = (y,m,d) => new Date(y,m-1,d).toLocaleDateString('en-GB',{weekday:'
 const gbp   = n => `£${n.toFixed(2)}`;
 const ded   = h => (h||0)*HOURLY_RATE;
 
-function getE(sid,dt) {
-  const r = entries[sid]?.[dt];
-  if (!r) return {status:'In', hours:0};
-  // Always an object after loadMonth normalisation
-  return {
-    status: r.status || 'In',
-    hours:  parseFloat(r.hours) || 0
-  };
+// Produce a safe doc-ID slug from an employee name
+function nameSlug(name) {
+  return name.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
 }
+
+function getE(sid, dt) {
+  const r = entries[sid]?.[dt];
+  if (!r) return { status:'In', hours:0 };
+  return { status: r.status || 'In', hours: parseFloat(r.hours) || 0 };
+}
+
 function staffTotal(sid) {
-  // Only sum entries that belong to the currently viewed month
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   let t = 0;
   Object.keys(entries[sid]||{}).forEach(dt => {
-    if (!dt.startsWith(pfx)) return;          // skip other months
+    if (!dt.startsWith(pfx)) return;
     const e = getE(sid, dt);
     const opt = STATUSES.find(s => s.code === e.status);
     if (opt?.deducts && e.hours > 0) t += ded(e.hours);
@@ -369,431 +330,709 @@ function staffTotal(sid) {
 
 // ── State ──────────────────────────────────────────────────────────────────
 const now = new Date();
-let vy=now.getFullYear(), vm=now.getMonth()+1;
-let staff=[], entries={}, searchQ='';
+let vy = now.getFullYear(), vm = now.getMonth() + 1;
+// staff: [{ id: firestoreDocId, name: string }]
+// entries: { [staffDocId]: { [dateStr]: { status, hours } } }
+let staff = [], entries = {}, searchQ = '';
 
 // ── DOM ────────────────────────────────────────────────────────────────────
-const $=id=>document.getElementById(id);
+const $ = id => document.getElementById(id);
 const thead=$('tableHead'), tbody=$('tableBody'), tfoot=$('tableFoot');
-const table=$('reportTable'), empty=$('emptyState'), loading=$('loadingOverlay');
+const table=$('reportTable'), empty=$('emptyState');
 const popup=$('cellPopup'), pill=$('savePill'), pillTxt=$('savePillText'), mlabel=$('monthLabel');
 
 // ── Events ─────────────────────────────────────────────────────────────────
-$('prevMonth').onclick=()=>nav(-1);
-$('nextMonth').onclick=()=>nav(1);
-$('todayBtn').onclick=goToday;
-$('addStaffBtn').onclick=addStaff;
-$('staffSearch').oninput=e=>{searchQ=e.target.value.trim().toLowerCase();render();};
-$('themeBtn').onclick=toggleTheme;
-$('exportBtn').onclick=openExport;
-$('exportClose').onclick=closeExport;
-$('exportCancel').onclick=closeExport;
-$('exportConfirm').onclick=doExport;
-$('exportModal').onclick=e=>{if(e.target===$('exportModal'))closeExport();};
-document.addEventListener('click',e=>{if(!popup.contains(e.target))popup.style.display='none';});
+$('prevMonth').onclick = () => nav(-1);
+$('nextMonth').onclick = () => nav(1);
+$('todayBtn').onclick  = goToday;
+$('staffSearch').oninput = e => { searchQ = e.target.value.trim().toLowerCase(); render(); };
+$('themeBtn').onclick  = toggleTheme;
+$('exportBtn').onclick = openExport;
+$('exportClose').onclick = closeExport;
+$('exportCancel').onclick = closeExport;
+$('exportConfirm').onclick = doExport;
+$('exportModal').onclick = e => { if (e.target === $('exportModal')) closeExport(); };
+document.addEventListener('click', e => { if (!popup.contains(e.target)) popup.style.display = 'none'; });
 
 // ── Theme ──────────────────────────────────────────────────────────────────
-function toggleTheme(){
-  const h=document.documentElement, d=h.dataset.theme==='dark';
-  h.dataset.theme=d?'light':'dark';
-  $('themeBtn').textContent=d?'☀️':'🌙';
-  localStorage.setItem('er_theme',d?'light':'dark');
+function toggleTheme() {
+  const h = document.documentElement, d = h.dataset.theme === 'dark';
+  h.dataset.theme = d ? 'light' : 'dark';
+  $('themeBtn').textContent = d ? '☀️' : '🌙';
+  localStorage.setItem('er_theme', d ? 'light' : 'dark');
 }
-(()=>{
-  const s=localStorage.getItem('er_theme');
-  if(s){document.documentElement.dataset.theme=s;$('themeBtn').textContent=s==='dark'?'🌙':'☀️';}
+(() => {
+  const s = localStorage.getItem('er_theme');
+  if (s) { document.documentElement.dataset.theme = s; $('themeBtn').textContent = s === 'dark' ? '🌙' : '☀️'; }
 })();
 
-// ── Firebase load ──────────────────────────────────────────────────────────
-async function loadAll(){
-  showLoad(true);
-  try{
-    const snap=await getDocs(collection(db,'Establishment Report'));
-    staff=[];entries={};
-    snap.forEach(d=>{
-      const data=d.data();
-      if(data._type==='staff'){staff.push({id:d.id,name:data.name});entries[d.id]={};}
-    });
-    staff.sort((a,b)=>a.name.localeCompare(b.name));
-    await loadMonth(vy,vm);
-  }catch(e){console.error(e);toast('Error loading data',true);}
-  showLoad(false);render();
-}
+// ── Firebase ───────────────────────────────────────────────────────────────
 
-async function loadMonth(y,m){
-  const pfx=`${y}-${String(m).padStart(2,'0')}`;
-  try{
-    const q=query(collection(db,'Establishment Report'),where('_type','==','entry'),where('month','==',pfx));
-    const snap=await getDocs(q);
-    snap.forEach(d=>{
-      const data=d.data();
-      if(!entries[data.staffId])entries[data.staffId]={};
-      // Support both formats: new {status,hours} object AND old plain string
-      if(data.entryData && typeof data.entryData === 'object'){
-        entries[data.staffId][data.date] = {
-          status: data.entryData.status || data.status || 'In',
-          hours:  parseFloat(data.entryData.hours) || 0
-        };
-      } else {
-        // Old format — plain status string, no hours
-        entries[data.staffId][data.date] = {
-          status: data.status || 'In',
-          hours:  0
-        };
+async function loadAll() {
+  showLoad(true, 'Loading staff from Employee Database…');
+  try {
+    // Single collection scan — same collection used by both apps
+    const snap = await getDocs(collection(db, 'Establishment Report'));
+    staff = [];
+    entries = {};
+
+    // First pass: collect staff members (created by Employee Database)
+    snap.forEach(d => {
+      const data = d.data();
+      if (data._type === 'staff') {
+        staff.push({ id: d.id, name: data.name });
+        entries[d.id] = {};
       }
     });
-  }catch(e){console.error('loadMonth error:',e);}
+    staff.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Build a name → id lookup for resolving entries saved by name
+    const nameToId = {};
+    staff.forEach(s => { nameToId[s.name.toLowerCase()] = s.id; });
+
+    // Second pass: load entry records — match by staffId OR staffName
+    snap.forEach(d => {
+      const data = d.data();
+      if (data._type !== 'entry') return;
+      const dt = data.date;
+      if (!dt) return;
+
+      let sid = null;
+      if (data.staffId && entries[data.staffId] !== undefined) {
+        // Matched by Firestore doc ID (original format)
+        sid = data.staffId;
+      } else if (data.staffName) {
+        // Matched by employee name (new format)
+        sid = nameToId[data.staffName.toLowerCase()] || null;
+      }
+      if (!sid) return;
+
+      const rawStatus = data.entryData?.status || data.status || 'In';
+      const rawHours  = parseFloat(data.entryData?.hours ?? data.hours ?? 0) || 0;
+      entries[sid][dt] = { status: rawStatus, hours: rawHours };
+    });
+
+    console.log(`✓ Loaded ${staff.length} staff from Employee Database`);
+    toast(`Loaded ${staff.length} staff`);
+  } catch (e) {
+    console.error(e);
+    toast('Error loading data', true);
+  }
+  showLoad(false);
+  render();
 }
 
-async function saveE(sid,dt,status,hours){
+// Load a specific month's entries from Firestore (called on month navigation)
+async function loadMonth(y, m) {
+  const pfx = `${y}-${String(m).padStart(2,'0')}`;
+  showLoad(true, `Loading ${pfx}…`);
+
+  const nameToId = {};
+  staff.forEach(s => { nameToId[s.name.toLowerCase()] = s.id; });
+
+  try {
+    const q = query(
+      collection(db, 'Establishment Report'),
+      where('_type', '==', 'entry'),
+      where('month', '==', pfx)
+    );
+    const snap = await getDocs(q);
+    snap.forEach(d => {
+      const data = d.data();
+      const dt = data.date;
+      if (!dt) return;
+
+      let sid = null;
+      if (data.staffId && entries[data.staffId] !== undefined) {
+        sid = data.staffId;
+      } else if (data.staffName) {
+        sid = nameToId[data.staffName.toLowerCase()] || null;
+      }
+      if (!sid) return;
+
+      const rawStatus = data.entryData?.status || data.status || 'In';
+      const rawHours  = parseFloat(data.entryData?.hours ?? data.hours ?? 0) || 0;
+      entries[sid][dt] = { status: rawStatus, hours: rawHours };
+    });
+  } catch (e) {
+    console.error('loadMonth error:', e);
+  }
+  showLoad(false);
+}
+
+// Save an attendance entry — keyed by employee NAME for cross-app compatibility
+async function saveE(sid, dt, status, hours) {
   showPill('saving');
-  const pfx=dt.substring(0,7);
-  try{
-    await setDoc(doc(db,'Establishment Report',`entry_${sid}_${dt}`),{
-      _type:'entry',staffId:sid,date:dt,month:pfx,
-      status,entryData:{status,hours:hours||0},
-      updatedAt:new Date().toISOString()
+  const pfx = dt.substring(0, 7);
+  const emp = staff.find(s => s.id === sid);
+  const staffName = emp ? emp.name : sid; // fallback to id if name not found
+
+  // Doc ID is human-readable and name-based so Employee Database can find entries
+  const docId = `entry_${nameSlug(staffName)}_${dt}`;
+
+  try {
+    await setDoc(doc(db, 'Establishment Report', docId), {
+      _type:     'entry',
+      staffId:   sid,        // kept for backward-compatibility
+      staffName: staffName,  // PRIMARY — used by Employee Database to match records
+      date:      dt,
+      month:     pfx,
+      status,
+      entryData: { status, hours: hours || 0 },
+      updatedAt: new Date().toISOString(),
     });
     showPill('saved');
-  }catch(e){console.error(e);showPill('error');toast('Save failed',true);}
-}
-
-async function saveStaff(id,name){
-  try{await setDoc(doc(db,'Establishment Report',id),{_type:'staff',name,createdAt:new Date().toISOString()});}
-  catch(e){console.error(e);toast('Error saving staff',true);}
+  } catch (e) {
+    console.error(e);
+    showPill('error');
+    toast('Save failed', true);
+  }
 }
 
 // ── Navigation ─────────────────────────────────────────────────────────────
-function nav(d){
-  vm+=d;
-  if(vm>12){vm=1;vy++;}
-  if(vm<1){vm=12;vy--;}
-  staff.forEach(s=>{entries[s.id]={};});
-  showLoad(true);
-  loadMonth(vy,vm).then(()=>{showLoad(false);render();});
+function nav(d) {
+  vm += d;
+  if (vm > 12) { vm = 1; vy++; }
+  if (vm < 1)  { vm = 12; vy--; }
+  staff.forEach(s => { entries[s.id] = {}; });
+  loadMonth(vy, vm).then(() => render());
 }
-function goToday(){
-  const n=new Date();vy=n.getFullYear();vm=n.getMonth()+1;
-  staff.forEach(s=>{entries[s.id]={};});
-  showLoad(true);
-  loadMonth(vy,vm).then(()=>{
-    showLoad(false);render();
-    setTimeout(()=>document.querySelector('.th-day-inner.is-today')?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}),120);
+
+function goToday() {
+  const n = new Date(); vy = n.getFullYear(); vm = n.getMonth() + 1;
+  staff.forEach(s => { entries[s.id] = {}; });
+  loadMonth(vy, vm).then(() => {
+    render();
+    setTimeout(() => document.querySelector('.th-day-inner.is-today')
+      ?.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }), 120);
   });
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
-function render(){
-  const nd=days(vy,vm), todayStr=dk(now.getFullYear(),now.getMonth()+1,now.getDate());
-  mlabel.textContent=new Date(vy,vm-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const fil=staff.filter(s=>!searchQ||s.name.toLowerCase().includes(searchQ));
-  if(!fil.length){table.style.display='none';empty.style.display='flex';return;}
-  empty.style.display='none';table.style.display='table';
+function render() {
+  const nd = days(vy, vm), todayStr = dk(now.getFullYear(), now.getMonth()+1, now.getDate());
+  mlabel.textContent = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+  if (!fil.length) { table.style.display='none'; empty.style.display='flex'; return; }
+  empty.style.display='none'; table.style.display='table';
 
-  const grandTotal=fil.reduce((s,m)=>s+staffTotal(m.id),0);
+  const grandTotal = fil.reduce((s, m) => s + staffTotal(m.id), 0);
 
-  // Head
-  let hh=`<tr><th class="col-staff"><div class="th-staff-inner"><div class="th-staff-label">Staff</div><div class="th-staff-count">${fil.length}</div></div></th>`;
-  hh+=`<th class="col-ded"><div class="th-ded-inner"><div class="th-ded-label">Deduction</div><div class="th-ded-total">${gbp(grandTotal)}</div></div></th>`;
-  for(let d=1;d<=nd;d++){
-    const k=dk(vy,vm,d),w=isWkd(vy,vm,d),b=isBH(k),t=k===todayStr;
-    const cls=w||b?'is-wknd':t?'is-today':'';
-    hh+=`<th><div class="th-day-inner ${cls}"><div class="th-day-name">${dname(vy,vm,d)}</div><div class="th-day-num">${d}</div></div></th>`;
+  // Header
+  let hh = `<tr>
+    <th class="col-staff"><div class="th-staff-inner"><div class="th-staff-label">Staff</div><div class="th-staff-count">${fil.length}</div></div></th>
+    <th class="col-ded"><div class="th-ded-inner"><div class="th-ded-label">Deduction</div><div class="th-ded-total">${gbp(grandTotal)}</div></div></th>`;
+  for (let d = 1; d <= nd; d++) {
+    const k = dk(vy, vm, d), w = isWkd(vy, vm, d), b = isBH(k), t = k === todayStr;
+    const cls = (w||b) ? 'is-wknd' : t ? 'is-today' : '';
+    hh += `<th><div class="th-day-inner ${cls}"><div class="th-day-name">${dname(vy,vm,d)}</div><div class="th-day-num">${d}</div></div></th>`;
   }
-  hh+='</tr>';thead.innerHTML=hh;
+  hh += '</tr>';
+  thead.innerHTML = hh;
 
   // Body
-  let bh='';
-  fil.forEach(s=>{
-    const ini=s.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-    const dt=staffTotal(s.id);
-    const dc=dt>0?'':'ded-zero';
-    bh+=`<tr><td class="col-staff"><div class="td-staff-inner"><div class="staff-avatar">${ini}</div><span class="staff-name" title="${esc(s.name)}">${esc(s.name)}</span></div></td>`;
-    bh+=`<td class="col-ded"><div class="td-ded-inner"><span class="ded-amount ${dc}">${dt>0?'−'+gbp(dt):'—'}</span></div></td>`;
-    for(let d=1;d<=nd;d++){
-      const k=dk(vy,vm,d),w=isWkd(vy,vm,d),b=isBH(k),t=k===todayStr;
-      if(w){bh+=`<td class="cell-wknd"></td>`;continue;}
-      let abbr,cls;
-      if(b){abbr='BH';cls='s-BH';}
-      else{const e=getE(s.id,k);const opt=STATUSES.find(o=>o.code===e.status)||STATUSES[0];abbr=opt.abbr;cls=opt.cls;}
-      bh+=`<td class="cell-day${t?' cell-today-col':''}" data-date="${k}" data-staff="${s.id}" data-bh="${b?1:0}"><span class="cell-chip ${cls}">${abbr}</span></td>`;
+  let bh = '';
+  fil.forEach(s => {
+    const ini = s.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+    const dt = staffTotal(s.id);
+    bh += `<tr>
+      <td class="col-staff"><div class="td-staff-inner"><div class="staff-avatar">${ini}</div><span class="staff-name" title="${esc(s.name)}">${esc(s.name)}</span></div></td>
+      <td class="col-ded"><div class="td-ded-inner"><span class="ded-amount ${dt>0?'':'ded-zero'}">${dt>0?'−'+gbp(dt):'—'}</span></div></td>`;
+    for (let d = 1; d <= nd; d++) {
+      const k = dk(vy,vm,d), w = isWkd(vy,vm,d), b = isBH(k), t = k === todayStr;
+      if (w) { bh += `<td class="cell-wknd"></td>`; continue; }
+      let abbr, cls;
+      if (b) { abbr='BH'; cls='s-BH'; }
+      else { const e = getE(s.id, k); const opt = STATUSES.find(o => o.code===e.status)||STATUSES[0]; abbr=opt.abbr; cls=opt.cls; }
+      bh += `<td class="cell-day${t?' cell-today-col':''}" data-date="${k}" data-staff="${s.id}" data-bh="${b?1:0}"><span class="cell-chip ${cls}">${abbr}</span></td>`;
     }
-    bh+='</tr>';
+    bh += '</tr>';
   });
-  tbody.innerHTML=bh;
+  tbody.innerHTML = bh;
 
-  // Foot
-  let fh=`<tr class="totals-row"><td class="col-staff">Daily Summary</td><td class="col-ded">${grandTotal>0?'−'+gbp(grandTotal):'—'}</td>`;
-  for(let d=1;d<=nd;d++){
-    const k=dk(vy,vm,d),w=isWkd(vy,vm,d),b=isBH(k);
-    if(w){fh+=`<td></td>`;continue;}
-    if(b){fh+=`<td style="color:var(--cell-hol-t);font-size:9px">BH</td>`;continue;}
-    const ic=fil.filter(s=>getE(s.id,k).status==='In').length;
-    const pct=fil.length?Math.round(ic/fil.length*100):0;
-    fh+=`<td style="color:${pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};font-size:10px">${ic}</td>`;
+  // Footer
+  let fh = `<tr class="totals-row"><td class="col-staff">Daily Summary</td><td class="col-ded">${grandTotal>0?'−'+gbp(grandTotal):'—'}</td>`;
+  for (let d = 1; d <= nd; d++) {
+    const k = dk(vy,vm,d), w = isWkd(vy,vm,d), b = isBH(k);
+    if (w) { fh += `<td></td>`; continue; }
+    if (b) { fh += `<td style="color:var(--cell-hol-t);font-size:9px">BH</td>`; continue; }
+    const ic = fil.filter(s => getE(s.id,k).status==='In').length;
+    const pct = fil.length ? Math.round(ic/fil.length*100) : 0;
+    fh += `<td style="color:${pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};font-size:10px">${ic}</td>`;
   }
-  fh+='</tr>';tfoot.innerHTML=fh;
+  fh += '</tr>';
+  tfoot.innerHTML = fh;
 
-  // Cell listeners
-  tbody.querySelectorAll('.cell-day[data-bh="0"]').forEach(c=>c.addEventListener('click',onCell));
+  tbody.querySelectorAll('.cell-day[data-bh="0"]').forEach(c => c.addEventListener('click', onCell));
 }
 
-// ── Cell click ─────────────────────────────────────────────────────────────
-function onCell(e){
+// ── Cell popup ─────────────────────────────────────────────────────────────
+function onCell(e) {
   e.stopPropagation();
-  const cell=e.currentTarget, dt=cell.dataset.date, sid=cell.dataset.staff;
-  const cur=getE(sid,dt);
-  openPopup(sid,dt,cur.status,cur.hours||0,cell);
+  const cell = e.currentTarget, dt = cell.dataset.date, sid = cell.dataset.staff;
+  const cur = getE(sid, dt);
+  openPopup(sid, dt, cur.status, cur.hours||0, cell);
 }
 
-function openPopup(sid,dt,selStatus,selHours,anchor){
-  const selOpt=STATUSES.find(o=>o.code===selStatus)||STATUSES[0];
-  const [,,day]=dt.split('-');
-  let html=`<div class="popup-header">Day ${parseInt(day)} · ${dt}</div>`;
-  STATUSES.forEach(opt=>{
-    const ac=opt.code===selStatus?'active':'';
-    html+=`<div class="popup-option ${ac}" data-code="${opt.code}"><div class="popup-chip ${opt.cls}">${opt.abbr}</div><span>${opt.label}</span>${opt.code===selStatus?'<span class="popup-check">✓</span>':''}</div>`;
+function openPopup(sid, dt, selStatus, selHours, anchor) {
+  const selOpt = STATUSES.find(o => o.code===selStatus) || STATUSES[0];
+  const [,,day] = dt.split('-');
+  let html = `<div class="popup-header">Day ${parseInt(day)} · ${dt}</div>`;
+  STATUSES.forEach(opt => {
+    const ac = opt.code===selStatus ? 'active' : '';
+    html += `<div class="popup-option ${ac}" data-code="${opt.code}">
+      <div class="popup-chip ${opt.cls}">${opt.abbr}</div>
+      <span>${opt.label}</span>
+      ${opt.code===selStatus ? '<span class="popup-check">✓</span>' : ''}
+    </div>`;
   });
-  if(selOpt.deducts){
-    const d=ded(selHours);
-    html+=`<div class="popup-hours-row"><span class="popup-hours-label">Hours absent:</span><input class="popup-hours-input" id="pHours" type="number" value="${selHours||''}" min="0" max="24" step="0.5" placeholder="0"><span class="popup-hours-calc" id="pCalc">${selHours>0?'−'+gbp(d):''}</span></div>`;
+  if (selOpt.deducts) {
+    const d = ded(selHours);
+    html += `<div class="popup-hours-row">
+      <span class="popup-hours-label">Hours absent:</span>
+      <input class="popup-hours-input" id="pHours" type="number" value="${selHours||''}" min="0" max="24" step="0.5" placeholder="0">
+      <span class="popup-hours-calc" id="pCalc">${selHours>0?'−'+gbp(d):''}</span>
+    </div>`;
   }
-  html+=`<button class="popup-save-btn" id="pSave">Save</button>`;
-  popup.innerHTML=html;popup.style.display='block';
+  html += `<button class="popup-save-btn" id="pSave">Save</button>`;
+  popup.innerHTML = html;
+  popup.style.display = 'block';
 
-  // Position
-  const r=anchor.getBoundingClientRect(),ph=popup.scrollHeight+60,vw=window.innerWidth,vh=window.innerHeight;
-  let top=r.bottom+4,left=r.left;
-  if(top+ph>vh)top=r.top-ph-4;
-  if(left+210>vw)left=vw-216;
-  if(left<4)left=4;
-  popup.style.top=`${top}px`;popup.style.left=`${left}px`;
+  const r = anchor.getBoundingClientRect(), ph = popup.scrollHeight+60, vw = window.innerWidth, vh = window.innerHeight;
+  let top = r.bottom+4, left = r.left;
+  if (top+ph>vh) top = r.top-ph-4;
+  if (left+210>vw) left = vw-216;
+  if (left<4) left = 4;
+  popup.style.top = `${top}px`; popup.style.left = `${left}px`;
 
-  let cStatus=selStatus,cHours=selHours||0;
+  let cStatus = selStatus, cHours = selHours||0;
 
-  // Option click — rebuild popup with new status
-  popup.querySelectorAll('.popup-option').forEach(o=>o.addEventListener('click',ev=>{
+  popup.querySelectorAll('.popup-option').forEach(o => o.addEventListener('click', ev => {
     ev.stopPropagation();
-    cStatus=o.dataset.code;
-    // Preserve hours if switching between deduct statuses
-    if(!STATUSES.find(s=>s.code===cStatus)?.deducts)cHours=0;
-    openPopup(sid,dt,cStatus,cHours,anchor);
+    cStatus = o.dataset.code;
+    if (!STATUSES.find(s => s.code===cStatus)?.deducts) cHours = 0;
+    openPopup(sid, dt, cStatus, cHours, anchor);
   }));
 
-  // Hours input
-  const hi=$('pHours'),pc=$('pCalc');
-  if(hi){
-    hi.addEventListener('input',()=>{cHours=parseFloat(hi.value)||0;if(pc)pc.textContent=cHours>0?'−'+gbp(ded(cHours)):'';});
-    hi.addEventListener('click',ev=>ev.stopPropagation());
-    hi.addEventListener('keydown',ev=>ev.stopPropagation());
+  const hi = $('pHours'), pc = $('pCalc');
+  if (hi) {
+    hi.addEventListener('input', () => { cHours = parseFloat(hi.value)||0; if(pc) pc.textContent = cHours>0?'−'+gbp(ded(cHours)):''; });
+    hi.addEventListener('click', ev => ev.stopPropagation());
+    hi.addEventListener('keydown', ev => ev.stopPropagation());
   }
 
-  $('pSave').addEventListener('click',async ev=>{
+  $('pSave').addEventListener('click', async ev => {
     ev.stopPropagation();
-    if(!entries[sid])entries[sid]={};
-    entries[sid][dt]={status:cStatus,hours:cHours};
-    popup.style.display='none';
+    if (!entries[sid]) entries[sid] = {};
+    entries[sid][dt] = { status: cStatus, hours: cHours };
+    popup.style.display = 'none';
     render();
-    await saveE(sid,dt,cStatus,cHours);
+    await saveE(sid, dt, cStatus, cHours);
   });
-}
-
-// ── Add staff ──────────────────────────────────────────────────────────────
-async function addStaff(){
-  const name=prompt('Enter staff member name:');
-  if(!name?.trim())return;
-  const t=name.trim();
-  if(staff.some(s=>s.name.toLowerCase()===t.toLowerCase())){toast('Already exists');return;}
-  const id='staff_'+Date.now();
-  staff.push({id,name:t});entries[id]={};
-  staff.sort((a,b)=>a.name.localeCompare(b.name));
-  await saveStaff(id,t);render();toast(`${t} added`);
 }
 
 // ── Export ─────────────────────────────────────────────────────────────────
-function openExport(){
-  const nd=days(vy,vm);
-  let wd=0;for(let d=1;d<=nd;d++)if(isWD(vy,vm,d))wd++;
-  const fil=staff.filter(s=>!searchQ||s.name.toLowerCase().includes(searchQ));
-  const grand=fil.reduce((s,m)=>s+staffTotal(m.id),0);
-  const period=new Date(vy,vm-1,1).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
-  $('xStaff').textContent=fil.length;$('xDays').textContent=wd;
-  $('xTotal').textContent=gbp(grand);$('xPeriod').textContent=period;
-  const dl=$('xDedList');
-  const wded=fil.filter(s=>staffTotal(s.id)>0).sort((a,b)=>staffTotal(b.id)-staffTotal(a.id));
-  dl.innerHTML=wded.length
-    ?wded.map(s=>`<div class="modal-ded-row"><span class="modal-ded-name">${esc(s.name)}</span><span class="modal-ded-amt">−${gbp(staffTotal(s.id))}</span></div>`).join('')
-    :`<div style="font-size:12px;color:var(--muted);padding:10px">No deductions this month.</div>`;
+function openExport() {
+  const nd = days(vy, vm);
+  let wd = 0; for (let d=1;d<=nd;d++) if(isWD(vy,vm,d)) wd++;
+  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+  const grand = fil.reduce((s,m) => s+staffTotal(m.id), 0);
+  const period = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', {month:'short',year:'numeric'});
+  $('xStaff').textContent=fil.length; $('xDays').textContent=wd;
+  $('xTotal').textContent=gbp(grand); $('xPeriod').textContent=period;
+  const dl = $('xDedList');
+  const wded = fil.filter(s=>staffTotal(s.id)>0).sort((a,b)=>staffTotal(b.id)-staffTotal(a.id));
+  dl.innerHTML = wded.length
+    ? wded.map(s=>`<div class="modal-ded-row"><span class="modal-ded-name">${esc(s.name)}</span><span class="modal-ded-amt">−${gbp(staffTotal(s.id))}</span></div>`).join('')
+    : `<div style="font-size:12px;color:var(--muted);padding:10px">No deductions this month.</div>`;
   $('exportModal').classList.add('show');
 }
-function closeExport(){$('exportModal').classList.remove('show');}
+function closeExport() { $('exportModal').classList.remove('show'); }
 
-function doExport(){
-  const nd=days(vy,vm);
-  const fil=staff.filter(s=>!searchQ||s.name.toLowerCase().includes(searchQ));
-  const period=new Date(vy,vm-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const pfx=`${vy}-${String(vm).padStart(2,'0')}`;
+function doExport() {
+  const nd  = days(vy, vm);
+  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+  const period = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+  const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
+  const generated = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
 
-  // ── Sheet 1: Attendance Grid ──────────────────────────────────────────────
-  // Build day columns
-  const dayCols=[];
-  for(let d=1;d<=nd;d++){
-    const k=dk(vy,vm,d),w=isWkd(vy,vm,d),b=isBH(k);
-    dayCols.push({d,k,w,b});
+  // ── Style palette ──────────────────────────────────────────────────────
+  const NAVY     = "003366";
+  const NAVY_MID = "004080";
+  const WHITE    = "FFFFFF";
+  const GOLD_LT  = "FFF8E7";
+  const GRAY_LT  = "FAFAFA";
+  const RED_FG   = "C0392B";
+  const WKND_BG  = "F0F0F0";
+
+  // Status colours [bgColor, fontColor]
+  const S_STYLE = {
+    'In':               ['E8F5E9','1B5E20'],
+    'Holiday':          ['E3F2FD','0D47A1'],
+    'Half day Holiday': ['F3E5F5','4A148C'],
+    'Sick':             ['FFEBEE','B71C1C'],
+    'AAUP':             ['FFF8E1','E65100'],
+    'AAP':              ['E1F5FE','01579B'],
+    'Training':         ['E8F5E9','1B5E20'],
+    'BH':               ['E3F2FD','0D47A1'],
+  };
+
+  // Cell style factories
+  const font = (sz=9, bold=false, color='222222', italic=false) =>
+    ({ name:'Arial', sz, bold, color, italic });
+
+  const fill = (fgColor) => ({ patternType:'solid', fgColor:{rgb:fgColor} });
+
+  const border = (style='thin', color='CCCCCC') => {
+    const s = { style, color:{rgb:color} };
+    return { top:s, bottom:s, left:s, right:s };
+  };
+
+  const thick_border = () => {
+    const th = { style:'medium', color:{rgb:NAVY} };
+    const tn = { style:'thin',   color:{rgb:'CCCCCC'} };
+    return { top:th, bottom:th, left:th, right:th };
+  };
+
+  const A = (h='center', v='center', wrap=false) => ({ horizontal:h, vertical:v, wrapText:wrap });
+
+  // Helper: make a styled cell
+  const sc = (value, type, style) => ({ v:value, t:type, s:style });
+
+  // Helper: number cell with format
+  const nc = (value, z, style) => ({ v:value, t:'n', z, s:style });
+
+  // Helper: blank filled cell
+  const blank = (fgColor) => sc('', 's', { fill:fill(fgColor), border:border('thin', fgColor) });
+
+  // Shared styles
+  const titleStyle = {
+    font:      font(13, true, WHITE),
+    fill:      fill(NAVY),
+    alignment: A('center'),
+    border:    border('medium', NAVY),
+  };
+  const subStyle = {
+    font:      font(8, false, 'AAAAAA', true),
+    fill:      fill('001F3F'),
+    alignment: A('center'),
+  };
+  const hdrStyle = (align='center') => ({
+    font:      font(9, true, WHITE),
+    fill:      fill(NAVY_MID),
+    alignment: A(align),
+    border:    border('thin', WHITE),
+  });
+  const totalStyle = (align='center') => ({
+    font:      font(9, true, WHITE),
+    fill:      fill(NAVY),
+    alignment: A(align),
+    border:    thick_border(),
+  });
+
+  // Row style helpers
+  const nameStyle = (rowBg, hasDed) => ({
+    font:      font(9, hasDed, '222222'),
+    fill:      fill(hasDed ? GOLD_LT : rowBg),
+    alignment: A('left', 'center'),
+    border:    border(),
+  });
+  const dedStyle = (hasDed) => ({
+    font:      font(9, hasDed, hasDed ? RED_FG : 'BBBBBB'),
+    fill:      fill(hasDed ? GOLD_LT : WHITE),
+    alignment: A('right'),
+    border:    border(),
+  });
+  const bodyStyle = (bg='FFFFFF', align='center', bold=false, color='555555') => ({
+    font:      font(9, bold, color),
+    fill:      fill(bg),
+    alignment: A(align),
+    border:    border(),
+  });
+
+  // ── Build a worksheet from a 2D array of styled cells ─────────────────
+  function buildWS(rows, colWidths, freezeAt=null) {
+    const ws = {};
+    let maxCol = 0;
+    rows.forEach((row, ri) => {
+      row.forEach((cell, ci) => {
+        if (!cell) return;
+        const addr = XLSX.utils.encode_cell({r:ri, c:ci});
+        ws[addr] = cell;
+        if (ci > maxCol) maxCol = ci;
+      });
+    });
+    ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:rows.length-1, c:maxCol}});
+    ws['!cols'] = colWidths.map(w => ({wch:w}));
+    if (freezeAt) ws['!freeze'] = freezeAt;
+    // Merge cells for title rows (col 0 spans all)
+    ws['!merges'] = [
+      {s:{r:0,c:0}, e:{r:0,c:maxCol}},
+      {s:{r:1,c:0}, e:{r:1,c:maxCol}},
+    ];
+    return ws;
   }
 
-  // Header rows
-  const gridRows=[
-    [`Establishment Report — ${period}`],
-    [],
-    ['Staff Member','Monthly Deduction (£)',...dayCols.map(c=>c.w?''   : c.b?`${c.d}†` : String(c.d))],
-    [''           ,''                      ,...dayCols.map(c=>c.w?'WKD': c.b?'BH'      : dname(vy,vm,c.d).toUpperCase())],
-  ];
+  // ══════════════════════════════════════════════════════════════════════
+  // SHEET 1 — Attendance Grid
+  // ══════════════════════════════════════════════════════════════════════
+  const dayCols = [];
+  for (let d=1; d<=nd; d++) {
+    const k=dk(vy,vm,d), w=isWkd(vy,vm,d), b=isBH(k);
+    dayCols.push({d, k, w, b, name: dname(vy,vm,d)});
+  }
 
-  fil.forEach(s=>{
-    const dt=staffTotal(s.id);
-    const row=[s.name, dt>0 ? parseFloat(dt.toFixed(2)) : 0];
-    dayCols.forEach(col=>{
-      if(col.w){ row.push(''); return; }
-      if(col.b){ row.push('BH'); return; }
-      const e=getE(s.id,col.k);
-      const opt=STATUSES.find(o=>o.code===e.status)||STATUSES[0];
-      if(opt.deducts && e.hours>0) row.push(`${opt.abbr} (${e.hours}h)`);
-      else row.push(opt.abbr);
+  const STATUS_ABBR = {
+    'In':'In','Holiday':'H','Half day Holiday':'½H',
+    'Sick':'S','AAUP':'AU','AAP':'AP','Training':'Tr'
+  };
+
+  const rows1 = [];
+
+  // Row 0: Title
+  rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID`, 's', titleStyle),
+    ...Array(1 + dayCols.length).fill(blank(NAVY)) ]);
+
+  // Row 1: Subtitle
+  rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Hourly Rate: £${HOURLY_RATE.toFixed(2)}`, 's', subStyle),
+    ...Array(1 + dayCols.length).fill(blank('001F3F')) ]);
+
+  // Row 2: Spacer
+  rows1.push([ blank('FFFFFF'), ...Array(1 + dayCols.length).fill(blank('FFFFFF')) ]);
+
+  // Row 3: Column headers (day numbers)
+  const hdr3 = [
+    sc('Staff Member',   's', hdrStyle('left')),
+    sc('Deduction (£)', 's', hdrStyle('right')),
+  ];
+  dayCols.forEach(col => {
+    if (col.w) {
+      hdr3.push(sc('', 's', { font:font(8,false,'AAAAAA'), fill:fill(WKND_BG), alignment:A(), border:border('thin','EEEEEE') }));
+    } else if (col.b) {
+      hdr3.push(sc(col.d, 'n', { font:font(8,true,S_STYLE.BH[1]), fill:fill(S_STYLE.BH[0]), alignment:A(), border:border('thin',WHITE) }));
+    } else {
+      hdr3.push(sc(col.d, 'n', { font:font(8,true,WHITE), fill:fill(NAVY), alignment:A(), border:border('thin',WHITE) }));
+    }
+  });
+  rows1.push(hdr3);
+
+  // Row 4: Day name sub-row
+  const hdr4 = [
+    sc('', 's', { fill:fill('002850'), border:border('thin','002850') }),
+    sc('', 's', { fill:fill('002850'), border:border('thin','002850') }),
+  ];
+  dayCols.forEach(col => {
+    if (col.w) {
+      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,'AAAAAA'), fill:fill(WKND_BG), alignment:A(), border:border('thin','EEEEEE') }));
+    } else if (col.b) {
+      hdr4.push(sc('BH', 's', { font:font(6,true,S_STYLE.BH[1]), fill:fill(S_STYLE.BH[0]), alignment:A(), border:border('thin',WHITE) }));
+    } else {
+      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,'88AACC'), fill:fill('002850'), alignment:A(), border:border('thin','002850') }));
+    }
+  });
+  rows1.push(hdr4);
+
+  // Data rows
+  fil.forEach((s, ri) => {
+    const rowBg  = ri % 2 === 0 ? WHITE : GRAY_LT;
+    const total  = staffTotal(s.id);
+    const hasDed = total > 0;
+    const dataRow = [
+      sc(s.name, 's', nameStyle(rowBg, hasDed)),
+      hasDed
+        ? nc(total, '"£"#,##0.00', dedStyle(true))
+        : sc('—', 's', dedStyle(false)),
+    ];
+
+    dayCols.forEach(col => {
+      if (col.w) {
+        dataRow.push(blank(WKND_BG));
+        return;
+      }
+      if (col.b) {
+        dataRow.push(sc('BH', 's', {
+          font: font(8, true, S_STYLE.BH[1]),
+          fill: fill(S_STYLE.BH[0]),
+          alignment: A(),
+          border: border(),
+        }));
+        return;
+      }
+      const e   = getE(s.id, col.k);
+      const st  = e.status || 'In';
+      const [bg, fg] = S_STYLE[st] || ['FFFFFF','000000'];
+      const abbr = STATUS_ABBR[st] || st.substring(0,2);
+      const label = (STATUSES.find(o=>o.code===st)?.deducts && e.hours > 0)
+        ? `${abbr} ${e.hours}h`
+        : abbr;
+      dataRow.push(sc(label, 's', {
+        font: font(8, true, fg),
+        fill: fill(bg),
+        alignment: A(),
+        border: border(),
+      }));
     });
-    gridRows.push(row);
+    rows1.push(dataRow);
   });
 
   // Totals row
-  const grand=fil.reduce((a,s)=>a+staffTotal(s.id),0);
-  gridRows.push(['TOTAL DEDUCTIONS', parseFloat(grand.toFixed(2)), ...dayCols.map(()=>'')]);
-  gridRows.push([]);
-  gridRows.push(['† Bank Holiday']);
-
-  const ws1=XLSX.utils.aoa_to_sheet(gridRows);
-  ws1['!cols']=[{wch:26},{wch:20},...dayCols.map(()=>({wch:7}))];
-
-  // Format deduction column (col index 1) as currency
-  for(let r=4;r<gridRows.length;r++){
-    const cell=ws1[XLSX.utils.encode_cell({r,c:1})];
-    if(cell && typeof cell.v==='number'){cell.t='n';cell.z='"£"#,##0.00';}
-  }
-
-  // ── Sheet 2: Deduction Summary ────────────────────────────────────────────
-  const summaryRows=[
-    [`Payroll Deduction Summary — ${period}`],
-    [`Hourly rate: £${HOURLY_RATE.toFixed(8)}`],
-    [`Deductable statuses: Sick, AAUP`],
-    [],
-    ['Staff Member','Absence Events','Total Hours Absent','Deduction (£)'],
+  const grand = fil.reduce((a,s)=>a+staffTotal(s.id), 0);
+  const totRow1 = [
+    sc('TOTAL DEDUCTIONS', 's', totalStyle('left')),
+    nc(grand, '"£"#,##0.00', totalStyle('right')),
+    ...dayCols.map(() => blank(NAVY)),
   ];
+  rows1.push(totRow1);
 
-  const staffStats=fil.map(s=>{
+  // Footer note
+  rows1.push([ sc('† Bank Holiday', 's', { font:font(8,false,'888888'), fill:fill(WHITE), alignment:A('left') }),
+    ...Array(1+dayCols.length).fill(blank(WHITE)) ]);
+
+  const ws1 = buildWS(rows1, [22, 14, ...dayCols.map(() => 4.2)]);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // SHEET 2 — Deduction Summary
+  // ══════════════════════════════════════════════════════════════════════
+  const staffStats = fil.map(s => {
     let hrs=0, ev=0;
-    Object.keys(entries[s.id]||{}).forEach(dt=>{
-      if(!dt.startsWith(pfx)) return;
-      const e=getE(s.id,dt);
-      const opt=STATUSES.find(o=>o.code===e.status);
-      if(opt?.deducts && e.hours>0){ hrs+=e.hours; ev++; }
+    Object.keys(entries[s.id]||{}).forEach(dt => {
+      if (!dt.startsWith(pfx)) return;
+      const e = getE(s.id, dt);
+      const opt = STATUSES.find(o => o.code===e.status);
+      if (opt?.deducts && e.hours > 0) { hrs += e.hours; ev++; }
     });
-    return {name:s.name, ev, hrs, total:staffTotal(s.id)};
-  }).sort((a,b)=>b.total-a.total);
+    return { name:s.name, ev, hrs, total:staffTotal(s.id) };
+  }).sort((a,b) => b.total - a.total);
 
-  staffStats.forEach(s=>{
-    summaryRows.push([
-      s.name,
-      s.ev,
-      parseFloat(s.hrs.toFixed(2)),
-      parseFloat(s.total.toFixed(2))
+  const rows2 = [];
+  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank(NAVY), blank(NAVY), blank(NAVY) ]);
+  rows2.push([ sc(`Period: ${period}  |  Hourly Rate: £${HOURLY_RATE.toFixed(8)}  |  Deductable: Sick, AAUP`, 's', subStyle),
+    blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
+  rows2.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
+  rows2.push([
+    sc('Staff Member',    's', hdrStyle('left')),
+    sc('Absence Events',  's', hdrStyle()),
+    sc('Hours Absent',    's', hdrStyle()),
+    sc('Deduction (£)',   's', hdrStyle('right')),
+  ]);
+
+  staffStats.forEach((s, ri) => {
+    const rowBg  = ri % 2 === 0 ? WHITE : GRAY_LT;
+    const hasDed = s.total > 0;
+    rows2.push([
+      sc(s.name, 's', nameStyle(rowBg, hasDed)),
+      s.ev > 0 ? nc(s.ev,    '0;-0;"-"',        bodyStyle(hasDed ? GOLD_LT : rowBg)) : sc('—', 's', bodyStyle(hasDed ? GOLD_LT : rowBg)),
+      s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"',  bodyStyle(hasDed ? GOLD_LT : rowBg)) : sc('—', 's', bodyStyle(hasDed ? GOLD_LT : rowBg)),
+      hasDed ? nc(s.total,   '"£"#,##0.00',      { ...bodyStyle(GOLD_LT, 'right', true, RED_FG) })
+             : sc('—', 's', bodyStyle(rowBg, 'right', false, 'BBBBBB')),
     ]);
   });
 
-  summaryRows.push([]);
-  const totHrs=staffStats.reduce((a,s)=>a+s.hrs,0);
-  const totDed=staffStats.reduce((a,s)=>a+s.total,0);
-  summaryRows.push(['TOTAL','',parseFloat(totHrs.toFixed(2)),parseFloat(totDed.toFixed(2))]);
+  const totHrs = staffStats.reduce((a,s)=>a+s.hrs, 0);
+  const totDed = staffStats.reduce((a,s)=>a+s.total, 0);
+  rows2.push([
+    sc('TOTAL',  's', totalStyle('left')),
+    nc(staffStats.reduce((a,s)=>a+s.ev,0), '0', totalStyle()),
+    nc(totHrs,   '0.00',        totalStyle()),
+    nc(totDed,   '"£"#,##0.00', totalStyle('right')),
+  ]);
 
-  const ws2=XLSX.utils.aoa_to_sheet(summaryRows);
-  ws2['!cols']=[{wch:26},{wch:18},{wch:20},{wch:18}];
-  // Format hours and deduction columns
-  for(let r=5;r<summaryRows.length;r++){
-    const cH=ws2[XLSX.utils.encode_cell({r,c:2})];
-    const cD=ws2[XLSX.utils.encode_cell({r,c:3})];
-    if(cH&&typeof cH.v==='number') cH.z='0.00';
-    if(cD&&typeof cD.v==='number'){cD.t='n';cD.z='"£"#,##0.00';}
-  }
+  const ws2 = buildWS(rows2, [26, 16, 16, 16]);
 
-  // ── Sheet 3: Individual Deduction Events ─────────────────────────────────
-  const detailRows=[
-    [`Deduction Events — ${period}`],
-    [],
-    ['Staff Member','Date','Day','Status','Hours Absent','Deduction (£)'],
-  ];
+  // ══════════════════════════════════════════════════════════════════════
+  // SHEET 3 — Deduction Events
+  // ══════════════════════════════════════════════════════════════════════
+  const rows3 = [];
+  rows3.push([ sc('DEDUCTION EVENTS — DETAILED LOG', 's', titleStyle),
+    blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
+  rows3.push([ sc(`Period: ${period}  |  Each row represents one deductable absence event`, 's', subStyle),
+    blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
+  rows3.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
+  rows3.push([
+    sc('Staff Member', 's', hdrStyle('left')),
+    sc('Date',         's', hdrStyle()),
+    sc('Day',          's', hdrStyle()),
+    sc('Status',       's', hdrStyle()),
+    sc('Hours Absent', 's', hdrStyle()),
+    sc('Deduction (£)','s', hdrStyle('right')),
+  ]);
 
-  fil.forEach(s=>{
-    Object.keys(entries[s.id]||{})
-      .filter(dt=>dt.startsWith(pfx))
-      .sort()
-      .forEach(dt=>{
-        const e=getE(s.id,dt);
-        const opt=STATUSES.find(o=>o.code===e.status);
-        if(!opt?.deducts || !(e.hours>0)) return;
-        const [y,m,d]=dt.split('-');
-        const dayStr=new Date(+y,+m-1,+d).toLocaleDateString('en-GB',{weekday:'long'});
-        detailRows.push([
-          s.name,
-          `${d}/${m}/${y}`,
-          dayStr,
-          e.status,
-          e.hours,
-          parseFloat(ded(e.hours).toFixed(2))
-        ]);
-      });
+  const STATUS_CHIP = {
+    'Sick': ['FFEBEE','B71C1C'],
+    'AAUP': ['FFF8E1','E65100'],
+  };
+
+  let hasEvents = false;
+  fil.forEach(s => {
+    Object.keys(entries[s.id]||{}).filter(dt=>dt.startsWith(pfx)).sort().forEach(dt => {
+      const e = getE(s.id, dt);
+      const opt = STATUSES.find(o => o.code===e.status);
+      if (!opt?.deducts || !(e.hours > 0)) return;
+      hasEvents = true;
+      const [y,m,d] = dt.split('-');
+      const dayStr  = new Date(+y,+m-1,+d).toLocaleDateString('en-GB',{weekday:'long'});
+      const [sbg, sfg] = STATUS_CHIP[e.status] || [WHITE,'000000'];
+      const dedAmt = ded(e.hours);
+
+      rows3.push([
+        sc(s.name,   's', bodyStyle(WHITE,    'left',    true,  '222222')),
+        sc(`${d}/${m}/${y}`, 's', bodyStyle(WHITE, 'center', false, '555555')),
+        sc(dayStr,   's', bodyStyle(WHITE,    'center',  false, '555555')),
+        sc(e.status, 's', { font:font(9,true,sfg), fill:fill(sbg), alignment:A(), border:border() }),
+        nc(e.hours,  '0.00',         bodyStyle(WHITE, 'center', false, '555555')),
+        nc(dedAmt,   '"£"#,##0.00',  { font:font(9,true,RED_FG), fill:fill(GOLD_LT), alignment:A('right'), border:border() }),
+      ]);
+    });
   });
 
-  if(detailRows.length===3){
-    detailRows.push(['No deductable events recorded this month.']);
+  if (!hasEvents) {
+    rows3.push([ sc('No deductable events recorded this month.', 's',
+      { font:font(9,false,'888888'), fill:fill(WHITE), alignment:A('left') }),
+      blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
   } else {
-    // Grand total row
-    const dedTotal=detailRows.slice(3).reduce((a,r)=>a+(typeof r[5]==='number'?r[5]:0),0);
-    detailRows.push([]);
-    detailRows.push(['','','','TOTAL','',parseFloat(dedTotal.toFixed(2))]);
+    const allDed = rows3.slice(4).reduce((a,r) => a + (r[5]?.v || 0), 0);
+    const allHrs = rows3.slice(4).reduce((a,r) => a + (r[4]?.v || 0), 0);
+    rows3.push([ blank(NAVY), blank(NAVY), blank(NAVY),
+      sc('TOTAL', 's', totalStyle()),
+      nc(allHrs,  '0.00',        totalStyle()),
+      nc(allDed,  '"£"#,##0.00', totalStyle('right')),
+    ]);
   }
 
-  const ws3=XLSX.utils.aoa_to_sheet(detailRows);
-  ws3['!cols']=[{wch:26},{wch:12},{wch:14},{wch:18},{wch:14},{wch:18}];
-  for(let r=3;r<detailRows.length;r++){
-    const cD=ws3[XLSX.utils.encode_cell({r,c:5})];
-    if(cD&&typeof cD.v==='number'){cD.t='n';cD.z='"£"#,##0.00';}
-  }
+  const ws3 = buildWS(rows3, [26, 12, 14, 12, 14, 16]);
 
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws1,'Attendance Grid');
-  XLSX.utils.book_append_sheet(wb,ws2,'Deduction Summary');
-  XLSX.utils.book_append_sheet(wb,ws3,'Deduction Events');
-  XLSX.writeFile(wb,`establishment_${vy}_${String(vm).padStart(2,'0')}.xlsx`);
+  // ── Write workbook ──────────────────────────────────────────────────────
+  const wb2 = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb2, ws1, 'Attendance Grid');
+  XLSX.utils.book_append_sheet(wb2, ws2, 'Deduction Summary');
+  XLSX.utils.book_append_sheet(wb2, ws3, 'Deduction Events');
+  XLSX.writeFile(wb2, `establishment_${vy}_${String(vm).padStart(2,'0')}.xlsx`);
   closeExport();
   toast('Excel downloaded');
 }
 
-// ── UI ─────────────────────────────────────────────────────────────────────
-function showLoad(v){loading.classList.toggle('hidden',!v);}
+// ── UI helpers ─────────────────────────────────────────────────────────────
+function showLoad(v, msg) {
+  document.getElementById('loadingOverlay').classList.toggle('hidden', !v);
+  const lt = document.getElementById('loadingText');
+  if (lt && msg) lt.textContent = msg;
+}
 let pt;
-function showPill(s){
-  pill.className=`save-pill show ${s}`;
-  pillTxt.textContent=s==='saving'?'Saving…':s==='saved'?'Saved ✓':'Error saving';
+function showPill(s) {
+  pill.className = `save-pill show ${s}`;
+  pillTxt.textContent = s==='saving'?'Saving…':s==='saved'?'Saved ✓':'Error saving';
   clearTimeout(pt);
-  if(s!=='saving')pt=setTimeout(()=>pill.classList.remove('show'),2500);
+  if (s !== 'saving') pt = setTimeout(() => pill.classList.remove('show'), 2500);
 }
 let tt;
-function toast(msg,err=false){
-  const el=$('toast');el.textContent=msg;
+function toast(msg, err=false) {
+  const el=$('toast'); el.textContent=msg;
   el.style.borderColor=err?'var(--red)':'var(--border)';
   el.style.color=err?'var(--red)':'var(--text)';
-  el.classList.add('show');clearTimeout(tt);
-  tt=setTimeout(()=>el.classList.remove('show'),2500);
+  el.classList.add('show'); clearTimeout(tt);
+  tt = setTimeout(() => el.classList.remove('show'), 2500);
 }
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 loadAll();
 </script>
