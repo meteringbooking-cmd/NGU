@@ -348,8 +348,7 @@ const ded   = h => (h||0)*HOURLY_RATE;
 function getE(sid,dt) {
   const r = entries[sid]?.[dt];
   if (!r) return {status:'In', hours:0};
-  if (typeof r === 'string') return {status:r, hours:0};
-  // Firestore object: {status, hours}
+  // Always an object after loadMonth normalisation
   return {
     status: r.status || 'In',
     hours:  parseFloat(r.hours) || 0
@@ -429,9 +428,21 @@ async function loadMonth(y,m){
     snap.forEach(d=>{
       const data=d.data();
       if(!entries[data.staffId])entries[data.staffId]={};
-      entries[data.staffId][data.date]=data.entryData||data.status;
+      // Support both formats: new {status,hours} object AND old plain string
+      if(data.entryData && typeof data.entryData === 'object'){
+        entries[data.staffId][data.date] = {
+          status: data.entryData.status || data.status || 'In',
+          hours:  parseFloat(data.entryData.hours) || 0
+        };
+      } else {
+        // Old format — plain status string, no hours
+        entries[data.staffId][data.date] = {
+          status: data.status || 'In',
+          hours:  0
+        };
+      }
     });
-  }catch(e){console.error(e);}
+  }catch(e){console.error('loadMonth error:',e);}
 }
 
 async function saveE(sid,dt,status,hours){
@@ -623,163 +634,146 @@ function doExport(){
   const period=new Date(vy,vm-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
   const pfx=`${vy}-${String(vm).padStart(2,'0')}`;
 
-  // ── Helper: styled cell ──
-  function sc(v, opts={}){
-    const {bold=false, bg='', color='', align='left', num=false, fmt=''} = opts;
-    const cell = {v, t: num?'n': typeof v==='number'?'n':'s'};
-    if(fmt) cell.z = fmt;
-    cell.s = {
-      font: { name:'Calibri', sz:10, bold, color: color?{rgb:color}:undefined },
-      fill: bg ? {fgColor:{rgb:bg}, patternType:'solid'} : undefined,
-      alignment: { horizontal:align, vertical:'center', wrapText:false },
-      border: {
-        top:{style:'thin',color:{rgb:'CBD5E1'}}, bottom:{style:'thin',color:{rgb:'CBD5E1'}},
-        left:{style:'thin',color:{rgb:'CBD5E1'}}, right:{style:'thin',color:{rgb:'CBD5E1'}}
-      }
-    };
-    return cell;
-  }
-
-  // ── Sheet 1: Attendance Grid ──
-  const ws1 = {};
-  const dCols = []; // day columns info
+  // ── Sheet 1: Attendance Grid ──────────────────────────────────────────────
+  // Build day columns
+  const dayCols=[];
   for(let d=1;d<=nd;d++){
-    const k=dk(vy,vm,d), w=isWkd(vy,vm,d), b=isBH(k);
-    dCols.push({d,k,w,b});
+    const k=dk(vy,vm,d),w=isWkd(vy,vm,d),b=isBH(k);
+    dayCols.push({d,k,w,b});
   }
 
-  // Row 0: title
-  ws1['A1'] = {v:`Establishment Report — ${period}`, t:'s', s:{font:{name:'Calibri',sz:14,bold:true,color:{rgb:'1E3A5F'}},alignment:{horizontal:'left'}}};
+  // Header rows
+  const gridRows=[
+    [`Establishment Report — ${period}`],
+    [],
+    ['Staff Member','Monthly Deduction (£)',...dayCols.map(c=>c.w?''   : c.b?`${c.d}†` : String(c.d))],
+    [''           ,''                      ,...dayCols.map(c=>c.w?'WKD': c.b?'BH'      : dname(vy,vm,c.d).toUpperCase())],
+  ];
 
-  // Row 1: blank
-  // Row 2: headers
-  const HR = 3; // header row index (1-based: row 3)
-  ws1[XLSX.utils.encode_cell({r:HR-1,c:0})] = sc('Staff Member',{bold:true,bg:'1E3A5F',color:'FFFFFF',align:'left'});
-  ws1[XLSX.utils.encode_cell({r:HR-1,c:1})] = sc('Deduction (£)',{bold:true,bg:'1E3A5F',color:'FFFFFF',align:'right'});
-  dCols.forEach((col,i)=>{
-    const hdr = col.w ? `${col.d}` : col.b ? `${col.d}` : String(col.d);
-    const bg = col.w||col.b ? '94A3B8' : '1E3A5F';
-    ws1[XLSX.utils.encode_cell({r:HR-1,c:i+2})] = sc(hdr,{bold:true,bg,color:'FFFFFF',align:'center'});
-  });
-
-  // Day name row
-  const DNR = HR; // row 4
-  ws1[XLSX.utils.encode_cell({r:DNR-1,c:0})] = sc('',{bg:'334E68',color:'FFFFFF'});
-  ws1[XLSX.utils.encode_cell({r:DNR-1,c:1})] = sc('',{bg:'334E68',color:'FFFFFF'});
-  dCols.forEach((col,i)=>{
-    const nm = col.w||col.b ? '' : dname(vy,vm,col.d).toUpperCase();
-    const bg = col.w||col.b ? 'CBD5E1' : '334E68';
-    ws1[XLSX.utils.encode_cell({r:DNR-1,c:i+2})] = sc(nm,{bg,color:'FFFFFF',align:'center'});
-  });
-
-  // Data rows
-  let maxR = DNR;
-  fil.forEach((s,ri)=>{
-    const row = DNR + ri; // 1-based
-    maxR = row;
-    const dt = staffTotal(s.id);
-    const rowBg = ri%2===0 ? 'F8FAFC' : 'FFFFFF';
-    ws1[XLSX.utils.encode_cell({r:row-1,c:0})] = sc(s.name,{bg:rowBg,align:'left'});
-    ws1[XLSX.utils.encode_cell({r:row-1,c:1})] = sc(dt>0?parseFloat(dt.toFixed(2)):0,{num:true,fmt:'£#,##0.00',bg:dt>0?'FEF2F2':rowBg,color:dt>0?'B91C1C':'',align:'right'});
-    dCols.forEach((col,i)=>{
-      if(col.w){ ws1[XLSX.utils.encode_cell({r:row-1,c:i+2})]=sc('',{bg:'E2E8F0',align:'center'}); return; }
-      if(col.b){ ws1[XLSX.utils.encode_cell({r:row-1,c:i+2})]=sc('BH',{bg:'EDE9FE',color:'5B21B6',align:'center',bold:true}); return; }
-      const e=getE(s.id,col.k), opt=STATUSES.find(o=>o.code===e.status)||STATUSES[0];
-      let cellVal=opt.abbr;
-      if(opt.deducts&&e.hours>0)cellVal=`${opt.abbr} ${e.hours}h`;
-      const cellBg = opt.code==='Sick'?'FEE2E2': opt.code==='AAUP'?'FEF3C7': opt.code==='In'?rowBg : opt.code==='Holiday'?'EDE9FE': opt.code==='Training'?'ECFCCB' : rowBg;
-      const cellFg = opt.code==='Sick'?'B91C1C': opt.code==='AAUP'?'92400E': opt.code==='Holiday'?'5B21B6': opt.code==='Training'?'3F6212' : '374151';
-      ws1[XLSX.utils.encode_cell({r:row-1,c:i+2})]=sc(cellVal,{bg:cellBg,color:cellFg,align:'center',bold:opt.deducts&&e.hours>0});
+  fil.forEach(s=>{
+    const dt=staffTotal(s.id);
+    const row=[s.name, dt>0 ? parseFloat(dt.toFixed(2)) : 0];
+    dayCols.forEach(col=>{
+      if(col.w){ row.push(''); return; }
+      if(col.b){ row.push('BH'); return; }
+      const e=getE(s.id,col.k);
+      const opt=STATUSES.find(o=>o.code===e.status)||STATUSES[0];
+      if(opt.deducts && e.hours>0) row.push(`${opt.abbr} (${e.hours}h)`);
+      else row.push(opt.abbr);
     });
+    gridRows.push(row);
   });
 
   // Totals row
-  const TR = maxR+1;
-  const gTotal = fil.reduce((a,s)=>a+staffTotal(s.id),0);
-  ws1[XLSX.utils.encode_cell({r:TR-1,c:0})]=sc('TOTAL DEDUCTIONS',{bold:true,bg:'1E3A5F',color:'FFFFFF'});
-  ws1[XLSX.utils.encode_cell({r:TR-1,c:1})]=sc(parseFloat(gTotal.toFixed(2)),{num:true,fmt:'£#,##0.00',bold:true,bg:'1E3A5F',color:'FFFFFF',align:'right'});
-  dCols.forEach((_,i)=>{ ws1[XLSX.utils.encode_cell({r:TR-1,c:i+2})]=sc('',{bg:'1E3A5F'}); });
+  const grand=fil.reduce((a,s)=>a+staffTotal(s.id),0);
+  gridRows.push(['TOTAL DEDUCTIONS', parseFloat(grand.toFixed(2)), ...dayCols.map(()=>'')]);
+  gridRows.push([]);
+  gridRows.push(['† Bank Holiday']);
 
-  ws1['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:TR-1,c:dCols.length+1}});
-  ws1['!cols'] = [{wch:24},{wch:16},...dCols.map(()=>({wch:6}))];
-  ws1['!rows'] = [{hpt:20},{hpt:6},{hpt:18},{hpt:14}];
-  ws1['!merges'] = [{s:{r:0,c:0},e:{r:0,c:Math.min(8,dCols.length+1)}}];
+  const ws1=XLSX.utils.aoa_to_sheet(gridRows);
+  ws1['!cols']=[{wch:26},{wch:20},...dayCols.map(()=>({wch:7}))];
 
-  // ── Sheet 2: Deduction Summary ──
-  const ws2 = {};
-  const S2_COLS = ['Staff Member','Status','Total Hours','Deduction (£)'];
-  const s2Hdr = ['1E3A5F','334E68','334E68','334E68'];
-  ws2['A1']={v:`Payroll Deductions — ${period}`,t:'s',s:{font:{name:'Calibri',sz:14,bold:true,color:{rgb:'1E3A5F'}}}};
-  ws2['A2']={v:`Hourly Rate: £${HOURLY_RATE.toFixed(5)} — Deductable statuses: Sick, AAUP`,t:'s',s:{font:{name:'Calibri',sz:9,italic:true,color:{rgb:'64748B'}}}};
+  // Format deduction column (col index 1) as currency
+  for(let r=4;r<gridRows.length;r++){
+    const cell=ws1[XLSX.utils.encode_cell({r,c:1})];
+    if(cell && typeof cell.v==='number'){cell.t='n';cell.z='"£"#,##0.00';}
+  }
 
-  S2_COLS.forEach((h,i)=>{
-    ws2[XLSX.utils.encode_cell({r:3,c:i})]=sc(h,{bold:true,bg:'1E3A5F',color:'FFFFFF',align:i>1?'right':'left'});
-  });
+  // ── Sheet 2: Deduction Summary ────────────────────────────────────────────
+  const summaryRows=[
+    [`Payroll Deduction Summary — ${period}`],
+    [`Hourly rate: £${HOURLY_RATE.toFixed(8)}`],
+    [`Deductable statuses: Sick, AAUP`],
+    [],
+    ['Staff Member','Absence Events','Total Hours Absent','Deduction (£)'],
+  ];
 
-  // Only staff with deductions + a full summary
-  const allFilStaff = fil.map(s=>{
+  const staffStats=fil.map(s=>{
     let hrs=0, ev=0;
     Object.keys(entries[s.id]||{}).forEach(dt=>{
-      if(!dt.startsWith(pfx))return;
+      if(!dt.startsWith(pfx)) return;
       const e=getE(s.id,dt);
       const opt=STATUSES.find(o=>o.code===e.status);
-      if(opt?.deducts&&e.hours>0){hrs+=e.hours;ev++;}
+      if(opt?.deducts && e.hours>0){ hrs+=e.hours; ev++; }
     });
-    return {name:s.name, events:ev, hours:hrs, total:staffTotal(s.id)};
+    return {name:s.name, ev, hrs, total:staffTotal(s.id)};
   }).sort((a,b)=>b.total-a.total);
 
-  let s2row=4;
-  allFilStaff.forEach((s,i)=>{
-    const bg=i%2===0?'F8FAFC':'FFFFFF';
-    ws2[XLSX.utils.encode_cell({r:s2row,c:0})]=sc(s.name,{bg,align:'left'});
-    ws2[XLSX.utils.encode_cell({r:s2row,c:1})]=sc(s.events===0?'—':`${s.events} event${s.events!==1?'s':''}`,{bg,color:s.events>0?'92400E':'94A3B8',align:'center'});
-    ws2[XLSX.utils.encode_cell({r:s2row,c:2})]=sc(s.hours||0,{num:true,fmt:'0.00',bg,color:s.hours>0?'92400E':'94A3B8',align:'right'});
-    ws2[XLSX.utils.encode_cell({r:s2row,c:3})]=sc(parseFloat(s.total.toFixed(2)),{num:true,fmt:'£#,##0.00',bg:s.total>0?'FEF2F2':bg,color:s.total>0?'B91C1C':'94A3B8',align:'right',bold:s.total>0});
-    s2row++;
+  staffStats.forEach(s=>{
+    summaryRows.push([
+      s.name,
+      s.ev,
+      parseFloat(s.hrs.toFixed(2)),
+      parseFloat(s.total.toFixed(2))
+    ]);
   });
-  // Totals
-  s2row++;
-  const gHrs=allFilStaff.reduce((a,s)=>a+s.hours,0);
-  const gDed=allFilStaff.reduce((a,s)=>a+s.total,0);
-  ws2[XLSX.utils.encode_cell({r:s2row,c:0})]=sc('TOTAL',{bold:true,bg:'1E3A5F',color:'FFFFFF'});
-  ws2[XLSX.utils.encode_cell({r:s2row,c:1})]=sc('',{bg:'1E3A5F'});
-  ws2[XLSX.utils.encode_cell({r:s2row,c:2})]=sc(parseFloat(gHrs.toFixed(2)),{num:true,fmt:'0.00',bold:true,bg:'1E3A5F',color:'FFFFFF',align:'right'});
-  ws2[XLSX.utils.encode_cell({r:s2row,c:3})]=sc(parseFloat(gDed.toFixed(2)),{num:true,fmt:'£#,##0.00',bold:true,bg:'1E3A5F',color:'FFFFFF',align:'right'});
-  ws2['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:s2row,c:3}});
-  ws2['!cols']=[{wch:26},{wch:14},{wch:14},{wch:18}];
 
-  // ── Sheet 3: Detail Events ──
-  const ws3={};
-  ['Staff Member','Date','Status','Hours','Deduction (£)'].forEach((h,i)=>{
-    ws3[XLSX.utils.encode_cell({r:0,c:i})]=sc(h,{bold:true,bg:'1E3A5F',color:'FFFFFF',align:i>2?'right':'left'});
-  });
-  let s3row=1;
+  summaryRows.push([]);
+  const totHrs=staffStats.reduce((a,s)=>a+s.hrs,0);
+  const totDed=staffStats.reduce((a,s)=>a+s.total,0);
+  summaryRows.push(['TOTAL','',parseFloat(totHrs.toFixed(2)),parseFloat(totDed.toFixed(2))]);
+
+  const ws2=XLSX.utils.aoa_to_sheet(summaryRows);
+  ws2['!cols']=[{wch:26},{wch:18},{wch:20},{wch:18}];
+  // Format hours and deduction columns
+  for(let r=5;r<summaryRows.length;r++){
+    const cH=ws2[XLSX.utils.encode_cell({r,c:2})];
+    const cD=ws2[XLSX.utils.encode_cell({r,c:3})];
+    if(cH&&typeof cH.v==='number') cH.z='0.00';
+    if(cD&&typeof cD.v==='number'){cD.t='n';cD.z='"£"#,##0.00';}
+  }
+
+  // ── Sheet 3: Individual Deduction Events ─────────────────────────────────
+  const detailRows=[
+    [`Deduction Events — ${period}`],
+    [],
+    ['Staff Member','Date','Day','Status','Hours Absent','Deduction (£)'],
+  ];
+
   fil.forEach(s=>{
-    Object.keys(entries[s.id]||{}).filter(dt=>dt.startsWith(pfx)).sort().forEach(dt=>{
-      const r=entries[s.id][dt];
-      const e=getE(s.id,dt);
-      const opt=STATUSES.find(o=>o.code===e.status);
-      if(!opt?.deducts||!(e.hours>0))return;
-      const bg=s3row%2===0?'F8FAFC':'FFFFFF';
-      const dedAmt=parseFloat(ded(e.hours).toFixed(2));
-      ws3[XLSX.utils.encode_cell({r:s3row,c:0})]=sc(s.name,{bg});
-      ws3[XLSX.utils.encode_cell({r:s3row,c:1})]=sc(dt,{bg,align:'center'});
-      ws3[XLSX.utils.encode_cell({r:s3row,c:2})]=sc(e.status,{bg:e.status==='Sick'?'FEE2E2':'FEF3C7',color:e.status==='Sick'?'B91C1C':'92400E',align:'center',bold:true});
-      ws3[XLSX.utils.encode_cell({r:s3row,c:3})]=sc(e.hours,{num:true,fmt:'0.0',bg,align:'right'});
-      ws3[XLSX.utils.encode_cell({r:s3row,c:4})]=sc(dedAmt,{num:true,fmt:'£#,##0.00',bg:'FEF2F2',color:'B91C1C',align:'right',bold:true});
-      s3row++;
-    });
+    Object.keys(entries[s.id]||{})
+      .filter(dt=>dt.startsWith(pfx))
+      .sort()
+      .forEach(dt=>{
+        const e=getE(s.id,dt);
+        const opt=STATUSES.find(o=>o.code===e.status);
+        if(!opt?.deducts || !(e.hours>0)) return;
+        const [y,m,d]=dt.split('-');
+        const dayStr=new Date(+y,+m-1,+d).toLocaleDateString('en-GB',{weekday:'long'});
+        detailRows.push([
+          s.name,
+          `${d}/${m}/${y}`,
+          dayStr,
+          e.status,
+          e.hours,
+          parseFloat(ded(e.hours).toFixed(2))
+        ]);
+      });
   });
-  if(s3row===1){ ws3[XLSX.utils.encode_cell({r:1,c:0})]=sc('No deductable events this month.',{color:'94A3B8'}); s3row=2; }
-  ws3['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:s3row-1,c:4}});
-  ws3['!cols']=[{wch:24},{wch:14},{wch:16},{wch:10},{wch:18}];
+
+  if(detailRows.length===3){
+    detailRows.push(['No deductable events recorded this month.']);
+  } else {
+    // Grand total row
+    const dedTotal=detailRows.slice(3).reduce((a,r)=>a+(typeof r[5]==='number'?r[5]:0),0);
+    detailRows.push([]);
+    detailRows.push(['','','','TOTAL','',parseFloat(dedTotal.toFixed(2))]);
+  }
+
+  const ws3=XLSX.utils.aoa_to_sheet(detailRows);
+  ws3['!cols']=[{wch:26},{wch:12},{wch:14},{wch:18},{wch:14},{wch:18}];
+  for(let r=3;r<detailRows.length;r++){
+    const cD=ws3[XLSX.utils.encode_cell({r,c:5})];
+    if(cD&&typeof cD.v==='number'){cD.t='n';cD.z='"£"#,##0.00';}
+  }
 
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws1,'Attendance Grid');
   XLSX.utils.book_append_sheet(wb,ws2,'Deduction Summary');
-  XLSX.utils.book_append_sheet(wb,ws3,'Deduction Detail');
+  XLSX.utils.book_append_sheet(wb,ws3,'Deduction Events');
   XLSX.writeFile(wb,`establishment_${vy}_${String(vm).padStart(2,'0')}.xlsx`);
-  closeExport();toast('Excel downloaded');
+  closeExport();
+  toast('Excel downloaded');
 }
 
 // ── UI ─────────────────────────────────────────────────────────────────────
