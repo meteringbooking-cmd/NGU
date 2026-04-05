@@ -94,6 +94,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .yr-label{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);min-width:130px;text-align:center;letter-spacing:.03em;}
 .toolbar-right{display:flex;align-items:center;gap:8px;}
 .count-badge{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:4px 10px;}
+
+/* ── YEAR PROGRESS ── */
+.year-progress-wrap{display:flex;flex-direction:column;gap:5px;padding:6px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;min-width:260px;}
+.yp-row{display:flex;align-items:center;gap:8px;}
+.yp-label{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:46px;flex-shrink:0;}
+.yp-bar-outer{flex:1;height:7px;background:var(--faint);border-radius:99px;overflow:hidden;position:relative;}
+.yp-bar{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.yp-bar-expected{background:linear-gradient(90deg,var(--accent2),var(--accent));opacity:.45;}
+.yp-bar-actual{background:linear-gradient(90deg,var(--green),#34d399);}
+.yp-bar-actual.warn{background:linear-gradient(90deg,#d97706,var(--amber));}
+.yp-bar-actual.over{background:linear-gradient(90deg,#dc2626,var(--red));}
+.yp-val{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text);width:36px;text-align:right;flex-shrink:0;}
 .count-badge span{color:var(--accent);font-weight:600;}
 
 /* ── MAIN ── */
@@ -265,6 +277,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       <button class="yr-btn" id="prevYear">‹</button>
       <span class="yr-label" id="yearLabel">—</span>
       <button class="yr-btn" id="nextYear">›</button>
+    </div>
+    <div class="year-progress-wrap" id="yearProgressWrap">
+      <div class="yp-row">
+        <span class="yp-label" id="ypExpLabel">Expected</span>
+        <div class="yp-bar-outer"><div class="yp-bar yp-bar-expected" id="ypExpBar"></div></div>
+        <span class="yp-val" id="ypExpVal">—</span>
+      </div>
+      <div class="yp-row">
+        <span class="yp-label" id="ypActLabel">Actual</span>
+        <div class="yp-bar-outer"><div class="yp-bar yp-bar-actual" id="ypActBar"></div></div>
+        <span class="yp-val" id="ypActVal">—</span>
+      </div>
     </div>
   </div>
   <div class="toolbar-right">
@@ -612,6 +636,7 @@ function render() {
 
   // Summary strip
   renderSummary(fil);
+  renderYearProgress(fil);
 
   const list = $('employeeList');
 
@@ -745,6 +770,66 @@ function updateProgress(sid, stats, allowance) {
   prog.innerHTML = `
     <div class="hol-bar-wrap"><div class="hol-bar ${barClass}" style="width:${pct}%"></div></div>
     <div class="hol-fraction">${stats.holTotal} used · ${remaining >= 0 ? remaining + ' left' : Math.abs(remaining) + ' over'}</div>`;
+}
+
+function renderYearProgress(fil) {
+  const wrap = $('yearProgressWrap');
+  if (!wrap) return;
+
+  // Total combined allowance across filtered staff
+  const totalAllowance = fil.reduce((sum, emp) => sum + (allowances[emp.id] ?? 25), 0);
+  if (!totalAllowance) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+
+  // How far through the April→March year are we right now?
+  const today = new Date();
+  const yearStart = new Date(aprilYear, 3, 1);       // Apr 1
+  const yearEnd   = new Date(aprilYear + 1, 2, 31);  // Mar 31
+
+  // Clamp today within the year bounds
+  const clampedToday = today < yearStart ? yearStart : today > yearEnd ? yearEnd : today;
+  const totalMs  = yearEnd - yearStart;
+  const elapsedMs = clampedToday - yearStart;
+  const yearPct  = Math.round((elapsedMs / totalMs) * 100);
+
+  // Expected usage = totalAllowance * (weeks elapsed / 52)
+  const weeksElapsed = elapsedMs / (7 * 24 * 60 * 60 * 1000);
+  const expectedUsed = Math.round((totalAllowance / 52) * weeksElapsed);
+  const expectedPct  = Math.min(100, Math.round((expectedUsed / totalAllowance) * 100));
+
+  // Actual used
+  let actualUsed = 0;
+  fil.forEach(emp => {
+    const s = computeStats(allEntries[emp.id] || {}, aprilYear);
+    actualUsed += s.holTotal;
+  });
+  const actualPct = Math.min(100, Math.round((actualUsed / totalAllowance) * 100));
+
+  // Determine if actual is ahead/behind
+  const isOver  = actualPct > expectedPct + 5;
+  const isUnder = actualPct < expectedPct - 5;
+  const actualBarClass = isOver ? 'over' : isUnder ? '' : 'warn';
+
+  // Update bars
+  $('ypExpBar').style.width = expectedPct + '%';
+  $('ypActBar').style.width = actualPct + '%';
+  $('ypActBar').className = 'yp-bar yp-bar-actual' + (isOver ? ' over' : isUnder ? '' : ' warn');
+  $('ypExpVal').textContent = expectedPct + '%';
+  $('ypActVal').textContent = actualPct + '%';
+
+  // Tooltip-style labels
+  $('ypExpLabel').title = `Expected ${expectedUsed}d used after ${Math.round(weeksElapsed)} weeks`;
+  $('ypActLabel').title = `Actual ${actualUsed}d used of ${totalAllowance}d total`;
+
+  // Show whether ahead or behind
+  const diff = actualUsed - expectedUsed;
+  const diffText = diff === 0 ? 'on track' : diff > 0 ? `${diff}d ahead` : `${Math.abs(diff)}d behind`;
+  const diffColor = diff > 5 ? 'var(--red)' : diff < -5 ? 'var(--green)' : 'var(--amber)';
+  wrap.title = `Holiday usage vs expected pace — ${diffText}`;
+
+  // Update labels with diff hint
+  $('ypExpLabel').textContent = 'Expected';
+  $('ypActLabel').textContent = 'Actual';
 }
 
 function renderSummary(fil) {
