@@ -231,7 +231,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="loading-overlay" id="loadingOverlay">
   <div>
     <div class="spinner"></div>
-    <div class="loading-text">Loading employee database…</div>
+    <div class="loading-text" id="loadingText">Loading employee database…</div>
   </div>
 </div>
 
@@ -261,6 +261,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
   <div class="toolbar-right">
+    <button class="btn btn-ghost" id="refreshBtn" style="font-size:12px;">↻ Refresh</button>
     <div class="count-badge"><span id="staffCount">0</span> employees</div>
   </div>
 </div>
@@ -399,6 +400,14 @@ function countBHInRange(aprilYear) {
 
 // ── Instances ──────────────────────────────────────────────────────────────
 // An "instance" is a consecutive run of the same status type (ignoring weekends & BH)
+// Safely extract status string from any stored entry format
+function getStatus(e) {
+  if (!e) return null;
+  if (typeof e === 'string') return e;
+  if (e && typeof e === 'object') return e.status || null;
+  return null;
+}
+
 // Returns array of {type, start, end, days}
 function computeInstances(entries, type, aprilYear) {
   const allDates = getAllDatesInRange(aprilYear).filter(d => isWorkday(d));
@@ -406,9 +415,8 @@ function computeInstances(entries, type, aprilYear) {
   let runStart = null, runEnd = null, runLen = 0;
 
   const isType = d => {
-    const e = entries[d];
-    if (!e) return false;
-    const status = typeof e === 'string' ? e : e.status;
+    const status = getStatus(entries[d]);
+    if (!status) return false;
     const meta = STATUS_MAP[status];
     if (!meta) return false;
     if (type === 'hol') return meta.type === 'hol';
@@ -449,9 +457,8 @@ function computeStats(empEntries, aprilYear) {
     if (isBHDay) { bhDays++; return; }
     if (!isWD) return;
 
-    const e = empEntries[d];
-    if (!e) return;
-    const status = typeof e === 'string' ? e : e.status;
+    const status = getStatus(empEntries[d]);
+    if (!status) return;
     switch (status) {
       case 'Holiday':          holDays++;  break;
       case 'Half day Holiday': holHalf++;  break;
@@ -489,10 +496,11 @@ let saveTimers = {};
 const $ = id => document.getElementById(id);
 
 // ── Events ─────────────────────────────────────────────────────────────────
-$('prevYear').onclick = () => { aprilYear--; updateYearLabel(); render(); };
-$('nextYear').onclick = () => { aprilYear++; updateYearLabel(); render(); };
+$('prevYear').onclick = () => { aprilYear--; updateYearLabel(); loadAll(); };
+$('nextYear').onclick = () => { aprilYear++; updateYearLabel(); loadAll(); };
 $('staffSearch').oninput = e => { searchQ = e.target.value.trim().toLowerCase(); render(); };
 $('themeBtn').onclick = toggleTheme;
+$('refreshBtn').onclick = loadAll;
 $('detailClose').onclick = () => $('detailModal').classList.remove('show');
 $('detailCloseBtn').onclick = () => $('detailModal').classList.remove('show');
 $('deleteClose').onclick = () => $('deleteModal').classList.remove('show');
@@ -519,28 +527,41 @@ function toggleTheme() {
 
 // ── Firebase ───────────────────────────────────────────────────────────────
 async function loadAll() {
-  showLoad(true);
+  showLoad(true, 'Loading staff records…');
   try {
+    // Load everything in one collection scan
+    showLoad(true, 'Fetching all attendance data…');
     const snap = await getDocs(collection(db, 'Establishment Report'));
     staff = []; allEntries = {}; allowances = {};
 
+    let entryCount = 0;
     snap.forEach(d => {
       const data = d.data();
+
       if (data._type === 'staff') {
         staff.push({ id: d.id, name: data.name, createdAt: data.createdAt || '' });
-        allEntries[d.id] = {};
-        allowances[d.id] = data.holidayAllowance || 25;
+        if (!allEntries[d.id]) allEntries[d.id] = {};
+        allowances[d.id] = data.holidayAllowance ?? 25;
       }
+
       if (data._type === 'entry') {
         const sid = data.staffId;
-        if (sid) {
-          if (!allEntries[sid]) allEntries[sid] = {};
-          allEntries[sid][data.date] = data.entryData || data.status;
-        }
+        const dt  = data.date;
+        if (!sid || !dt) return;
+        if (!allEntries[sid]) allEntries[sid] = {};
+
+        // Normalise: entryData is {status,hours}; fallback to top-level status string
+        const rawStatus = data.entryData?.status || data.status || 'In';
+        const rawHours  = data.entryData?.hours  || data.hours  || 0;
+        allEntries[sid][dt] = { status: rawStatus, hours: rawHours };
+        entryCount++;
       }
     });
 
     staff.sort((a, b) => a.name.localeCompare(b.name));
+    console.log(`✓ Loaded ${staff.length} staff, ${entryCount} entry records`);
+    toast(`Loaded ${entryCount} attendance records across ${staff.length} staff`);
+
   } catch (e) {
     console.error(e);
     toast('Error loading data', true);
@@ -870,7 +891,11 @@ async function confirmDelete() {
 }
 
 // ── UI helpers ─────────────────────────────────────────────────────────────
-function showLoad(v) { $('loadingOverlay').classList.toggle('hidden', !v); }
+function showLoad(v, msg) {
+  $('loadingOverlay').classList.toggle('hidden', !v);
+  if (msg && $('loadingText')) $('loadingText').textContent = msg;
+  else if ($('loadingText')) $('loadingText').textContent = 'Loading employee database…';
+}
 let tt;
 function toast(msg, err = false) {
   const el = $('toast');
