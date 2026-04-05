@@ -82,6 +82,10 @@ body::before {
   font-size: 26px; margin: 0 auto 24px;
   box-shadow: 0 8px 24px rgba(79,179,232,.3);
 }
+.login-logo.change-pw {
+  background: linear-gradient(135deg, #7c3aed, var(--purple));
+  box-shadow: 0 8px 24px rgba(155,127,232,.3);
+}
 .login-title {
   font-family: var(--serif);
   font-size: 28px;
@@ -94,6 +98,7 @@ body::before {
   font-size: 13px;
   color: var(--muted);
   margin-bottom: 36px;
+  line-height: 1.5;
 }
 .login-group { margin-bottom: 16px; }
 .login-label {
@@ -113,6 +118,8 @@ body::before {
 .login-select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b8aaa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
 .login-select:focus, .login-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,179,232,.12); }
 .login-input::placeholder { color: var(--faint); }
+.login-input.error { border-color: rgba(232,91,91,.6); box-shadow: 0 0 0 3px rgba(232,91,91,.1); }
+.login-input.success { border-color: rgba(61,214,140,.6); box-shadow: 0 0 0 3px rgba(61,214,140,.1); }
 .login-pw-wrap { position: relative; }
 .login-pw-toggle {
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
@@ -136,8 +143,64 @@ body::before {
   box-shadow: 0 4px 16px rgba(79,179,232,.3);
   margin-top: 8px;
 }
+.login-btn.purple {
+  background: linear-gradient(135deg, #6d28d9, var(--purple));
+  box-shadow: 0 4px 16px rgba(155,127,232,.3);
+}
 .login-btn:hover { opacity: .9; transform: translateY(-1px); }
 .login-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* ── PASSWORD STRENGTH ── */
+.pw-strength-wrap { margin-top: 8px; }
+.pw-strength-bars { display: flex; gap: 4px; margin-bottom: 5px; }
+.pw-bar {
+  flex: 1; height: 3px; border-radius: 99px;
+  background: var(--faint); transition: background .2s;
+}
+.pw-bar.weak { background: var(--red); }
+.pw-bar.fair { background: var(--amber); }
+.pw-bar.good { background: var(--gold); }
+.pw-bar.strong { background: var(--green); }
+.pw-strength-label { font-size: 10px; color: var(--muted); }
+.pw-strength-label.weak { color: var(--red); }
+.pw-strength-label.fair { color: var(--amber); }
+.pw-strength-label.good { color: var(--gold); }
+.pw-strength-label.strong { color: var(--green); }
+
+/* ── PW REQUIREMENTS ── */
+.pw-requirements {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  margin-top: 8px; display: flex; flex-direction: column; gap: 5px;
+}
+.pw-req {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; color: var(--muted); transition: color .15s;
+}
+.pw-req.met { color: var(--green); }
+.pw-req-icon { font-size: 11px; flex-shrink: 0; }
+
+/* ── CONFIRM MATCH ── */
+.pw-match-hint {
+  font-size: 11px; margin-top: 5px;
+  display: flex; align-items: center; gap: 5px;
+  opacity: 0; transition: opacity .2s;
+}
+.pw-match-hint.visible { opacity: 1; }
+.pw-match-hint.match { color: var(--green); }
+.pw-match-hint.nomatch { color: var(--red); }
+
+/* ── FIRST LOGIN NOTICE ── */
+.first-login-notice {
+  background: linear-gradient(135deg, rgba(155,127,232,.08), rgba(79,179,232,.06));
+  border: 1px solid rgba(155,127,232,.3);
+  border-radius: 10px; padding: 14px 16px;
+  margin-bottom: 24px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.fln-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.fln-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.fln-text strong { color: var(--text); display: block; margin-bottom: 2px; font-size: 13px; }
 
 /* ── MAIN APP ── */
 .app { display: none; position: relative; z-index: 1; min-height: 100vh; }
@@ -373,6 +436,22 @@ body::before {
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text { font-size: 12px; color: var(--muted); text-align: center; font-family: var(--sans); }
 
+/* ── SCREEN TRANSITIONS ── */
+.login-card { transition: none; }
+.login-card.slide-out {
+  animation: slideOut .3s cubic-bezier(.4,0,.2,1) forwards;
+}
+.login-card.slide-in {
+  animation: slideIn .35s cubic-bezier(.34,1.3,.64,1) forwards;
+}
+@keyframes slideOut {
+  to { opacity: 0; transform: translateX(-40px) scale(.96); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px) scale(.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
 @media (max-width: 600px) {
   .form-grid { grid-template-columns: 1fr; }
   .form-group.full { grid-column: 1; }
@@ -392,7 +471,9 @@ body::before {
 
 <!-- LOGIN -->
 <div class="login-screen" id="loginScreen">
-  <div class="login-card">
+
+  <!-- Step 1: Sign in -->
+  <div class="login-card" id="loginCard">
     <div class="login-logo">🏢</div>
     <h1 class="login-title">Employee Portal</h1>
     <p class="login-sub">Sign in to manage your holidays &amp; absence</p>
@@ -413,6 +494,60 @@ body::before {
     <div class="login-error" id="loginError"></div>
     <button class="login-btn" id="loginBtn">Sign In →</button>
   </div>
+
+  <!-- Step 2: Set new password (first login) — hidden until needed -->
+  <div class="login-card" id="setPasswordCard" style="display:none;">
+    <div class="login-logo change-pw">🔑</div>
+    <h1 class="login-title">Set Your Password</h1>
+    <p class="login-sub">Welcome! This is your first sign-in.<br>Please create a personal password.</p>
+
+    <div class="first-login-notice">
+      <div class="fln-icon">🔒</div>
+      <div class="fln-text">
+        <strong>Security setup required</strong>
+        HR has set a temporary password for your account. Create your own private password now — HR won't be able to see it.
+      </div>
+    </div>
+
+    <div class="login-group">
+      <label class="login-label">New Password <span style="color:var(--accent)">*</span></label>
+      <div class="login-pw-wrap">
+        <input class="login-input" type="password" id="newPassword" placeholder="Create a strong password" autocomplete="new-password">
+        <button class="login-pw-toggle" id="newPwToggle" type="button">👁</button>
+      </div>
+      <div class="pw-strength-wrap" id="pwStrengthWrap" style="display:none;">
+        <div class="pw-strength-bars">
+          <div class="pw-bar" id="pwBar1"></div>
+          <div class="pw-bar" id="pwBar2"></div>
+          <div class="pw-bar" id="pwBar3"></div>
+          <div class="pw-bar" id="pwBar4"></div>
+        </div>
+        <span class="pw-strength-label" id="pwStrengthLabel"></span>
+      </div>
+      <div class="pw-requirements" id="pwRequirements">
+        <div class="pw-req" id="req-len"><span class="pw-req-icon">○</span> At least 8 characters</div>
+        <div class="pw-req" id="req-upper"><span class="pw-req-icon">○</span> One uppercase letter</div>
+        <div class="pw-req" id="req-lower"><span class="pw-req-icon">○</span> One lowercase letter</div>
+        <div class="pw-req" id="req-num"><span class="pw-req-icon">○</span> One number</div>
+      </div>
+    </div>
+
+    <div class="login-group">
+      <label class="login-label">Confirm Password <span style="color:var(--accent)">*</span></label>
+      <div class="login-pw-wrap">
+        <input class="login-input" type="password" id="confirmPassword" placeholder="Repeat your new password" autocomplete="new-password">
+        <button class="login-pw-toggle" id="confirmPwToggle" type="button">👁</button>
+      </div>
+      <div class="pw-match-hint" id="pwMatchHint">
+        <span id="pwMatchIcon"></span>
+        <span id="pwMatchText"></span>
+      </div>
+    </div>
+
+    <div class="login-error" id="setPwError"></div>
+    <button class="login-btn purple" id="setPwBtn">Set Password &amp; Sign In →</button>
+  </div>
+
 </div>
 
 <!-- APP -->
@@ -431,7 +566,6 @@ body::before {
   </header>
 
   <div class="main">
-    <!-- Stats -->
     <div class="stats-row" id="statsRow">
       <div class="stat-card c-remaining" style="animation-delay:.05s">
         <div class="stat-label">Remaining</div>
@@ -455,7 +589,6 @@ body::before {
       </div>
     </div>
 
-    <!-- Holiday bar -->
     <div class="holiday-bar-wrap" id="holidayBarWrap">
       <div class="holiday-bar-inner"><div class="holiday-bar-fill" id="holidayBarFill" style="width:0%"></div></div>
       <div class="holiday-bar-labels">
@@ -464,10 +597,8 @@ body::before {
       </div>
     </div>
 
-    <!-- Request Form -->
     <div class="request-form-card">
       <div class="section-title">Request Holiday <span>submit a new request</span></div>
-
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">From Date <span class="form-req">*</span></label>
@@ -500,16 +631,12 @@ body::before {
           <textarea class="form-textarea" id="reqNotes" placeholder="Any additional information for your manager…"></textarea>
         </div>
       </div>
-
       <div class="submit-area">
         <div class="form-error-msg" id="formError"></div>
-        <button class="submit-btn" id="submitBtn">
-          <span>📅</span> Submit Request
-        </button>
+        <button class="submit-btn" id="submitBtn"><span>📅</span> Submit Request</button>
       </div>
     </div>
 
-    <!-- My Requests -->
     <div class="requests-section">
       <div class="section-title">My Requests <span id="requestCountLabel"></span></div>
       <div class="requests-list" id="requestsList">
@@ -527,7 +654,7 @@ body::before {
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {
-  getFirestore, collection, doc, getDocs, addDoc, query, where, orderBy, getDoc
+  getFirestore, collection, doc, getDocs, addDoc, setDoc, query, where, orderBy, getDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -553,13 +680,11 @@ const isWkd = d => { const w = new Date(d+'T00:00:00').getDay(); return w===0||w
 const isBH = d => BANK_HOLIDAYS.has(d);
 const isWorkday = d => !isWkd(d) && !isBH(d);
 
-// Get all dates between two date strings inclusive
 function getDateRange(from, to) {
   const dates = [];
   const cur = new Date(from+'T00:00:00');
   const end = new Date(to+'T00:00:00');
   while (cur <= end) {
-    // Use local date parts to avoid UTC offset shifting the date (e.g. BST = UTC+1)
     const y = cur.getFullYear();
     const m = String(cur.getMonth()+1).padStart(2,'0');
     const d = String(cur.getDate()).padStart(2,'0');
@@ -568,11 +693,9 @@ function getDateRange(from, to) {
   }
   return dates;
 }
-
 function countWorkdays(from, to) {
   return getDateRange(from, to).filter(d => isWorkday(d)).length;
 }
-
 function fmtDate(d) {
   return new Date(d+'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
 }
@@ -580,18 +703,89 @@ function fmtDate(d) {
 // ── State ──
 let currentUser = null; // { id, name }
 let allStaff = [];
-let staffPasswords = {};
+let staffPasswords = {}; // sid -> { password, mustChangePassword, hrAdminDocId }
+let pendingLoginUser = null; // user waiting for password change
 let myStats = { allowance: 25, holUsed: 0, sickDays: 0 };
 let myRequests = [];
 
-// ── DOM events ──
+// ── Password strength ──
+function getStrength(pw) {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (pw.length >= 12) score++;
+  return score; // 0-5
+}
+function updateStrengthUI(pw) {
+  const strength = getStrength(pw);
+  const wrap = $('pwStrengthWrap');
+  if (!pw) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Strong'];
+  const classes = ['', 'weak', 'fair', 'good', 'strong', 'strong'];
+  const cls = classes[Math.max(1, strength)];
+  const lbl = $('pwStrengthLabel');
+  lbl.textContent = labels[Math.max(1, strength)];
+  lbl.className = 'pw-strength-label ' + cls;
+
+  for (let i = 1; i <= 4; i++) {
+    const bar = $(`pwBar${i}`);
+    bar.className = 'pw-bar ' + (i <= Math.max(1, strength) ? cls : '');
+  }
+
+  // Requirements
+  const update = (id, met) => {
+    const el = $(id);
+    el.classList.toggle('met', met);
+    el.querySelector('.pw-req-icon').textContent = met ? '✓' : '○';
+  };
+  update('req-len',   pw.length >= 8);
+  update('req-upper', /[A-Z]/.test(pw));
+  update('req-lower', /[a-z]/.test(pw));
+  update('req-num',   /[0-9]/.test(pw));
+}
+
+function updateMatchUI() {
+  const pw = $('newPassword').value;
+  const conf = $('confirmPassword').value;
+  const hint = $('pwMatchHint');
+  if (!conf) { hint.classList.remove('visible'); return; }
+  hint.classList.add('visible');
+  const match = pw === conf;
+  hint.className = 'pw-match-hint visible ' + (match ? 'match' : 'nomatch');
+  $('pwMatchIcon').textContent = match ? '✓' : '✗';
+  $('pwMatchText').textContent = match ? 'Passwords match' : 'Passwords do not match';
+  $('confirmPassword').className = 'login-input ' + (match ? 'success' : 'error');
+}
+
+// ── DOM Events ──
 $('loginPwToggle').onclick = () => {
   const inp = $('loginPassword');
   inp.type = inp.type === 'text' ? 'password' : 'text';
   $('loginPwToggle').textContent = inp.type === 'text' ? '🙈' : '👁';
 };
+$('newPwToggle').onclick = () => {
+  const inp = $('newPassword');
+  inp.type = inp.type === 'text' ? 'password' : 'text';
+  $('newPwToggle').textContent = inp.type === 'text' ? '🙈' : '👁';
+};
+$('confirmPwToggle').onclick = () => {
+  const inp = $('confirmPassword');
+  inp.type = inp.type === 'text' ? 'password' : 'text';
+  $('confirmPwToggle').textContent = inp.type === 'text' ? '🙈' : '👁';
+};
+$('newPassword').oninput = () => {
+  updateStrengthUI($('newPassword').value);
+  updateMatchUI();
+};
+$('confirmPassword').oninput = updateMatchUI;
 $('loginBtn').onclick = doLogin;
 $('loginPassword').onkeydown = e => { if (e.key==='Enter') doLogin(); };
+$('setPwBtn').onclick = doSetPassword;
+$('confirmPassword').onkeydown = e => { if (e.key==='Enter') doSetPassword(); };
 $('logoutBtn').onclick = doLogout;
 $('reqFrom').oninput = updateDaysPreview;
 $('reqTo').oninput = updateDaysPreview;
@@ -609,31 +803,8 @@ async function init() {
     });
     allStaff.sort((a,b) => a.name.localeCompare(b.name));
 
-    // Load passwords — build lookup by BOTH doc ID and staffId field and employeeName
-    // admin.html keys HR Admin docs by staffId, so d.id === staffId, but we also support name-based matching
-    const pwSnap = await getDocs(collection(db, 'HR Admin'));
-    staffPasswords = {};
-    const pwByName = {}; // fallback: name.toLowerCase() -> password
-    pwSnap.forEach(d => {
-      const data = d.data();
-      const pw = data.password;
-      if (!pw) return;
-      // Primary: key by Firestore doc ID (admin.html sets this to staffId)
-      staffPasswords[d.id] = pw;
-      // Also key by the staffId field inside the doc (in case they differ)
-      if (data.staffId && data.staffId !== d.id) staffPasswords[data.staffId] = pw;
-      // Fallback: key by employee name lowercased
-      if (data.employeeName) pwByName[data.employeeName.toLowerCase()] = pw;
-    });
-    // For any staff member not yet matched by ID, try matching by name
-    allStaff.forEach(s => {
-      if (!staffPasswords[s.id] && pwByName[s.name.toLowerCase()]) {
-        staffPasswords[s.id] = pwByName[s.name.toLowerCase()];
-      }
-    });
-    console.log('Passwords loaded:', Object.keys(staffPasswords).length, 'for', allStaff.length, 'staff');
+    await loadPasswords();
 
-    // Populate select
     const sel = $('loginSelect');
     allStaff.forEach(s => {
       const o = document.createElement('option');
@@ -641,7 +812,7 @@ async function init() {
       sel.appendChild(o);
     });
 
-    // Auto-fill if session saved
+    // Auto-fill session
     const saved = sessionStorage.getItem('ep_user');
     if (saved) {
       const u = JSON.parse(saved);
@@ -657,6 +828,32 @@ async function init() {
   showLoad(false);
 }
 
+async function loadPasswords() {
+  staffPasswords = {};
+  const pwByName = {};
+  try {
+    const pwSnap = await getDocs(collection(db, 'HR Admin'));
+    pwSnap.forEach(d => {
+      const data = d.data();
+      const pw = data.password;
+      if (!pw) return;
+      const entry = {
+        password: pw,
+        mustChangePassword: data.mustChangePassword === true,
+        hrAdminDocId: d.id,
+      };
+      staffPasswords[d.id] = entry;
+      if (data.staffId && data.staffId !== d.id) staffPasswords[data.staffId] = entry;
+      if (data.employeeName) pwByName[data.employeeName.toLowerCase()] = entry;
+    });
+    allStaff.forEach(s => {
+      if (!staffPasswords[s.id] && pwByName[s.name.toLowerCase()]) {
+        staffPasswords[s.id] = pwByName[s.name.toLowerCase()];
+      }
+    });
+  } catch(e) { console.error('Password load error', e); }
+}
+
 async function doLogin() {
   const sid = $('loginSelect').value;
   const pw = $('loginPassword').value;
@@ -666,66 +863,96 @@ async function doLogin() {
   if (!sid) { errEl.textContent = 'Please select your name.'; errEl.style.display = 'block'; return; }
   if (!pw) { errEl.textContent = 'Please enter your password.'; errEl.style.display = 'block'; return; }
 
-  // Re-fetch passwords fresh in case admin set one after this page loaded
-  if (Object.keys(staffPasswords).length === 0) {
-    try {
-      const pwSnap2 = await getDocs(collection(db, 'HR Admin'));
-      pwSnap2.forEach(d => {
-        const data = d.data();
-        if (data.password) {
-          staffPasswords[d.id] = data.password;
-          if (data.staffId) staffPasswords[data.staffId] = data.password;
-          if (data.employeeName) staffPasswords[data.employeeName.toLowerCase()] = data.password;
-        }
-      });
-    } catch(e) { console.error('Password re-fetch failed', e); }
+  // Reload passwords fresh (handles HR setting password after page load)
+  await loadPasswords();
+
+  const entry = staffPasswords[sid];
+  if (!entry) {
+    errEl.textContent = 'No password set for your account. Please ask HR to set one.';
+    errEl.style.display = 'block'; return;
   }
 
-  const storedPw = staffPasswords[sid];
-  if (!storedPw) {
-    // One more attempt: re-load passwords live (handles case where admin set pw after page load)
-    try {
-      const pwSnap2 = await getDocs(collection(db, 'HR Admin'));
-      staffPasswords = {};
-      const pwByName2 = {};
-      pwSnap2.forEach(d => {
-        const data = d.data();
-        if (!data.password) return;
-        staffPasswords[d.id] = data.password;
-        if (data.staffId && data.staffId !== d.id) staffPasswords[data.staffId] = data.password;
-        if (data.employeeName) pwByName2[data.employeeName.toLowerCase()] = data.password;
-      });
-      allStaff.forEach(s => {
-        if (!staffPasswords[s.id] && pwByName2[s.name.toLowerCase()]) {
-          staffPasswords[s.id] = pwByName2[s.name.toLowerCase()];
-        }
-      });
-    } catch(e) { console.error('Live password fetch failed', e); }
+  if (pw !== entry.password) {
+    errEl.textContent = 'Incorrect password. Please try again.';
+    errEl.style.display = 'block'; return;
+  }
 
-    const retryPw = staffPasswords[sid];
-    if (!retryPw) {
-      errEl.textContent = 'No password set for your account. Please ask HR to set one in the Admin panel.';
-      errEl.style.display = 'block';
-      return;
-    }
-    if (pw !== retryPw) {
-      errEl.textContent = 'Incorrect password. Please try again.';
-      errEl.style.display = 'block';
-      return;
-    }
-    currentUser = allStaff.find(s => s.id === sid);
-    sessionStorage.setItem('ep_user', JSON.stringify(currentUser));
-    await enterApp();
+  // Correct password — check if first login
+  const user = allStaff.find(s => s.id === sid);
+  if (entry.mustChangePassword) {
+    // Show the set-password screen
+    pendingLoginUser = user;
+    showSetPasswordScreen();
     return;
   }
 
-  if (pw !== storedPw) {
-    errEl.textContent = 'Incorrect password. Please try again.'; errEl.style.display = 'block'; return;
-  }
-
-  currentUser = allStaff.find(s => s.id === sid);
+  currentUser = user;
   sessionStorage.setItem('ep_user', JSON.stringify(currentUser));
   await enterApp();
+}
+
+function showSetPasswordScreen() {
+  const loginCard = $('loginCard');
+  const setCard = $('setPasswordCard');
+
+  loginCard.classList.add('slide-out');
+  setTimeout(() => {
+    loginCard.style.display = 'none';
+    loginCard.classList.remove('slide-out');
+    setCard.style.display = 'block';
+    setCard.classList.add('slide-in');
+    setTimeout(() => setCard.classList.remove('slide-in'), 400);
+    $('newPassword').focus();
+  }, 280);
+}
+
+async function doSetPassword() {
+  const newPw = $('newPassword').value;
+  const confPw = $('confirmPassword').value;
+  const errEl = $('setPwError');
+  errEl.style.display = 'none';
+
+  // Validate requirements
+  if (!newPw) { errEl.textContent = 'Please enter a new password.'; errEl.style.display = 'block'; return; }
+  if (newPw.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+  if (!/[A-Z]/.test(newPw)) { errEl.textContent = 'Password needs at least one uppercase letter.'; errEl.style.display = 'block'; return; }
+  if (!/[a-z]/.test(newPw)) { errEl.textContent = 'Password needs at least one lowercase letter.'; errEl.style.display = 'block'; return; }
+  if (!/[0-9]/.test(newPw)) { errEl.textContent = 'Password needs at least one number.'; errEl.style.display = 'block'; return; }
+  if (newPw !== confPw) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+
+  const btn = $('setPwBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const sid = pendingLoginUser.id;
+    const entry = staffPasswords[sid];
+    const hrDocId = entry?.hrAdminDocId || sid;
+
+    // Update Firebase: new password, clear mustChangePassword flag
+    await setDoc(doc(db, 'HR Admin', hrDocId), {
+      password: newPw,
+      mustChangePassword: false,
+      passwordChangedAt: new Date().toISOString(),
+    }, { merge: true });
+
+    // Update local cache
+    if (staffPasswords[sid]) {
+      staffPasswords[sid].password = newPw;
+      staffPasswords[sid].mustChangePassword = false;
+    }
+
+    currentUser = pendingLoginUser;
+    pendingLoginUser = null;
+    sessionStorage.setItem('ep_user', JSON.stringify(currentUser));
+
+    toast('Password set! Welcome to the portal.');
+    await enterApp();
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Error saving password. Please try again.'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Set Password & Sign In →';
+  }
 }
 
 async function enterApp() {
@@ -744,35 +971,36 @@ async function enterApp() {
 function doLogout() {
   sessionStorage.removeItem('ep_user');
   currentUser = null;
+  pendingLoginUser = null;
+  // Reset to login card
+  $('setPasswordCard').style.display = 'none';
+  $('loginCard').style.display = 'block';
   $('loginScreen').style.display = 'flex';
   $('app').classList.remove('visible');
   $('loginPassword').value = '';
   $('loginSelect').value = '';
   $('loginError').style.display = 'none';
+  $('newPassword').value = '';
+  $('confirmPassword').value = '';
+  $('setPwError').style.display = 'none';
 }
 
 async function loadMyData() {
-  // Load attendance data for stats
   const now = new Date();
   const aprilYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
 
-  // Load staff record for allowance
   let allowance = 25;
   try {
     const staffDoc = await getDoc(doc(db, 'Establishment Report', currentUser.id));
     if (staffDoc.exists()) allowance = staffDoc.data().holidayAllowance ?? 25;
   } catch(e) {}
 
-  // Load all entries for this staff member
   let holUsed = 0, sickDays = 0;
   try {
     const q = query(collection(db, 'Establishment Report'), where('_type','==','entry'), where('staffId','==',currentUser.id));
     const snap = await getDocs(q);
-
-    // Get year range Apr→Mar
     const yearStart = `${aprilYear}-04-01`;
     const yearEnd = `${aprilYear+1}-03-31`;
-
     snap.forEach(d => {
       const data = d.data();
       if (!data.date || data.date < yearStart || data.date > yearEnd) return;
@@ -785,15 +1013,12 @@ async function loadMyData() {
 
   myStats = { allowance, holUsed, sickDays };
 
-  // Load my holiday requests
   try {
     const q = query(collection(db,'Holiday Requests'), where('staffId','==',currentUser.id), orderBy('submittedAt','desc'));
     const snap = await getDocs(q);
     myRequests = [];
     snap.forEach(d => myRequests.push({ id: d.id, ...d.data() }));
   } catch(e) {
-    console.error(e);
-    // If index error, try without orderBy
     try {
       const q2 = query(collection(db,'Holiday Requests'), where('staffId','==',currentUser.id));
       const snap2 = await getDocs(q2);
@@ -812,19 +1037,16 @@ async function loadMyData() {
   $('statSick').textContent = myStats.sickDays;
   $('statPending').textContent = pendingCount;
 
-  // Bar
   const pct = myStats.allowance > 0 ? Math.min(100, Math.round(myStats.holUsed / myStats.allowance * 100)) : 0;
   $('holidayBarFill').style.width = pct + '%';
   $('barUsed').textContent = myStats.holUsed;
   $('barAllowance').textContent = myStats.allowance;
 
-  // Default dates - use local date to avoid UTC offset issues
   const todayLocal = new Date();
   const today = `${todayLocal.getFullYear()}-${String(todayLocal.getMonth()+1).padStart(2,'0')}-${String(todayLocal.getDate()).padStart(2,'0')}`;
   $('reqFrom').value = today;
   $('reqTo').value = today;
   updateDaysPreview();
-
   renderRequests();
 }
 
@@ -832,7 +1054,6 @@ function updateDaysPreview() {
   const from = $('reqFrom').value;
   const to = $('reqTo').value;
   const type = $('reqType').value;
-
   if (!from || !to || to < from) {
     $('previewNum').textContent = '0';
     $('previewLabel').textContent = 'Select valid dates';
@@ -840,34 +1061,20 @@ function updateDaysPreview() {
     $('previewWarn').style.display = 'none';
     return;
   }
-
   const allDates = getDateRange(from, to);
-  let workdays;
-  let bhCount = 0;
-
+  let workdays, bhCount = 0;
   if (type === 'Half day Holiday') {
     workdays = 0.5;
     $('previewLabel').textContent = '½ working day';
   } else {
     workdays = allDates.filter(d => isWorkday(d)).length;
     bhCount = allDates.filter(d => isBH(d) && !isWkd(d)).length;
-    const plural = workdays !== 1 ? 's' : '';
-    $('previewLabel').textContent = `working day${plural}`;
-    if (bhCount > 0) {
-      $('previewBH').style.display = 'flex';
-    } else {
-      $('previewBH').style.display = 'none';
-    }
+    $('previewLabel').textContent = `working day${workdays !== 1 ? 's' : ''}`;
+    $('previewBH').style.display = bhCount > 0 ? 'flex' : 'none';
   }
-
   $('previewNum').textContent = workdays;
-
   const remaining = myStats.allowance - myStats.holUsed;
-  if (workdays > remaining) {
-    $('previewWarn').style.display = 'flex';
-  } else {
-    $('previewWarn').style.display = 'none';
-  }
+  $('previewWarn').style.display = workdays > remaining ? 'flex' : 'none';
 }
 
 async function submitRequest() {
@@ -877,35 +1084,20 @@ async function submitRequest() {
   const notes = $('reqNotes').value.trim();
   const errEl = $('formError');
   errEl.style.display = 'none';
-
-  if (!from || !to) {
-    errEl.textContent = 'Please select from and to dates.'; errEl.style.display = 'block'; return;
-  }
-  if (to < from) {
-    errEl.textContent = 'End date must be on or after the start date.'; errEl.style.display = 'block'; return;
-  }
-
+  if (!from || !to) { errEl.textContent = 'Please select from and to dates.'; errEl.style.display = 'block'; return; }
+  if (to < from) { errEl.textContent = 'End date must be on or after the start date.'; errEl.style.display = 'block'; return; }
   const workdays = type === 'Half day Holiday' ? 0.5 : countWorkdays(from, to);
-  if (workdays === 0) {
-    errEl.textContent = 'No working days in selected range (weekends/bank holidays only).'; errEl.style.display = 'block'; return;
-  }
+  if (workdays === 0) { errEl.textContent = 'No working days in selected range.'; errEl.style.display = 'block'; return; }
 
   const btn = $('submitBtn');
   btn.disabled = true; btn.innerHTML = '<span>⏳</span> Submitting…';
-
   try {
     await addDoc(collection(db, 'Holiday Requests'), {
-      staffId: currentUser.id,
-      staffName: currentUser.name,
-      fromDate: from,
-      toDate: to,
-      type,
-      workingDays: workdays,
-      notes: notes || null,
-      status: 'pending',
+      staffId: currentUser.id, staffName: currentUser.name,
+      fromDate: from, toDate: to, type, workingDays: workdays,
+      notes: notes || null, status: 'pending',
       submittedAt: new Date().toISOString(),
     });
-
     toast('Holiday request submitted!');
     $('reqNotes').value = '';
     await loadMyData();
@@ -920,19 +1112,15 @@ async function submitRequest() {
 function renderRequests() {
   const list = $('requestsList');
   $('requestCountLabel').textContent = myRequests.length ? `${myRequests.length} request${myRequests.length!==1?'s':''}` : '';
-
   if (!myRequests.length) {
     list.innerHTML = `<div class="empty-requests"><div class="empty-icon">📋</div><div class="empty-text">No requests yet. Submit one above!</div></div>`;
     return;
   }
-
   list.innerHTML = myRequests.map(r => {
     const fromFmt = fmtDate(r.fromDate);
     const toFmt = r.toDate !== r.fromDate ? ` → ${fmtDate(r.toDate)}` : '';
     const submitted = r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
     const typeLabel = r.type === 'Half day Holiday' ? 'Half Day' : 'Full Days';
-    const dayLabel = r.workingDays === 1 ? '1 day' : r.workingDays === 0.5 ? '½ day' : `${r.workingDays} days`;
-
     return `<div class="req-card">
       <div class="req-status-dot ${r.status}"></div>
       <div class="req-main">
@@ -942,7 +1130,7 @@ function renderRequests() {
         ${r.rejectionReason ? `<div class="req-notes" style="color:var(--red)">Reason: ${esc(r.rejectionReason)}</div>` : ''}
       </div>
       <div>
-        <div class="req-days">${dayLabel.split(' ')[0]}</div>
+        <div class="req-days">${r.workingDays === 0.5 ? '½' : r.workingDays}</div>
         <div class="req-days-sub">${typeLabel}</div>
       </div>
       <div class="req-badge ${r.status}">${r.status}</div>
@@ -950,7 +1138,6 @@ function renderRequests() {
   }).join('');
 }
 
-// ── Utils ──
 function showLoad(v, msg) {
   $('loadingOverlay').classList.toggle('hidden', !v);
   if (msg) $('loadingText').textContent = msg;
