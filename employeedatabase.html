@@ -694,9 +694,7 @@ function renderRow(emp, i) {
         ${stats.holHalf > 0 ? `<span class="tag hol">½H ${stats.holHalf}</span>` : ''}
         ${stats.bhDays > 0 ? `<span class="tag bh">BH ${stats.bhDays}d</span>` : ''}
       </div>
-      <div class="stat-remaining ${remaining < 0 ? 'over' : remaining === 0 ? 'none' : ''}">
-        ${remaining > 0 ? `↓ ${remaining} left` : remaining === 0 ? `✓ none left` : `⚠ ${Math.abs(remaining)} over`}
-      </div>
+
     </div>
 
     <!-- Sickness -->
