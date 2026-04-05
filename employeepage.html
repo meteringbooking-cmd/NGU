@@ -609,10 +609,29 @@ async function init() {
     });
     allStaff.sort((a,b) => a.name.localeCompare(b.name));
 
-    // Load passwords
+    // Load passwords — build lookup by BOTH doc ID and staffId field and employeeName
+    // admin.html keys HR Admin docs by staffId, so d.id === staffId, but we also support name-based matching
     const pwSnap = await getDocs(collection(db, 'HR Admin'));
     staffPasswords = {};
-    pwSnap.forEach(d => { staffPasswords[d.id] = d.data().password; });
+    const pwByName = {}; // fallback: name.toLowerCase() -> password
+    pwSnap.forEach(d => {
+      const data = d.data();
+      const pw = data.password;
+      if (!pw) return;
+      // Primary: key by Firestore doc ID (admin.html sets this to staffId)
+      staffPasswords[d.id] = pw;
+      // Also key by the staffId field inside the doc (in case they differ)
+      if (data.staffId && data.staffId !== d.id) staffPasswords[data.staffId] = pw;
+      // Fallback: key by employee name lowercased
+      if (data.employeeName) pwByName[data.employeeName.toLowerCase()] = pw;
+    });
+    // For any staff member not yet matched by ID, try matching by name
+    allStaff.forEach(s => {
+      if (!staffPasswords[s.id] && pwByName[s.name.toLowerCase()]) {
+        staffPasswords[s.id] = pwByName[s.name.toLowerCase()];
+      }
+    });
+    console.log('Passwords loaded:', Object.keys(staffPasswords).length, 'for', allStaff.length, 'staff');
 
     // Populate select
     const sel = $('loginSelect');
@@ -647,10 +666,59 @@ async function doLogin() {
   if (!sid) { errEl.textContent = 'Please select your name.'; errEl.style.display = 'block'; return; }
   if (!pw) { errEl.textContent = 'Please enter your password.'; errEl.style.display = 'block'; return; }
 
+  // Re-fetch passwords fresh in case admin set one after this page loaded
+  if (Object.keys(staffPasswords).length === 0) {
+    try {
+      const pwSnap2 = await getDocs(collection(db, 'HR Admin'));
+      pwSnap2.forEach(d => {
+        const data = d.data();
+        if (data.password) {
+          staffPasswords[d.id] = data.password;
+          if (data.staffId) staffPasswords[data.staffId] = data.password;
+          if (data.employeeName) staffPasswords[data.employeeName.toLowerCase()] = data.password;
+        }
+      });
+    } catch(e) { console.error('Password re-fetch failed', e); }
+  }
+
   const storedPw = staffPasswords[sid];
   if (!storedPw) {
-    errEl.textContent = 'No password set for your account. Please contact HR.'; errEl.style.display = 'block'; return;
+    // One more attempt: re-load passwords live (handles case where admin set pw after page load)
+    try {
+      const pwSnap2 = await getDocs(collection(db, 'HR Admin'));
+      staffPasswords = {};
+      const pwByName2 = {};
+      pwSnap2.forEach(d => {
+        const data = d.data();
+        if (!data.password) return;
+        staffPasswords[d.id] = data.password;
+        if (data.staffId && data.staffId !== d.id) staffPasswords[data.staffId] = data.password;
+        if (data.employeeName) pwByName2[data.employeeName.toLowerCase()] = data.password;
+      });
+      allStaff.forEach(s => {
+        if (!staffPasswords[s.id] && pwByName2[s.name.toLowerCase()]) {
+          staffPasswords[s.id] = pwByName2[s.name.toLowerCase()];
+        }
+      });
+    } catch(e) { console.error('Live password fetch failed', e); }
+
+    const retryPw = staffPasswords[sid];
+    if (!retryPw) {
+      errEl.textContent = 'No password set for your account. Please ask HR to set one in the Admin panel.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (pw !== retryPw) {
+      errEl.textContent = 'Incorrect password. Please try again.';
+      errEl.style.display = 'block';
+      return;
+    }
+    currentUser = allStaff.find(s => s.id === sid);
+    sessionStorage.setItem('ep_user', JSON.stringify(currentUser));
+    await enterApp();
+    return;
   }
+
   if (pw !== storedPw) {
     errEl.textContent = 'Incorrect password. Please try again.'; errEl.style.display = 'block'; return;
   }
