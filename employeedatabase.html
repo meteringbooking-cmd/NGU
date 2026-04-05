@@ -751,14 +751,17 @@ function updateProgress(sid, stats, allowance) {
 
 function renderSummary(fil) {
   if (!fil.length) { $('summaryStrip').innerHTML = ''; return; }
-  let totHol = 0, totSick = 0, totAaup = 0, totAap = 0;
+  let totHol = 0, totAllowance = 0, totSick = 0, totAaup = 0, totAap = 0;
   fil.forEach(emp => {
     const s = computeStats(allEntries[emp.id] || {}, aprilYear);
     totHol += s.holTotal;
+    totAllowance += (allowances[emp.id] ?? 25);
     totSick += s.sickDays;
     totAaup += s.aaupDays;
     totAap += s.aapDays;
   });
+  const totRemaining = totAllowance - totHol;
+  const remainingColor = totRemaining < 0 ? 'var(--red)' : totRemaining === 0 ? 'var(--muted)' : 'var(--green)';
 
   $('summaryStrip').innerHTML = `
     <div class="sum-card c-total">
@@ -767,9 +770,14 @@ function renderSummary(fil) {
       <div class="sum-sub">Apr ${aprilYear} – Mar ${aprilYear+1}</div>
     </div>
     <div class="sum-card c-hol">
-      <div class="sum-label">Holiday Days</div>
+      <div class="sum-label">Holiday Days Used</div>
       <div class="sum-val">${totHol}</div>
-      <div class="sum-sub">incl. bank holidays</div>
+      <div class="sum-sub">of ${totAllowance} total allowance</div>
+    </div>
+    <div class="sum-card c-hol">
+      <div class="sum-label">Holidays Remaining</div>
+      <div class="sum-val" style="color:${remainingColor}">${totRemaining}</div>
+      <div class="sum-sub">${totRemaining >= 0 ? 'days still available' : 'days over allowance'}</div>
     </div>
     <div class="sum-card c-sick">
       <div class="sum-label">Sick Days</div>
