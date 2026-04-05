@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── THEME ── */
+[data-theme="dark"] {
+  --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942; --bg4:#0d1a2e;
+  --border:#2a3f5f; --border2:#1e3050;
+  --text:#E8EDF2; --muted:#7a8fa8; --faint:#2a3f5f;
+  --surface:rgba(10,22,40,0.97);
+  --row-hover:rgba(0,163,224,0.04);
+  --tag-hol-bg:#0d1f2a;   --tag-hol-t:#38bdf8;
+  --tag-sick-bg:#2a1010;  --tag-sick-t:#f87171;
+  --tag-aaup-bg:#2a1f00;  --tag-aaup-t:#fbbf24;
+  --tag-aap-bg:#0d1f2a;   --tag-aap-t:#818cf8;
+  --tag-bh-bg:#1a1a2e;    --tag-bh-t:#a78bfa;
+  --shadow:0 20px 50px rgba(0,0,0,0.6);
+  --card-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+[data-theme="light"] {
+  --bg:#f0f4f8; --bg2:#ffffff; --bg3:#e8eef5; --bg4:#f8fafc;
+  --border:#c8d6e5; --border2:#dde6f0;
+  --text:#1a2942; --muted:#5a7090; --faint:#c8d6e5;
+  --surface:rgba(255,255,255,0.98);
+  --row-hover:rgba(0,163,224,0.04);
+  --tag-hol-bg:#dbeafe;   --tag-hol-t:#1d4ed8;
+  --tag-sick-bg:#fee2e2;  --tag-sick-t:#b91c1c;
+  --tag-aaup-bg:#fef3c7;  --tag-aaup-t:#92400e;
+  --tag-aap-bg:#ede9fe;   --tag-aap-t:#5b21b6;
+  --tag-bh-bg:#f3e8ff;    --tag-bh-t:#7e22ce;
+  --shadow:0 12px 32px rgba(0,0,0,0.14);
+  --card-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+:root {
+  --accent:#00A3E0; --accent2:#005EB8; --accent3:#0077c8;
+  --green:#10B981; --amber:#F59E0B; --red:#EF4444; --purple:#8B5CF6;
+  --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+  --radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
+[data-theme="dark"] body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 8% 15%,rgba(0,163,224,.07) 0%,transparent 50%),
+              radial-gradient(ellipse at 92% 85%,rgba(0,94,184,.06) 0%,transparent 50%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── HEADER ── */
+.header{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,163,224,.3);}
+.header-titles{display:flex;flex-direction:column;gap:1px;}
+.header-title{font-size:15px;font-weight:600;letter-spacing:-.01em;}
+.header-sub{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:8px;}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--sans);font-size:12px;font-weight:500;border:none;border-radius:8px;
+  padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;}
+.btn-accent{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 3px 10px rgba(0,163,224,.3);}
+.btn-accent:hover{opacity:.88;transform:translateY(-1px);}
+.btn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent);}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);}
+.btn-danger:hover{background:rgba(239,68,68,.2);border-color:var(--red);}
+.btn-sm{font-size:11px;padding:5px 10px;border-radius:7px;}
+.theme-btn{width:36px;height:36px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);
+  display:grid;place-items:center;cursor:pointer;font-size:16px;transition:all .15s;color:var(--muted);}
+.theme-btn:hover{border-color:var(--accent);}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;
+  border-bottom:1px solid var(--border2);background:var(--bg2);position:relative;z-index:1;gap:12px;flex-wrap:wrap;}
+.toolbar-left{display:flex;align-items:center;gap:10px;}
+.search-wrap{position:relative;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
+.staff-search{font-family:var(--sans);font-size:12px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:7px 12px 7px 30px;outline:none;width:180px;transition:border-color .15s;}
+.staff-search:focus{border-color:var(--accent);}
+.year-selector{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:4px;}
+.yr-btn{background:none;border:none;color:var(--muted);cursor:pointer;width:26px;height:26px;border-radius:6px;display:grid;place-items:center;font-size:13px;transition:all .12s;}
+.yr-btn:hover{background:var(--border);color:var(--text);}
+.yr-label{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);min-width:130px;text-align:center;letter-spacing:.03em;}
+.toolbar-right{display:flex;align-items:center;gap:8px;}
+.count-badge{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:4px 10px;}
+.count-badge span{color:var(--accent);font-weight:600;}
+
+/* ── MAIN ── */
+.main{position:relative;z-index:1;padding:20px 24px;max-width:1600px;margin:0 auto;}
+
+/* ── SUMMARY CARDS ── */
+.summary-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;
+  position:relative;overflow:hidden;transition:border-color .15s,transform .15s;}
+.sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sum-card.c-total::before{background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.sum-card.c-hol::before{background:linear-gradient(90deg,#0284c7,var(--tag-hol-t));}
+.sum-card.c-sick::before{background:linear-gradient(90deg,#dc2626,var(--red));}
+.sum-card.c-aaup::before{background:linear-gradient(90deg,#d97706,var(--amber));}
+.sum-card.c-aap::before{background:linear-gradient(90deg,#6d28d9,var(--purple));}
+.sum-card:hover{transform:translateY(-2px);border-color:var(--accent3);}
+.sum-label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.sum-val{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1;color:var(--text);}
+.sum-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* ── EMPLOYEE GRID ── */
+.employee-grid{display:flex;flex-direction:column;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.grid-header{display:grid;grid-template-columns:var(--grid-cols);background:var(--bg3);border-bottom:2px solid var(--border);}
+.grid-header-cell{padding:10px 14px;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:4px;}
+.grid-header-cell.sortable{cursor:pointer;user-select:none;}
+.grid-header-cell.sortable:hover{color:var(--text);}
+
+.emp-row{display:grid;grid-template-columns:var(--grid-cols);border-bottom:1px solid var(--border2);transition:background .1s;animation:fadeIn .25s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.emp-row:last-child{border-bottom:none;}
+.emp-row:hover{background:var(--row-hover);}
+.emp-cell{padding:12px 14px;display:flex;align-items:center;font-size:12.5px;}
+
+/* ── EMPLOYEE NAME CELL ── */
+.emp-name-cell{display:flex;align-items:center;gap:10px;}
+.emp-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:600;color:#fff;flex-shrink:0;}
+.emp-name{font-weight:500;font-size:13px;}
+.emp-since{font-size:10px;color:var(--muted);font-family:var(--mono);}
+
+/* ── STAT CELL ── */
+.stat-cell{flex-direction:column;align-items:flex-start;gap:2px;}
+.stat-primary{font-family:var(--mono);font-size:13px;font-weight:600;}
+.stat-secondary{font-size:10px;color:var(--muted);}
+.stat-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;}
+
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;}
+.tag.hol{background:var(--tag-hol-bg);color:var(--tag-hol-t);}
+.tag.sick{background:var(--tag-sick-bg);color:var(--tag-sick-t);}
+.tag.aaup{background:var(--tag-aaup-bg);color:var(--tag-aaup-t);}
+.tag.aap{background:var(--tag-aap-bg);color:var(--tag-aap-t);}
+.tag.bh{background:var(--tag-bh-bg);color:var(--tag-bh-t);}
+
+/* ── HOLIDAY ALLOWANCE ── */
+.hol-allowance{display:flex;align-items:center;gap:8px;}
+.hol-input{font-family:var(--mono);font-size:13px;font-weight:600;
+  background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);padding:4px 8px;width:60px;outline:none;text-align:center;transition:border-color .15s;}
+.hol-input:focus{border-color:var(--accent);}
+.hol-progress{display:flex;flex-direction:column;gap:4px;width:100%;}
+.hol-bar-wrap{height:5px;background:var(--faint);border-radius:99px;overflow:hidden;width:80px;}
+.hol-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .4s ease;}
+.hol-bar.warn{background:linear-gradient(90deg,#d97706,var(--amber));}
+.hol-bar.danger{background:linear-gradient(90deg,#dc2626,var(--red));}
+.hol-fraction{font-family:var(--mono);font-size:10px;color:var(--muted);}
+
+/* ── ACTIONS ── */
+.actions-cell{display:flex;align-items:center;gap:6px;justify-content:flex-end;}
+
+/* ── EMPTY / LOADING ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);text-align:center;gap:12px;}
+.empty-icon{font-size:48px;opacity:.35;}
+.empty-text{font-size:13px;}
+.loading-overlay{position:fixed;inset:0;background:rgba(10,22,40,.88);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:900;}
+.loading-overlay.hidden{display:none;}
+.spinner{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:6px;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:800;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--bg3);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;animation:popIn .18s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-head h2{font-size:16px;font-weight:600;}
+.modal-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:13px;display:grid;place-items:center;transition:all .15s;}
+.modal-close:hover{color:var(--red);border-color:var(--red);}
+.modal-body{padding:22px;}
+.modal-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+
+/* Detail modal */
+.detail-section{margin-bottom:20px;}
+.detail-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border2);}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.detail-stat{background:var(--bg);border-radius:8px;padding:12px 14px;border-left:3px solid var(--faint);}
+.detail-stat.c-hol{border-left-color:var(--tag-hol-t);}
+.detail-stat.c-sick{border-left-color:var(--red);}
+.detail-stat.c-aaup{border-left-color:var(--amber);}
+.detail-stat.c-aap{border-left-color:var(--purple);}
+.detail-stat.c-bh{border-left-color:var(--tag-bh-t);}
+.detail-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;}
+.detail-stat-val{font-family:var(--mono);font-size:20px;font-weight:600;}
+.detail-stat-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.instance-list{display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;}
+.instance-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border-radius:6px;font-size:11.5px;}
+.instance-type{display:flex;align-items:center;gap:6px;}
+.instance-dates{font-family:var(--mono);font-size:10.5px;color:var(--muted);}
+.instance-days{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--bg3);border:1px solid var(--border);color:var(--text);
+  padding:9px 18px;border-radius:99px;font-size:11.5px;font-family:var(--mono);
+  z-index:950;transition:transform .22s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+/* Grid layout */
+:root{--grid-cols:2fr 1.4fr 1fr 1fr 1fr 1fr 160px;}
+
+@media(max-width:1200px){:root{--grid-cols:2fr 1.3fr 1fr 1fr 1fr 1fr 130px;}}
+@media(max-width:900px){:root{--grid-cols:1.8fr 1.2fr 1fr 1fr 1fr 1fr auto;} .btn-sm span{display:none;}}
+
+.delete-confirm{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px;text-align:center;margin-bottom:16px;}
+.delete-confirm p{font-size:13px;margin-bottom:8px;}
+.delete-confirm strong{color:var(--red);}
+
+.save-indicator{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--green);opacity:0;transition:opacity .3s;}
+.save-indicator.show{opacity:1;}
+.save-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div>
+    <div class="spinner"></div>
+    <div class="loading-text">Loading employee database…</div>
+  </div>
+</div>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo">👤</div>
+    <div class="header-titles">
+      <div class="header-title">Employee Database</div>
+      <div class="header-sub">HR Records &amp; Leave Tracking</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="staff-search" type="text" id="staffSearch" placeholder="Search employees…">
+    </div>
+    <div class="year-selector">
+      <button class="yr-btn" id="prevYear">‹</button>
+      <span class="yr-label" id="yearLabel">—</span>
+      <button class="yr-btn" id="nextYear">›</button>
+    </div>
+  </div>
+  <div class="toolbar-right">
+    <div class="count-badge"><span id="staffCount">0</span> employees</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="summary-strip" id="summaryStrip"></div>
+
+  <div class="employee-grid">
+    <div class="grid-header">
+      <div class="grid-header-cell">Employee</div>
+      <div class="grid-header-cell">Holiday Allowance</div>
+      <div class="grid-header-cell">Holidays</div>
+      <div class="grid-header-cell">Sickness</div>
+      <div class="grid-header-cell">AAUP</div>
+      <div class="grid-header-cell">AAP</div>
+      <div class="grid-header-cell" style="justify-content:flex-end">Actions</div>
+    </div>
+    <div id="employeeList">
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">👥</div>
+        <div class="empty-text">No employees found.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="detailName">Employee Detail</h2>
+      <button class="modal-close" id="detailClose">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="detailCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-head">
+      <h2>Delete Employee</h2>
+      <button class="modal-close" id="deleteClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="delete-confirm">
+        <p>Are you sure you want to delete <strong id="deleteName">this employee</strong>?</p>
+        <p style="font-size:11px;color:var(--muted);">This will remove the employee record. Attendance entries will remain in the Establishment Report.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="deleteCancelBtn">Cancel</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn">Delete Employee</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import {
+  getFirestore, collection, doc, getDocs, setDoc, deleteDoc, query, where
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey:"AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+  authDomain:"oesperformance-a54c0.firebaseapp.com",
+  projectId:"oesperformance-a54c0",
+  storageBucket:"oesperformance-a54c0.firebasestorage.app",
+  messagingSenderId:"484894102454",
+  appId:"1:484894102454:web:17535ee497eac2d90d6717"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const BANK_HOLIDAYS = new Set([
+  '2024-01-01','2024-03-29','2024-04-01','2024-05-06','2024-05-27','2024-08-26','2024-12-25','2024-12-26',
+  '2025-01-01','2025-04-18','2025-04-21','2025-05-05','2025-05-26','2025-08-25','2025-12-25','2025-12-26',
+  '2026-01-01','2026-04-03','2026-04-06','2026-05-04','2026-05-25','2026-08-31','2026-12-25','2026-12-28',
+  '2027-01-01','2027-03-26','2027-03-29','2027-05-03','2027-05-31','2027-08-30','2027-12-27','2027-12-28',
+]);
+
+const STATUS_MAP = {
+  'Holiday':          { type:'hol',  label:'Holiday',    abbr:'H',  halfDay:false },
+  'Half day Holiday': { type:'hol',  label:'Half-day',   abbr:'½H', halfDay:true  },
+  'Sick':             { type:'sick', label:'Sick',        abbr:'S',  halfDay:false },
+  'AAUP':             { type:'aaup', label:'AAUP',        abbr:'AU', halfDay:false },
+  'AAP':              { type:'aap',  label:'AAP',         abbr:'AP', halfDay:false },
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const isWkd = d => { const w=new Date(d+'T00:00:00').getDay(); return w===0||w===6; };
+const isBH  = d => BANK_HOLIDAYS.has(d);
+const isWorkday = d => !isWkd(d) && !isBH(d);
+const dk = (y,m,d) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const daysInMonth = (y,m) => new Date(y,m,0).getDate();
+
+// April year → April 1st of `aprilYear` to March 31st of `aprilYear+1`
+function yearRange(aprilYear) {
+  return {
+    start: `${aprilYear}-04-01`,
+    end:   `${aprilYear + 1}-03-31`,
+  };
+}
+
+function dateInRange(date, start, end) {
+  return date >= start && date <= end;
+}
+
+// Get all calendar dates from April 1 to March 31
+function getAllDatesInRange(aprilYear) {
+  const dates = [];
+  // April aprilYear → March aprilYear+1
+  // Months: Apr(4) → Dec(12) of aprilYear, then Jan(1) → Mar(3) of aprilYear+1
+  for (let m = 4; m <= 12; m++) {
+    const nd = daysInMonth(aprilYear, m);
+    for (let d = 1; d <= nd; d++) dates.push(dk(aprilYear, m, d));
+  }
+  for (let m = 1; m <= 3; m++) {
+    const nd = daysInMonth(aprilYear + 1, m);
+    for (let d = 1; d <= nd; d++) dates.push(dk(aprilYear + 1, m, d));
+  }
+  return dates;
+}
+
+// Count bank holidays in range (weekdays only)
+function countBHInRange(aprilYear) {
+  const dates = getAllDatesInRange(aprilYear);
+  return dates.filter(d => isBH(d) && !isWkd(d)).length;
+}
+
+// ── Instances ──────────────────────────────────────────────────────────────
+// An "instance" is a consecutive run of the same status type (ignoring weekends & BH)
+// Returns array of {type, start, end, days}
+function computeInstances(entries, type, aprilYear) {
+  const allDates = getAllDatesInRange(aprilYear).filter(d => isWorkday(d));
+  const instances = [];
+  let runStart = null, runEnd = null, runLen = 0;
+
+  const isType = d => {
+    const e = entries[d];
+    if (!e) return false;
+    const status = typeof e === 'string' ? e : e.status;
+    const meta = STATUS_MAP[status];
+    if (!meta) return false;
+    if (type === 'hol') return meta.type === 'hol';
+    return meta.type === type;
+  };
+
+  const flush = () => {
+    if (runStart) {
+      instances.push({ type, start: runStart, end: runEnd, days: runLen });
+      runStart = null; runEnd = null; runLen = 0;
+    }
+  };
+
+  allDates.forEach(d => {
+    if (isType(d)) {
+      if (!runStart) runStart = d;
+      runEnd = d;
+      runLen++;
+    } else {
+      flush();
+    }
+  });
+  flush();
+  return instances;
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────────
+function computeStats(empEntries, aprilYear) {
+  const allDates = getAllDatesInRange(aprilYear);
+
+  let holDays = 0, holHalf = 0, bhDays = 0;
+  let sickDays = 0, aaupDays = 0, aapDays = 0;
+
+  allDates.forEach(d => {
+    const isWD = isWorkday(d);
+    const isBHDay = isBH(d) && !isWkd(d);
+
+    if (isBHDay) { bhDays++; return; }
+    if (!isWD) return;
+
+    const e = empEntries[d];
+    if (!e) return;
+    const status = typeof e === 'string' ? e : e.status;
+    switch (status) {
+      case 'Holiday':          holDays++;  break;
+      case 'Half day Holiday': holHalf++;  break;
+      case 'Sick':             sickDays++; break;
+      case 'AAUP':             aaupDays++; break;
+      case 'AAP':              aapDays++;  break;
+    }
+  });
+
+  // Holiday = full days + half days as 0.5
+  const holTotal = holDays + holHalf * 0.5 + bhDays;
+
+  const sickInst = computeInstances(empEntries, 'sick', aprilYear);
+  const aaupInst = computeInstances(empEntries, 'aaup', aprilYear);
+  const aapInst  = computeInstances(empEntries, 'aap', aprilYear);
+  const holInst  = computeInstances(empEntries, 'hol', aprilYear);
+
+  return {
+    holTotal, holDays, holHalf, bhDays,
+    sickDays, aaupDays, aapDays,
+    sickInst, aaupInst, aapInst, holInst,
+  };
+}
+
+// ── State ──────────────────────────────────────────────────────────────────
+const now = new Date();
+// Current April year: if we're April or later, it's this year; else last year
+let aprilYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+
+let staff = [], allEntries = {}, allowances = {}, searchQ = '';
+let pendingDeleteId = null;
+let saveTimers = {};
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+// ── Events ─────────────────────────────────────────────────────────────────
+$('prevYear').onclick = () => { aprilYear--; updateYearLabel(); render(); };
+$('nextYear').onclick = () => { aprilYear++; updateYearLabel(); render(); };
+$('staffSearch').oninput = e => { searchQ = e.target.value.trim().toLowerCase(); render(); };
+$('themeBtn').onclick = toggleTheme;
+$('detailClose').onclick = () => $('detailModal').classList.remove('show');
+$('detailCloseBtn').onclick = () => $('detailModal').classList.remove('show');
+$('deleteClose').onclick = () => $('deleteModal').classList.remove('show');
+$('deleteCancelBtn').onclick = () => $('deleteModal').classList.remove('show');
+$('deleteConfirmBtn').onclick = confirmDelete;
+$('detailModal').onclick = e => { if(e.target===$('detailModal')) $('detailModal').classList.remove('show'); };
+$('deleteModal').onclick = e => { if(e.target===$('deleteModal')) $('deleteModal').classList.remove('show'); };
+
+function updateYearLabel() {
+  $('yearLabel').textContent = `Apr ${aprilYear} – Mar ${aprilYear + 1}`;
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const h = document.documentElement, d = h.dataset.theme === 'dark';
+  h.dataset.theme = d ? 'light' : 'dark';
+  $('themeBtn').textContent = d ? '☀️' : '🌙';
+  localStorage.setItem('empdb_theme', d ? 'light' : 'dark');
+}
+(() => {
+  const s = localStorage.getItem('empdb_theme');
+  if (s) { document.documentElement.dataset.theme = s; $('themeBtn').textContent = s === 'dark' ? '🌙' : '☀️'; }
+})();
+
+// ── Firebase ───────────────────────────────────────────────────────────────
+async function loadAll() {
+  showLoad(true);
+  try {
+    const snap = await getDocs(collection(db, 'Establishment Report'));
+    staff = []; allEntries = {}; allowances = {};
+
+    snap.forEach(d => {
+      const data = d.data();
+      if (data._type === 'staff') {
+        staff.push({ id: d.id, name: data.name, createdAt: data.createdAt || '' });
+        allEntries[d.id] = {};
+        allowances[d.id] = data.holidayAllowance || 25;
+      }
+      if (data._type === 'entry') {
+        const sid = data.staffId;
+        if (sid) {
+          if (!allEntries[sid]) allEntries[sid] = {};
+          allEntries[sid][data.date] = data.entryData || data.status;
+        }
+      }
+    });
+
+    staff.sort((a, b) => a.name.localeCompare(b.name));
+  } catch (e) {
+    console.error(e);
+    toast('Error loading data', true);
+  }
+  showLoad(false);
+  updateYearLabel();
+  render();
+}
+
+async function saveAllowance(sid, val) {
+  try {
+    await setDoc(doc(db, 'Establishment Report', sid), {
+      _type: 'staff',
+      name: staff.find(s => s.id === sid)?.name || '',
+      holidayAllowance: val,
+    }, { merge: true });
+  } catch(e) {
+    console.error(e);
+    toast('Error saving allowance', true);
+  }
+}
+
+async function deleteEmployee(sid) {
+  try {
+    await deleteDoc(doc(db, 'Establishment Report', sid));
+    staff = staff.filter(s => s.id !== sid);
+    delete allEntries[sid];
+    delete allowances[sid];
+    toast('Employee deleted');
+    render();
+  } catch(e) {
+    console.error(e);
+    toast('Error deleting employee', true);
+  }
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+  $('staffCount').textContent = fil.length;
+
+  // Summary strip
+  renderSummary(fil);
+
+  const list = $('employeeList');
+
+  if (!fil.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">${staff.length ? 'No employees match your search.' : 'No employees found.'}</div></div>`;
+    return;
+  }
+
+  list.innerHTML = fil.map((emp, i) => renderRow(emp, i)).join('');
+
+  // Bind inputs
+  fil.forEach(emp => {
+    const inp = document.getElementById(`hol-inp-${emp.id}`);
+    if (inp) {
+      inp.addEventListener('change', () => {
+        const val = Math.max(0, Math.min(365, parseFloat(inp.value) || 0));
+        inp.value = val;
+        allowances[emp.id] = val;
+        // Debounced save
+        clearTimeout(saveTimers[emp.id]);
+        saveTimers[emp.id] = setTimeout(async () => {
+          await saveAllowance(emp.id, val);
+          const si = document.getElementById(`save-ind-${emp.id}`);
+          if (si) { si.classList.add('show'); setTimeout(() => si.classList.remove('show'), 1800); }
+          // Re-render the progress bar
+          const stats = computeStats(allEntries[emp.id] || {}, aprilYear);
+          updateProgress(emp.id, stats, val);
+        }, 600);
+      });
+      inp.addEventListener('click', e => e.stopPropagation());
+    }
+
+    const detBtn = document.getElementById(`detail-btn-${emp.id}`);
+    if (detBtn) detBtn.addEventListener('click', () => openDetail(emp));
+
+    const delBtn = document.getElementById(`delete-btn-${emp.id}`);
+    if (delBtn) delBtn.addEventListener('click', () => openDelete(emp));
+  });
+}
+
+function renderRow(emp, i) {
+  const stats = computeStats(allEntries[emp.id] || {}, aprilYear);
+  const allowance = allowances[emp.id] || 25;
+  const ini = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  const pct = allowance > 0 ? Math.min(100, Math.round(stats.holTotal / allowance * 100)) : 0;
+  const barClass = pct >= 100 ? 'danger' : pct >= 80 ? 'warn' : '';
+  const remaining = allowance - stats.holTotal;
+
+  return `<div class="emp-row" style="animation-delay:${i*0.03}s">
+    <!-- Name -->
+    <div class="emp-cell">
+      <div class="emp-name-cell">
+        <div class="emp-avatar">${esc(ini)}</div>
+        <div>
+          <div class="emp-name">${esc(emp.name)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Holiday Allowance -->
+    <div class="emp-cell stat-cell">
+      <div class="hol-allowance">
+        <input class="hol-input" id="hol-inp-${emp.id}" type="number" value="${allowance}" min="0" max="365" step="0.5" title="Annual holiday allowance">
+        <span class="save-indicator" id="save-ind-${emp.id}"><span class="save-dot"></span> saved</span>
+      </div>
+      <div class="hol-progress" id="hol-prog-${emp.id}">
+        <div class="hol-bar-wrap"><div class="hol-bar ${barClass}" style="width:${pct}%"></div></div>
+        <div class="hol-fraction">${stats.holTotal} used · ${remaining >= 0 ? remaining + ' left' : Math.abs(remaining) + ' over'}</div>
+      </div>
+    </div>
+
+    <!-- Holidays -->
+    <div class="emp-cell stat-cell">
+      <div class="stat-primary" style="color:var(--tag-hol-t)">${stats.holTotal}</div>
+      <div class="stat-tags">
+        ${stats.holDays > 0 ? `<span class="tag hol">H×${stats.holDays}</span>` : ''}
+        ${stats.holHalf > 0 ? `<span class="tag hol">½H×${stats.holHalf}</span>` : ''}
+        ${stats.bhDays > 0 ? `<span class="tag bh">BH×${stats.bhDays}</span>` : ''}
+      </div>
+      <div class="stat-secondary">${stats.holInst.length} instance${stats.holInst.length !== 1 ? 's' : ''}</div>
+    </div>
+
+    <!-- Sickness -->
+    <div class="emp-cell stat-cell">
+      <div class="stat-primary" style="color:var(--red)">${stats.sickDays}</div>
+      <div class="stat-secondary">${stats.sickInst.length} instance${stats.sickInst.length !== 1 ? 's' : ''}</div>
+    </div>
+
+    <!-- AAUP -->
+    <div class="emp-cell stat-cell">
+      <div class="stat-primary" style="color:var(--amber)">${stats.aaupDays}</div>
+      <div class="stat-secondary">${stats.aaupInst.length} instance${stats.aaupInst.length !== 1 ? 's' : ''}</div>
+    </div>
+
+    <!-- AAP -->
+    <div class="emp-cell stat-cell">
+      <div class="stat-primary" style="color:var(--purple)">${stats.aapDays}</div>
+      <div class="stat-secondary">${stats.aapInst.length} instance${stats.aapInst.length !== 1 ? 's' : ''}</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="emp-cell actions-cell">
+      <button class="btn btn-ghost btn-sm" id="detail-btn-${emp.id}" title="View details">
+        <span>Detail</span>
+      </button>
+      <button class="btn btn-danger btn-sm" id="delete-btn-${emp.id}" title="Delete employee">
+        🗑
+      </button>
+    </div>
+  </div>`;
+}
+
+function updateProgress(sid, stats, allowance) {
+  const prog = document.getElementById(`hol-prog-${sid}`);
+  if (!prog) return;
+  const pct = allowance > 0 ? Math.min(100, Math.round(stats.holTotal / allowance * 100)) : 0;
+  const barClass = pct >= 100 ? 'danger' : pct >= 80 ? 'warn' : '';
+  const remaining = allowance - stats.holTotal;
+  prog.innerHTML = `
+    <div class="hol-bar-wrap"><div class="hol-bar ${barClass}" style="width:${pct}%"></div></div>
+    <div class="hol-fraction">${stats.holTotal} used · ${remaining >= 0 ? remaining + ' left' : Math.abs(remaining) + ' over'}</div>`;
+}
+
+function renderSummary(fil) {
+  if (!fil.length) { $('summaryStrip').innerHTML = ''; return; }
+  let totHol = 0, totSick = 0, totAaup = 0, totAap = 0;
+  fil.forEach(emp => {
+    const s = computeStats(allEntries[emp.id] || {}, aprilYear);
+    totHol += s.holTotal;
+    totSick += s.sickDays;
+    totAaup += s.aaupDays;
+    totAap += s.aapDays;
+  });
+
+  $('summaryStrip').innerHTML = `
+    <div class="sum-card c-total">
+      <div class="sum-label">Total Staff</div>
+      <div class="sum-val">${fil.length}</div>
+      <div class="sum-sub">Apr ${aprilYear} – Mar ${aprilYear+1}</div>
+    </div>
+    <div class="sum-card c-hol">
+      <div class="sum-label">Holiday Days</div>
+      <div class="sum-val">${totHol}</div>
+      <div class="sum-sub">incl. bank holidays</div>
+    </div>
+    <div class="sum-card c-sick">
+      <div class="sum-label">Sick Days</div>
+      <div class="sum-val">${totSick}</div>
+      <div class="sum-sub">across all staff</div>
+    </div>
+    <div class="sum-card c-aaup">
+      <div class="sum-label">AAUP Days</div>
+      <div class="sum-val">${totAaup}</div>
+      <div class="sum-sub">unauthorised unpaid</div>
+    </div>
+    <div class="sum-card c-aap">
+      <div class="sum-label">AAP Days</div>
+      <div class="sum-val">${totAap}</div>
+      <div class="sum-sub">authorised absence</div>
+    </div>`;
+}
+
+// ── Detail Modal ───────────────────────────────────────────────────────────
+function openDetail(emp) {
+  const stats = computeStats(allEntries[emp.id] || {}, aprilYear);
+  const allowance = allowances[emp.id] || 25;
+  $('detailName').textContent = emp.name;
+
+  const fmtDate = d => {
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const renderInst = (instances, cls, label) => {
+    if (!instances.length) return `<div style="font-size:11px;color:var(--muted);padding:6px 0">No ${label} instances.</div>`;
+    return instances.map(inst => `
+      <div class="instance-row">
+        <div class="instance-type"><span class="tag ${cls}">${label}</span>
+        <span class="instance-dates">${fmtDate(inst.start)}${inst.days > 1 ? ' → ' + fmtDate(inst.end) : ''}</span></div>
+        <span class="instance-days">${inst.days}d</span>
+      </div>`).join('');
+  };
+
+  const pct = allowance > 0 ? Math.min(100, Math.round(stats.holTotal / allowance * 100)) : 0;
+  const barClass = pct >= 100 ? 'danger' : pct >= 80 ? 'warn' : '';
+
+  $('detailBody').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Holiday Summary · Apr ${aprilYear} – Mar ${aprilYear+1}</div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:11px;color:var(--muted);font-family:var(--mono)">
+          <span>${stats.holTotal} days used of ${allowance} allowance</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="hol-bar-wrap" style="width:100%;height:8px">
+          <div class="hol-bar ${barClass}" style="width:${pct}%;height:100%"></div>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-stat c-hol">
+          <div class="detail-stat-label">Full Holidays</div>
+          <div class="detail-stat-val" style="color:var(--tag-hol-t)">${stats.holDays}</div>
+          <div class="detail-stat-sub">${stats.holInst.length} instance${stats.holInst.length!==1?'s':''}</div>
+        </div>
+        <div class="detail-stat c-hol">
+          <div class="detail-stat-label">Half-day Holidays</div>
+          <div class="detail-stat-val" style="color:var(--tag-hol-t)">${stats.holHalf}</div>
+          <div class="detail-stat-sub">${stats.holHalf * 0.5} days counted</div>
+        </div>
+        <div class="detail-stat c-bh">
+          <div class="detail-stat-label">Bank Holidays</div>
+          <div class="detail-stat-val" style="color:var(--tag-bh-t)">${stats.bhDays}</div>
+          <div class="detail-stat-sub">in this period</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-label">Remaining</div>
+          <div class="detail-stat-val" style="color:${(allowance-stats.holTotal)<0?'var(--red)':'var(--green)'}">${allowance - stats.holTotal}</div>
+          <div class="detail-stat-sub">days left</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Holiday Instances</div>
+      <div class="instance-list">${renderInst(stats.holInst, 'hol', 'H')}</div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Absence Summary</div>
+      <div class="detail-grid">
+        <div class="detail-stat c-sick">
+          <div class="detail-stat-label">Sick Days</div>
+          <div class="detail-stat-val" style="color:var(--red)">${stats.sickDays}</div>
+          <div class="detail-stat-sub">${stats.sickInst.length} instance${stats.sickInst.length!==1?'s':''}</div>
+        </div>
+        <div class="detail-stat c-aaup">
+          <div class="detail-stat-label">AAUP Days</div>
+          <div class="detail-stat-val" style="color:var(--amber)">${stats.aaupDays}</div>
+          <div class="detail-stat-sub">${stats.aaupInst.length} instance${stats.aaupInst.length!==1?'s':''}</div>
+        </div>
+        <div class="detail-stat c-aap">
+          <div class="detail-stat-label">AAP Days</div>
+          <div class="detail-stat-val" style="color:var(--purple)">${stats.aapDays}</div>
+          <div class="detail-stat-sub">${stats.aapInst.length} instance${stats.aapInst.length!==1?'s':''}</div>
+        </div>
+      </div>
+    </div>
+
+    ${stats.sickInst.length ? `
+    <div class="detail-section">
+      <div class="detail-section-title">Sickness Instances</div>
+      <div class="instance-list">${renderInst(stats.sickInst, 'sick', 'S')}</div>
+    </div>` : ''}
+
+    ${stats.aaupInst.length ? `
+    <div class="detail-section">
+      <div class="detail-section-title">AAUP Instances</div>
+      <div class="instance-list">${renderInst(stats.aaupInst, 'aaup', 'AU')}</div>
+    </div>` : ''}
+
+    ${stats.aapInst.length ? `
+    <div class="detail-section">
+      <div class="detail-section-title">AAP Instances</div>
+      <div class="instance-list">${renderInst(stats.aapInst, 'aap', 'AP')}</div>
+    </div>` : ''}
+  `;
+
+  $('detailModal').classList.add('show');
+}
+
+// ── Delete ─────────────────────────────────────────────────────────────────
+function openDelete(emp) {
+  pendingDeleteId = emp.id;
+  $('deleteName').textContent = emp.name;
+  $('deleteModal').classList.add('show');
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  const sid = pendingDeleteId;
+  pendingDeleteId = null;
+  $('deleteModal').classList.remove('show');
+  await deleteEmployee(sid);
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────
+function showLoad(v) { $('loadingOverlay').classList.toggle('hidden', !v); }
+let tt;
+function toast(msg, err = false) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.style.borderColor = err ? 'var(--red)' : 'var(--border)';
+  el.style.color = err ? 'var(--red)' : 'var(--text)';
+  el.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(() => el.classList.remove('show'), 2500);
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadAll();
+</script>
+</body>
+</html>
