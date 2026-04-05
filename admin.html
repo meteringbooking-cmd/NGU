@@ -83,15 +83,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 /* ── INFO BANNER ── */
 .info-banner{background:rgba(0,163,224,.06);border:1px solid rgba(0,163,224,.2);border-radius:var(--radius);
-  padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted);}
+  padding:12px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--muted);line-height:1.6;}
 .info-banner strong{color:var(--accent);}
+
+/* ── LEGEND ── */
+.legend{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.legend-dot.no-pw{background:var(--muted);opacity:.4;}
+.legend-dot.awaiting{background:var(--amber);}
+.legend-dot.active{background:var(--green);}
 
 /* ── EMPLOYEE GRID ── */
 .employee-grid{display:flex;flex-direction:column;gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-.grid-header{display:grid;grid-template-columns:2fr 2.2fr 1fr;background:var(--bg3);border-bottom:2px solid var(--border);}
+.grid-header{display:grid;grid-template-columns:2fr 2.2fr 1.4fr;background:var(--bg3);border-bottom:2px solid var(--border);}
 .grid-header-cell{padding:10px 14px;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:4px;}
 
-.emp-row{display:grid;grid-template-columns:2fr 2.2fr 1fr;border-bottom:1px solid var(--border2);transition:background .1s;animation:fadeIn .25s ease both;}
+.emp-row{display:grid;grid-template-columns:2fr 2.2fr 1.4fr;border-bottom:1px solid var(--border2);transition:background .1s;animation:fadeIn .25s ease both;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
 .emp-row:last-child{border-bottom:none;}
 .emp-row:hover{background:var(--row-hover);}
@@ -102,9 +110,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .emp-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));
   display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:600;color:#fff;flex-shrink:0;}
 .emp-name{font-weight:500;font-size:13px;}
-.emp-status{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px;}
-.has-pw{color:var(--green) !important;}
-.no-pw{color:var(--muted) !important;}
+.emp-status-line{font-size:10px;font-family:var(--mono);margin-top:2px;display:flex;align-items:center;gap:5px;}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.status-dot.no-pw{background:var(--muted);opacity:.5;}
+.status-dot.awaiting{background:var(--amber);box-shadow:0 0 6px rgba(245,158,11,.5);}
+.status-dot.active{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,.5);}
 
 /* ── PASSWORD CELL ── */
 .pw-cell{flex-direction:column;align-items:flex-start;gap:8px;padding-top:10px;padding-bottom:10px;}
@@ -116,19 +126,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;
   color:var(--muted);cursor:pointer;font-size:12px;padding:2px;transition:color .15s;line-height:1;}
 .pw-toggle:hover{color:var(--text);}
-.pw-strength{display:flex;gap:3px;align-items:center;}
-.pw-strength-bar{height:3px;width:20px;border-radius:99px;background:var(--faint);transition:background .2s;}
-.pw-strength-bar.s1{background:var(--red);}
-.pw-strength-bar.s2{background:var(--amber);}
-.pw-strength-bar.s3{background:var(--green);}
-.pw-strength-label{font-family:var(--mono);font-size:9px;color:var(--muted);margin-left:2px;}
+
+/* first-login badge */
+.first-login-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;
+  font-family:var(--mono);font-size:9.5px;font-weight:600;
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--amber);}
+.active-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;
+  font-family:var(--mono);font-size:9.5px;font-weight:600;
+  background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);color:var(--green);}
 
 /* ── ACTIONS CELL ── */
 .actions-cell{display:flex;align-items:center;gap:5px;justify-content:flex-start;flex-wrap:wrap;}
-.save-indicator{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--green);
-  opacity:0;transition:opacity .3s;white-space:nowrap;}
-.save-indicator.show{opacity:1;}
-.save-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
 
 /* ── EMPTY ── */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);text-align:center;gap:12px;}
@@ -152,7 +160,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 /* ── MODAL ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:800;align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--bg3);border:1px solid var(--border);border-radius:16px;width:100%;max-width:420px;animation:popIn .18s cubic-bezier(.34,1.56,.64,1);}
+.modal{background:var(--bg3);border:1px solid var(--border);border-radius:16px;width:100%;max-width:440px;animation:popIn .18s cubic-bezier(.34,1.56,.64,1);}
 @keyframes popIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
 .modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .modal-head h2{font-size:15px;font-weight:600;}
@@ -180,6 +188,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .current-pw-label{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em;}
 .current-pw-val{font-family:var(--mono);font-size:13px;color:var(--text);letter-spacing:.08em;}
 .current-pw-none{color:var(--muted);font-style:italic;font-size:12px;}
+
+/* ── NOTICE BOX ── */
+.notice-box{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:8px;font-size:11.5px;margin-top:14px;line-height:1.5;}
+.notice-box.amber{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);color:var(--amber);}
+.notice-box.green{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);color:var(--green);}
 </style>
 </head>
 <body>
@@ -205,14 +218,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 </header>
 
 <div class="toolbar">
-  <div style="display:flex;align-items:center;gap:10px;">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <div class="search-wrap">
       <span class="search-icon">⌕</span>
       <input class="staff-search" type="text" id="staffSearch" placeholder="Search employees…">
     </div>
     <div class="count-badge"><span id="staffCount">0</span> employees</div>
-    <div class="count-badge" id="pwSetCount" style="border-color:rgba(16,185,129,.3);color:var(--green);">
-      <span id="pwSet">0</span> passwords set
+    <div class="count-badge" style="border-color:rgba(16,185,129,.3);color:var(--green);">
+      <span id="pwActiveCount">0</span> active
+    </div>
+    <div class="count-badge" style="border-color:rgba(245,158,11,.3);color:var(--amber);">
+      <span id="pwAwaitingCount">0</span> awaiting first login
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
@@ -222,13 +238,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 <div class="main">
   <div class="info-banner">
-    🔒 <div>Passwords are stored in the <strong>HR Admin</strong> Firestore collection. Each employee record is keyed by their staff ID. Passwords are stored as plain text — consider hashing for production use.</div>
+    🔒
+    <div>When you set a password for an employee, they will be <strong>forced to change it</strong> on their first sign-in and must confirm it. Once changed, the new password is saved automatically — you will see their status update from <strong style="color:var(--amber)">Awaiting first login</strong> to <strong style="color:var(--green)">Active</strong>.</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot no-pw"></span> No password set</div>
+    <div class="legend-item"><span class="legend-dot awaiting"></span> Temp password set — awaiting first login</div>
+    <div class="legend-item"><span class="legend-dot active"></span> Employee has set their own password</div>
   </div>
 
   <div class="employee-grid">
     <div class="grid-header">
       <div class="grid-header-cell">Employee</div>
-      <div class="grid-header-cell">Password</div>
+      <div class="grid-header-cell">Password Status</div>
       <div class="grid-header-cell">Actions</div>
     </div>
     <div id="employeeList"></div>
@@ -239,21 +262,26 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-head">
-      <h2>🔑 Set Password</h2>
+      <h2>🔑 Set Temporary Password</h2>
       <button class="modal-close" id="editClose">✕</button>
     </div>
     <div class="modal-body">
       <div class="modal-emp-name" id="modalEmpName">—</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;" id="modalEmpId"></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="modalEmpId"></div>
 
       <div class="current-pw-info" id="currentPwInfo">
-        <div class="current-pw-label">Current Password</div>
+        <div class="current-pw-label">Current Status</div>
         <div class="current-pw-val" id="currentPwVal"><span class="current-pw-none">Not set</span></div>
       </div>
 
-      <div class="modal-section-label" style="margin-top:18px;">New Password</div>
+      <div class="notice-box amber" id="firstLoginNotice">
+        <span>⚠</span>
+        <span>The employee will be required to <strong>change this password</strong> and confirm it on their first sign-in. They cannot access the portal until they do.</span>
+      </div>
+
+      <div class="modal-section-label" style="margin-top:18px;">Temporary Password</div>
       <div class="modal-pw-wrap">
-        <input class="modal-pw-input" type="password" id="modalPwInput" placeholder="Enter password…" autocomplete="new-password">
+        <input class="modal-pw-input" type="password" id="modalPwInput" placeholder="Enter a temporary password…" autocomplete="new-password">
         <button class="modal-pw-toggle" id="modalPwToggle" type="button">👁</button>
       </div>
       <div class="modal-strength-row">
@@ -263,17 +291,17 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="modal-strength-text" id="mst">—</div>
       </div>
 
-      <div class="modal-section-label">Generate Random Password</div>
+      <div class="modal-section-label">Generate Password</div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-ghost" id="modalGenBtn" style="flex:1;">🎲 Generate (7+ chars)</button>
-        <button class="btn btn-ghost" id="modalGenLongBtn" style="flex:1;">🎲 Generate (12+ chars)</button>
+        <button class="btn btn-ghost" id="modalGenBtn" style="flex:1;">🎲 Short (7–10 chars)</button>
+        <button class="btn btn-ghost" id="modalGenLongBtn" style="flex:1;">🎲 Long (12–16 chars)</button>
       </div>
 
       <div class="modal-error" id="modalError"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="editCancelBtn">Cancel</button>
-      <button class="btn btn-accent" id="editSaveBtn">Save Password</button>
+      <button class="btn btn-accent" id="editSaveBtn">Set Temporary Password</button>
     </div>
   </div>
 </div>
@@ -283,7 +311,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {
-  getFirestore, collection, doc, getDocs, setDoc, deleteDoc, getDoc
+  getFirestore, collection, doc, getDocs, setDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -299,10 +327,10 @@ const db  = getFirestore(app);
 
 // ── State ──────────────────────────────────────────────────────────────────
 let staff = [];
-let passwords = {}; // { staffId: { password, updatedAt } }
+let passwords = {};   // { staffId: { password, mustChangePassword, updatedAt, passwordChangedAt, ... } }
 let searchQ = '';
 let editingId = null;
-let showPasswords = {}; // track which rows have passwords visible
+let showPasswords = {};
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -351,24 +379,18 @@ function toggleTheme() {
 
 // ── Password Generator ─────────────────────────────────────────────────────
 function generatePassword(minLen, maxLen) {
-  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const lower = 'abcdefghjkmnpqrstuvwxyz';
-  const digits = '23456789';
+  const upper   = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower   = 'abcdefghjkmnpqrstuvwxyz';
+  const digits  = '23456789';
   const symbols = '!@#$%^&*-_+=?';
   const all = upper + lower + digits + symbols;
-
   const len = minLen + Math.floor(Math.random() * (maxLen - minLen + 1));
   let pw = '';
-  // Ensure at least one of each type
   pw += upper[Math.floor(Math.random() * upper.length)];
   pw += lower[Math.floor(Math.random() * lower.length)];
   pw += digits[Math.floor(Math.random() * digits.length)];
   pw += symbols[Math.floor(Math.random() * symbols.length)];
-  // Fill the rest
-  for (let i = pw.length; i < len; i++) {
-    pw += all[Math.floor(Math.random() * all.length)];
-  }
-  // Shuffle
+  for (let i = pw.length; i < len; i++) pw += all[Math.floor(Math.random() * all.length)];
   return pw.split('').sort(() => Math.random() - .5).join('');
 }
 
@@ -387,12 +409,11 @@ function pwStrength(pw) {
 function updateModalStrength() {
   const pw = $('modalPwInput').value;
   const s = pwStrength(pw);
-  const bars = [$('msb1'), $('msb2'), $('msb3')];
-  bars.forEach((b, i) => {
+  [$('msb1'), $('msb2'), $('msb3')].forEach((b, i) => {
     b.className = 'modal-strength-bar' + (s > i ? ` s${s}` : '');
   });
   const labels = ['', 'Weak', 'Fair', 'Strong'];
-  $('mst').textContent = pw ? labels[s] || 'Weak' : '—';
+  $('mst').textContent = pw ? (labels[s] || 'Weak') : '—';
   $('mst').style.color = s === 3 ? 'var(--green)' : s === 2 ? 'var(--amber)' : s === 1 ? 'var(--red)' : 'var(--muted)';
 }
 
@@ -400,26 +421,20 @@ function updateModalStrength() {
 async function loadAll() {
   showLoad(true, 'Loading staff records…');
   try {
-    // Load staff from Establishment Report
     const snap = await getDocs(collection(db, 'Establishment Report'));
     staff = [];
     snap.forEach(d => {
       const data = d.data();
-      if (data._type === 'staff') {
-        staff.push({ id: d.id, name: data.name, createdAt: data.createdAt || '' });
-      }
+      if (data._type === 'staff') staff.push({ id: d.id, name: data.name, createdAt: data.createdAt || '' });
     });
     staff.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Load passwords from HR Admin
     showLoad(true, 'Loading HR Admin records…');
     const pwSnap = await getDocs(collection(db, 'HR Admin'));
     passwords = {};
-    pwSnap.forEach(d => {
-      passwords[d.id] = d.data();
-    });
+    pwSnap.forEach(d => { passwords[d.id] = d.data(); });
 
-    toast(`Loaded ${staff.length} employees, ${Object.keys(passwords).length} passwords on file`);
+    toast(`Loaded ${staff.length} employees · ${Object.keys(passwords).length} passwords on file`);
   } catch(e) {
     console.error(e);
     toast('Error loading data', true);
@@ -428,16 +443,20 @@ async function loadAll() {
   render();
 }
 
+// ── KEY CHANGE: mustChangePassword: true is always set when HR saves a password ──
 async function savePasswordToFirestore(staffId, password) {
   const empName = staff.find(s => s.id === staffId)?.name || '';
-  await setDoc(doc(db, 'HR Admin', staffId), {
+  const record = {
     staffId,
     employeeName: empName,
     password,
+    mustChangePassword: true,   // ← forces the change screen on first login
     updatedAt: new Date().toISOString(),
     updatedBy: 'admin',
-  });
-  passwords[staffId] = { staffId, employeeName: empName, password, updatedAt: new Date().toISOString() };
+    passwordChangedAt: null,    // cleared until employee sets their own
+  };
+  await setDoc(doc(db, 'HR Admin', staffId), record);
+  passwords[staffId] = record;
 }
 
 async function clearPassword(staffId) {
@@ -449,17 +468,25 @@ async function clearPassword(staffId) {
 function render() {
   const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
   $('staffCount').textContent = fil.length;
-  $('pwSet').textContent = fil.filter(s => passwords[s.id]).length;
+
+  let activeCount = 0, awaitingCount = 0;
+  fil.forEach(s => {
+    const pw = passwords[s.id];
+    if (!pw) return;
+    if (pw.mustChangePassword) awaitingCount++;
+    else activeCount++;
+  });
+  $('pwActiveCount').textContent = activeCount;
+  $('pwAwaitingCount').textContent = awaitingCount;
 
   const list = $('employeeList');
   if (!fil.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">${staff.length ? 'No employees match your search.' : 'No employees found. Make sure staff are loaded in the Establishment Report.'}</div></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">${staff.length ? 'No employees match your search.' : 'No employees found.'}</div></div>`;
     return;
   }
 
   list.innerHTML = fil.map((emp, i) => renderRow(emp, i)).join('');
 
-  // Bind events
   fil.forEach(emp => {
     const editBtn = document.getElementById(`edit-btn-${emp.id}`);
     if (editBtn) editBtn.onclick = () => openEdit(emp);
@@ -470,7 +497,7 @@ function render() {
     const copyBtn = document.getElementById(`copy-btn-${emp.id}`);
     if (copyBtn) copyBtn.onclick = () => {
       const pw = passwords[emp.id]?.password;
-      if (pw) { navigator.clipboard.writeText(pw).then(() => toast(`Password copied for ${emp.name}`)); }
+      if (pw) navigator.clipboard.writeText(pw).then(() => toast(`Password copied for ${emp.name}`));
     };
 
     const toggleBtn = document.getElementById(`toggle-btn-${emp.id}`);
@@ -485,47 +512,74 @@ function render() {
 
 function renderRow(emp, i) {
   const ini = emp.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  const hasPw = !!passwords[emp.id];
-  const pw = passwords[emp.id]?.password || '';
-  const updatedAt = passwords[emp.id]?.updatedAt;
-  const updStr = updatedAt ? new Date(updatedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+  const pwRecord = passwords[emp.id];
+  const hasPw = !!pwRecord;
+  const mustChange = pwRecord?.mustChangePassword === true;
+  // mustChange === true  → HR has set temp pw, employee hasn't logged in yet
+  // mustChange === false → Employee has changed their own password
   const showing = showPasswords[emp.id] || false;
 
-  return `<div class="emp-row" style="animation-delay:${i*0.03}s">
+  // Determine state
+  let dotClass, statusText, badge;
+  if (!hasPw) {
+    dotClass = 'no-pw';
+    statusText = 'No password set';
+    badge = '';
+  } else if (mustChange) {
+    dotClass = 'awaiting';
+    statusText = 'Temp password set';
+    badge = `<span class="first-login-badge">⏳ Awaiting first login</span>`;
+  } else {
+    dotClass = 'active';
+    const changedAt = pwRecord.passwordChangedAt
+      ? new Date(pwRecord.passwordChangedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+      : '';
+    statusText = changedAt ? `Password set ${changedAt}` : 'Password active';
+    badge = `<span class="active-badge">✓ Active</span>`;
+  }
+
+  const updStr = pwRecord?.updatedAt
+    ? new Date(pwRecord.updatedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+    : '';
+
+  return `<div class="emp-row" style="animation-delay:${i * 0.03}s">
+
     <!-- Name -->
     <div class="emp-cell">
       <div class="emp-name-cell">
         <div class="emp-avatar">${esc(ini)}</div>
         <div>
           <div class="emp-name">${esc(emp.name)}</div>
-          <div class="emp-status ${hasPw ? 'has-pw' : 'no-pw'}">
-            ${hasPw ? `✓ Password set${updStr ? ' · ' + updStr : ''}` : '✗ No password'}
+          <div class="emp-status-line">
+            <span class="status-dot ${dotClass}"></span>
+            <span style="color:var(--muted);font-size:10px;">${statusText}${updStr && mustChange ? ' · set ' + updStr : ''}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Password display -->
+    <!-- Password status -->
     <div class="emp-cell pw-cell">
+      ${badge}
       ${hasPw ? `
       <div class="pw-row">
         <div class="pw-input-wrap">
           <input class="pw-input" id="pw-display-${emp.id}" type="${showing ? 'text' : 'password'}"
-            value="${esc(pw)}" readonly tabindex="-1">
+            value="${esc(pwRecord.password)}" readonly tabindex="-1"
+            title="${mustChange ? 'Temporary password (employee must change on first login)' : 'Employee-set password'}">
           <button class="pw-toggle" id="toggle-btn-${emp.id}" type="button">${showing ? '🙈' : '👁'}</button>
         </div>
-      </div>
-      ` : `<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">— not set —</span>`}
+      </div>` : `<span style="font-size:11px;color:var(--muted);font-family:var(--mono)">— not set —</span>`}
     </div>
 
     <!-- Actions -->
     <div class="emp-cell actions-cell">
       <button class="btn btn-accent btn-sm" id="edit-btn-${emp.id}">
-        ${hasPw ? '✏ Edit' : '+ Set'}
+        ${hasPw ? '✏ Reset' : '+ Set Password'}
       </button>
       ${hasPw ? `
-      <button class="btn btn-ghost btn-sm" id="copy-btn-${emp.id}" title="Copy password">📋</button>
-      <button class="btn btn-danger btn-sm" id="clear-btn-${emp.id}" title="Clear password">✕</button>
+      <button class="btn btn-ghost btn-sm" id="copy-btn-${emp.id}" title="Copy password to clipboard">📋</button>
+      <button class="btn btn-danger btn-sm" id="clear-btn-${emp.id}" title="Remove password">✕</button>
       ` : ''}
     </div>
   </div>`;
@@ -542,12 +596,15 @@ function openEdit(emp) {
   $('modalError').style.display = 'none';
   updateModalStrength();
 
-  // Show current password
   const existing = passwords[emp.id];
   if (existing?.password) {
-    $('currentPwVal').innerHTML = `<span style="font-family:var(--mono);letter-spacing:.08em;">${'•'.repeat(existing.password.length)}</span>
-      <button onclick="document.getElementById('currentPwVal').innerHTML='<span style=font-family:var(--mono);letter-spacing:.08em>${esc(existing.password)}</span>'; this.style.display='none';"
-        style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;margin-left:8px;text-decoration:underline;">reveal</button>`;
+    const mustChange = existing.mustChangePassword;
+    const changedAt = existing.passwordChangedAt
+      ? new Date(existing.passwordChangedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })
+      : null;
+    $('currentPwVal').innerHTML = mustChange
+      ? `<span class="first-login-badge">⏳ Temp password — employee hasn't logged in yet</span>`
+      : `<span class="active-badge">✓ Employee set their own password${changedAt ? ' on ' + changedAt : ''}</span>`;
   } else {
     $('currentPwVal').innerHTML = '<span class="current-pw-none">Not set</span>';
   }
@@ -568,13 +625,11 @@ async function savePassword() {
 
   if (!pw) {
     errEl.textContent = 'Please enter a password.';
-    errEl.style.display = 'block';
-    return;
+    errEl.style.display = 'block'; return;
   }
   if (pw.length < 7) {
     errEl.textContent = 'Password must be at least 7 characters.';
-    errEl.style.display = 'block';
-    return;
+    errEl.style.display = 'block'; return;
   }
 
   const btn = $('editSaveBtn');
@@ -584,7 +639,7 @@ async function savePassword() {
   try {
     await savePasswordToFirestore(editingId, pw);
     const empName = staff.find(s => s.id === editingId)?.name || 'Employee';
-    toast(`Password saved for ${empName}`);
+    toast(`Temporary password set for ${empName} — they must change it on first login`);
     closeEdit();
     render();
   } catch(e) {
@@ -593,12 +648,12 @@ async function savePassword() {
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Save Password';
+    btn.textContent = 'Set Temporary Password';
   }
 }
 
 async function doClearPassword(emp) {
-  if (!confirm(`Remove password for ${emp.name}?`)) return;
+  if (!confirm(`Remove password for ${emp.name}?\n\nThey will no longer be able to sign in.`)) return;
   try {
     await clearPassword(emp.id);
     toast(`Password cleared for ${emp.name}`);
@@ -622,7 +677,7 @@ function toast(msg, err = false) {
   el.style.color = err ? 'var(--red)' : 'var(--text)';
   el.classList.add('show');
   clearTimeout(tt);
-  tt = setTimeout(() => el.classList.remove('show'), 2800);
+  tt = setTimeout(() => el.classList.remove('show'), 3000);
 }
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
