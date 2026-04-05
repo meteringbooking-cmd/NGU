@@ -143,6 +143,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
 .tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-family:var(--mono);font-size:10.5px;font-weight:600;}
 .tag.hol{background:var(--tag-hol-bg);color:var(--tag-hol-t);}
+
+/* ── REMAINING ── */
+.stat-remaining{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--green);margin-top:1px;}
+.stat-remaining.over{color:var(--red);}
+.stat-remaining.none{color:var(--muted);}
+.remaining-icon{font-size:10px;}
 .tag.sick{background:var(--tag-sick-bg);color:var(--tag-sick-t);}
 .tag.aaup{background:var(--tag-aaup-bg);color:var(--tag-aaup-t);}
 .tag.aap{background:var(--tag-aap-bg);color:var(--tag-aap-t);}
@@ -687,6 +693,9 @@ function renderRow(emp, i) {
         ${stats.holDays > 0 ? `<span class="tag hol">H ${stats.holDays}d</span>` : ''}
         ${stats.holHalf > 0 ? `<span class="tag hol">½H ${stats.holHalf}</span>` : ''}
         ${stats.bhDays > 0 ? `<span class="tag bh">BH ${stats.bhDays}d</span>` : ''}
+      </div>
+      <div class="stat-remaining ${remaining < 0 ? 'over' : remaining === 0 ? 'none' : ''}">
+        ${remaining >= 0 ? `<span class="remaining-icon">◑</span> ${remaining} remaining` : `<span class="remaining-icon">⚠</span> ${Math.abs(remaining)} over`}
       </div>
     </div>
 
