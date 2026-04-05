@@ -125,7 +125,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
 .emp-row:last-child{border-bottom:none;}
 .emp-row:hover{background:var(--row-hover);}
-.emp-cell{padding:12px 14px;display:flex;align-items:center;font-size:12.5px;}
+.emp-cell{padding:12px 14px;display:flex;align-items:center;font-size:12.5px;min-height:68px;}
 
 /* ── EMPLOYEE NAME CELL ── */
 .emp-name-cell{display:flex;align-items:center;gap:10px;}
@@ -135,12 +135,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .emp-since{font-size:10px;color:var(--muted);font-family:var(--mono);}
 
 /* ── STAT CELL ── */
-.stat-cell{flex-direction:column;align-items:flex-start;gap:2px;}
-.stat-primary{font-family:var(--mono);font-size:13px;font-weight:600;}
-.stat-secondary{font-size:10px;color:var(--muted);}
-.stat-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;}
+.stat-cell{flex-direction:column;align-items:flex-start;gap:4px;padding-top:10px;padding-bottom:10px;}
+.stat-top{display:flex;align-items:baseline;gap:8px;}
+.stat-primary{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1;}
+.stat-inst{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.stat-tags{display:flex;gap:4px;flex-wrap:wrap;}
 
-.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;}
+.tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-family:var(--mono);font-size:10.5px;font-weight:600;}
 .tag.hol{background:var(--tag-hol-bg);color:var(--tag-hol-t);}
 .tag.sick{background:var(--tag-sick-bg);color:var(--tag-sick-t);}
 .tag.aaup{background:var(--tag-aaup-bg);color:var(--tag-aaup-t);}
@@ -678,31 +679,42 @@ function renderRow(emp, i) {
 
     <!-- Holidays -->
     <div class="emp-cell stat-cell">
-      <div class="stat-primary" style="color:var(--tag-hol-t)">${stats.holTotal}</div>
-      <div class="stat-tags">
-        ${stats.holDays > 0 ? `<span class="tag hol">H×${stats.holDays}</span>` : ''}
-        ${stats.holHalf > 0 ? `<span class="tag hol">½H×${stats.holHalf}</span>` : ''}
-        ${stats.bhDays > 0 ? `<span class="tag bh">BH×${stats.bhDays}</span>` : ''}
+      <div class="stat-top">
+        <div class="stat-primary" style="color:var(--tag-hol-t)">${stats.holTotal}</div>
+        <div class="stat-inst">${stats.holInst.length} instance${stats.holInst.length !== 1 ? 's' : ''}</div>
       </div>
-      <div class="stat-secondary">${stats.holInst.length} instance${stats.holInst.length !== 1 ? 's' : ''}</div>
+      <div class="stat-tags">
+        ${stats.holDays > 0 ? `<span class="tag hol">H ${stats.holDays}d</span>` : ''}
+        ${stats.holHalf > 0 ? `<span class="tag hol">½H ${stats.holHalf}</span>` : ''}
+        ${stats.bhDays > 0 ? `<span class="tag bh">BH ${stats.bhDays}d</span>` : ''}
+      </div>
     </div>
 
     <!-- Sickness -->
     <div class="emp-cell stat-cell">
-      <div class="stat-primary" style="color:var(--red)">${stats.sickDays}</div>
-      <div class="stat-secondary">${stats.sickInst.length} instance${stats.sickInst.length !== 1 ? 's' : ''}</div>
+      <div class="stat-top">
+        <div class="stat-primary" style="color:var(--red)">${stats.sickDays}</div>
+        <div class="stat-inst">${stats.sickInst.length} instance${stats.sickInst.length !== 1 ? 's' : ''}</div>
+      </div>
+      ${stats.sickDays > 0 ? `<div class="stat-tags"><span class="tag sick">${stats.sickDays} day${stats.sickDays !== 1 ? 's' : ''}</span></div>` : ''}
     </div>
 
     <!-- AAUP -->
     <div class="emp-cell stat-cell">
-      <div class="stat-primary" style="color:var(--amber)">${stats.aaupDays}</div>
-      <div class="stat-secondary">${stats.aaupInst.length} instance${stats.aaupInst.length !== 1 ? 's' : ''}</div>
+      <div class="stat-top">
+        <div class="stat-primary" style="color:var(--amber)">${stats.aaupDays}</div>
+        <div class="stat-inst">${stats.aaupInst.length} instance${stats.aaupInst.length !== 1 ? 's' : ''}</div>
+      </div>
+      ${stats.aaupDays > 0 ? `<div class="stat-tags"><span class="tag aaup">${stats.aaupDays} day${stats.aaupDays !== 1 ? 's' : ''}</span></div>` : ''}
     </div>
 
     <!-- AAP -->
     <div class="emp-cell stat-cell">
-      <div class="stat-primary" style="color:var(--purple)">${stats.aapDays}</div>
-      <div class="stat-secondary">${stats.aapInst.length} instance${stats.aapInst.length !== 1 ? 's' : ''}</div>
+      <div class="stat-top">
+        <div class="stat-primary" style="color:var(--purple)">${stats.aapDays}</div>
+        <div class="stat-inst">${stats.aapInst.length} instance${stats.aapInst.length !== 1 ? 's' : ''}</div>
+      </div>
+      ${stats.aapDays > 0 ? `<div class="stat-tags"><span class="tag aap">${stats.aapDays} day${stats.aapDays !== 1 ? 's' : ''}</span></div>` : ''}
     </div>
 
     <!-- Actions -->
