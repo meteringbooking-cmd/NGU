@@ -237,6 +237,23 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 @media(max-width:900px){:root{--grid-cols:1.8fr 1.2fr 1fr 1fr 1fr 1fr auto;} .btn-sm span{display:none;}}
 
 .delete-confirm{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px;text-align:center;margin-bottom:16px;}
+
+/* ── ADD EMPLOYEE FORM ── */
+.add-form{display:flex;flex-direction:column;gap:16px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.form-required{color:var(--red);}
+.form-input{font-family:var(--sans);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;outline:none;transition:border-color .15s;width:100%;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--faint);}
+.form-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--red);}
+.bh-preview{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.bh-preview-title{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.bh-preview-list{display:flex;flex-wrap:wrap;gap:5px;}
+.bh-chip{padding:3px 9px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:600;background:var(--tag-bh-bg);color:var(--tag-bh-t);}
+.bh-preview-count{font-size:11.5px;color:var(--muted);border-top:1px solid var(--border2);padding-top:8px;margin-top:2px;}
+.bh-preview-count strong{color:var(--text);}
 .delete-confirm p{font-size:13px;margin-bottom:8px;}
 .delete-confirm strong{color:var(--red);}
 
@@ -292,6 +309,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
   <div class="toolbar-right">
+    <button class="btn btn-accent" id="addEmpBtn">+ Add Employee</button>
     <button class="btn btn-ghost" id="refreshBtn" style="font-size:12px;">↻ Refresh</button>
     <div class="count-badge"><span id="staffCount">0</span> employees</div>
   </div>
@@ -329,6 +347,47 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div class="modal-body" id="detailBody"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="detailCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal-overlay" id="addEmpModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <h2>➕ Add Employee</h2>
+      <button class="modal-close" id="addEmpClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="add-form">
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="form-required">*</span></label>
+          <input class="form-input" type="text" id="addName" placeholder="e.g. Jane Smith" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Start Date <span class="form-required">*</span></label>
+            <input class="form-input" type="date" id="addStartDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Holiday Allowance (days)</label>
+            <input class="form-input" type="number" id="addAllowance" value="25" min="0" max="365" step="0.5">
+          </div>
+        </div>
+        <div class="bh-preview" id="bhPreview" style="display:none;">
+          <div class="bh-preview-title">Remaining Bank Holidays this year</div>
+          <div class="bh-preview-list" id="bhPreviewList"></div>
+          <div class="bh-preview-count">
+            <span id="bhCount">0</span> bank holidays remaining from start date
+            — effective allowance <strong id="bhEffective">—</strong> days
+          </div>
+        </div>
+        <div class="form-error" id="addFormError" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="addEmpCancelBtn">Cancel</button>
+      <button class="btn btn-accent" id="addEmpConfirmBtn">Add Employee</button>
     </div>
   </div>
 </div>
@@ -531,6 +590,13 @@ $('prevYear').onclick = () => { aprilYear--; updateYearLabel(); loadAll(); };
 $('nextYear').onclick = () => { aprilYear++; updateYearLabel(); loadAll(); };
 $('staffSearch').oninput = e => { searchQ = e.target.value.trim().toLowerCase(); render(); };
 $('themeBtn').onclick = toggleTheme;
+$('addEmpBtn').onclick = openAddEmp;
+$('addEmpClose').onclick = closeAddEmp;
+$('addEmpCancelBtn').onclick = closeAddEmp;
+$('addEmpConfirmBtn').onclick = submitAddEmp;
+$('addEmpModal').onclick = e => { if(e.target===$('addEmpModal')) closeAddEmp(); };
+$('addStartDate').addEventListener('input', onStartDateChange);
+$('addAllowance').addEventListener('input', onStartDateChange);
 $('refreshBtn').onclick = loadAll;
 $('detailClose').onclick = () => $('detailModal').classList.remove('show');
 $('detailCloseBtn').onclick = () => $('detailModal').classList.remove('show');
@@ -557,6 +623,140 @@ function toggleTheme() {
 })();
 
 // ── Firebase ───────────────────────────────────────────────────────────────
+// ── Add Employee ──────────────────────────────────────────────────────────
+// All bank holidays sorted — used to find remaining ones from a start date
+const ALL_BANK_HOLIDAYS_SORTED = [
+  '2024-01-01','2024-03-29','2024-04-01','2024-05-06','2024-05-27','2024-08-26','2024-12-25','2024-12-26',
+  '2025-01-01','2025-04-18','2025-04-21','2025-05-05','2025-05-26','2025-08-25','2025-12-25','2025-12-26',
+  '2026-01-01','2026-04-03','2026-04-06','2026-05-04','2026-05-25','2026-08-31','2026-12-25','2026-12-28',
+  '2027-01-01','2027-03-26','2027-03-29','2027-05-03','2027-05-31','2027-08-30','2027-12-27','2027-12-28',
+].filter(d => !isWkd(d));
+
+const BH_NAMES = {
+  '01-01': "New Year's Day", '03-29': 'Good Friday', '03-26': 'Good Friday',
+  '04-01': 'Easter Monday', '04-21': 'Easter Monday', '04-06': 'Easter Monday', '03-29': 'Easter Monday',
+  '05-06': 'Early May BH', '05-05': 'Early May BH', '05-03': 'Early May BH', '05-04': 'Early May BH',
+  '05-27': 'Spring BH', '05-26': 'Spring BH', '05-25': 'Spring BH', '05-31': 'Spring BH',
+  '08-26': 'Summer BH', '08-25': 'Summer BH', '08-31': 'Summer BH', '08-30': 'Summer BH',
+  '12-25': 'Christmas Day', '12-26': 'Boxing Day', '12-27': 'Christmas (sub)', '12-28': 'Boxing Day (sub)',
+};
+
+function bhName(dateStr) {
+  const mmdd = dateStr.substring(5);
+  return BH_NAMES[mmdd] || 'Bank Holiday';
+}
+
+function fmtDateShort(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function getRemainingBHFromDate(startDateStr) {
+  // Bank holidays on or after start date, not weekends
+  return ALL_BANK_HOLIDAYS_SORTED.filter(d => d >= startDateStr);
+}
+
+function openAddEmp() {
+  // Default start date to today
+  const today = new Date().toISOString().slice(0, 10);
+  $('addName').value = '';
+  $('addStartDate').value = today;
+  $('addAllowance').value = 25;
+  $('addFormError').style.display = 'none';
+  $('addEmpModal').classList.add('show');
+  onStartDateChange();
+  setTimeout(() => $('addName').focus(), 100);
+}
+
+function closeAddEmp() {
+  $('addEmpModal').classList.remove('show');
+}
+
+function onStartDateChange() {
+  const dateVal = $('addStartDate').value;
+  const preview = $('bhPreview');
+  const listEl  = $('bhPreviewList');
+  const countEl = $('bhCount');
+  const effEl   = $('bhEffective');
+
+  if (!dateVal) { preview.style.display = 'none'; return; }
+
+  const remaining = getRemainingBHFromDate(dateVal);
+  const allowance = parseFloat($('addAllowance').value) || 25;
+  const effective = allowance - remaining.length;
+
+  preview.style.display = 'flex';
+  countEl.textContent = remaining.length;
+  effEl.textContent = Math.max(0, effective);
+
+  if (remaining.length === 0) {
+    listEl.innerHTML = '<span style="font-size:11px;color:var(--muted)">No bank holidays remaining in our records from this date.</span>';
+  } else {
+    listEl.innerHTML = remaining.map(d =>
+      `<span class="bh-chip" title="${d}">${bhName(d)} · ${fmtDateShort(d)}</span>`
+    ).join('');
+  }
+}
+
+async function submitAddEmp() {
+  const name      = $('addName').value.trim();
+  const startDate = $('addStartDate').value;
+  const allowance = parseFloat($('addAllowance').value) || 25;
+  const errEl     = $('addFormError');
+
+  errEl.style.display = 'none';
+
+  if (!name) {
+    errEl.textContent = 'Please enter a name.';
+    errEl.style.display = 'block';
+    $('addName').focus();
+    return;
+  }
+  if (!startDate) {
+    errEl.textContent = 'Please select a start date.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (staff.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+    errEl.textContent = `An employee named "${name}" already exists.`;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const id = 'staff_' + Date.now();
+  const newEmp = { id, name, createdAt: new Date().toISOString() };
+
+  $('addEmpConfirmBtn').disabled = true;
+  $('addEmpConfirmBtn').textContent = 'Adding…';
+
+  try {
+    // Save to Firebase — same format as attendance.html uses
+    await setDoc(doc(db, 'Establishment Report', id), {
+      _type: 'staff',
+      name,
+      startDate,
+      holidayAllowance: allowance,
+      createdAt: new Date().toISOString(),
+    });
+
+    // Update local state
+    staff.push(newEmp);
+    allEntries[id] = {};
+    allowances[id] = allowance;
+    staff.sort((a, b) => a.name.localeCompare(b.name));
+
+    closeAddEmp();
+    toast(`${name} added successfully`);
+    render();
+  } catch(e) {
+    console.error(e);
+    errEl.textContent = 'Error saving employee. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    $('addEmpConfirmBtn').disabled = false;
+    $('addEmpConfirmBtn').textContent = 'Add Employee';
+  }
+}
+
 async function loadAll() {
   showLoad(true, 'Loading staff records…');
   try {
