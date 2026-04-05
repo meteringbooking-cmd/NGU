@@ -797,11 +797,11 @@ function renderYearProgress(fil) {
   const expectedUsed = Math.round((totalAllowance / 52) * weeksElapsed);
   const expectedPct  = Math.min(100, Math.round((expectedUsed / totalAllowance) * 100));
 
-  // Actual used
+  // Actual used — exclude bank holidays (holTotal = holDays + holHalf*0.5 + bhDays)
   let actualUsed = 0;
   fil.forEach(emp => {
     const s = computeStats(allEntries[emp.id] || {}, aprilYear);
-    actualUsed += s.holTotal;
+    actualUsed += s.holDays + (s.holHalf * 0.5); // deliberate holidays only, no BH
   });
   const actualPct = Math.min(100, Math.round((actualUsed / totalAllowance) * 100));
 
@@ -818,8 +818,8 @@ function renderYearProgress(fil) {
   $('ypActVal').textContent = actualPct + '%';
 
   // Tooltip-style labels
-  $('ypExpLabel').title = `Expected ${expectedUsed}d used after ${Math.round(weeksElapsed)} weeks`;
-  $('ypActLabel').title = `Actual ${actualUsed}d used of ${totalAllowance}d total`;
+  $('ypExpLabel').title = `Expected ${expectedUsed}d used after ${Math.round(weeksElapsed)} weeks (excl. bank holidays)`;
+  $('ypActLabel').title = `Actual ${actualUsed}d used of ${totalAllowance}d total (excl. bank holidays)`;
 
   // Show whether ahead or behind
   const diff = actualUsed - expectedUsed;
