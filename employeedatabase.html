@@ -145,10 +145,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .tag.hol{background:var(--tag-hol-bg);color:var(--tag-hol-t);}
 
 /* ── REMAINING ── */
-.stat-remaining{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--green);margin-top:1px;}
-.stat-remaining.over{color:var(--red);}
-.stat-remaining.none{color:var(--muted);}
-.remaining-icon{font-size:10px;}
+.stat-remaining{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--green);margin-top:3px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:5px;padding:3px 8px;width:fit-content;}
+.stat-remaining.over{color:var(--red);background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);}
+.stat-remaining.none{color:var(--muted);background:var(--bg3);border-color:var(--border);}
+.remaining-icon{font-size:11px;}
 .tag.sick{background:var(--tag-sick-bg);color:var(--tag-sick-t);}
 .tag.aaup{background:var(--tag-aaup-bg);color:var(--tag-aaup-t);}
 .tag.aap{background:var(--tag-aap-bg);color:var(--tag-aap-t);}
@@ -695,7 +695,7 @@ function renderRow(emp, i) {
         ${stats.bhDays > 0 ? `<span class="tag bh">BH ${stats.bhDays}d</span>` : ''}
       </div>
       <div class="stat-remaining ${remaining < 0 ? 'over' : remaining === 0 ? 'none' : ''}">
-        ${remaining >= 0 ? `<span class="remaining-icon">◑</span> ${remaining} remaining` : `<span class="remaining-icon">⚠</span> ${Math.abs(remaining)} over`}
+        ${remaining > 0 ? `↓ ${remaining} left` : remaining === 0 ? `✓ none left` : `⚠ ${Math.abs(remaining)} over`}
       </div>
     </div>
 
