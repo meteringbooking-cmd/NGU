@@ -430,11 +430,12 @@ async function saveE(sid,dt,status,hours){
   showPill('saving');
   const pfx=dt.substring(0,7);
   try{
-    await setDoc(doc(db,'Establishment Report',`entry_${sid}_${dt}`),{
-      _type:'entry',staffId:sid,date:dt,month:pfx,
-      status,entryData:{status,hours:hours||0},
-      updatedAt:new Date().toISOString()
-    });
+    await setDoc(doc(...), {
+  _type:'entry', staffId:sid, date:dt, month:pfx,
+  staffName: staff.find(s => s.id === sid)?.name || '',  // ← add this
+  status, entryData:{status, hours:hours||0},
+  updatedAt:new Date().toISOString()
+});
     showPill('saved');
   }catch(e){console.error(e);showPill('error');toast('Save failed',true);}
 }
