@@ -150,6 +150,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .emp-avatar.archived{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
 .emp-name{font-weight:500;font-size:13px;}
 .emp-since{font-size:10px;color:var(--muted);font-family:var(--mono);}
+.emp-id{font-size:9.5px;color:var(--faint);font-family:var(--mono);letter-spacing:.02em;margin-top:1px;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;
+  display:inline-block;cursor:default;}
+[data-theme="light"] .emp-id{color:var(--muted);background:var(--bg3);}
 
 /* ── STAT CELL ── */
 .stat-cell{flex-direction:column;align-items:flex-start;gap:4px;padding-top:10px;padding-bottom:10px;}
@@ -760,7 +764,6 @@ async function loadAll() {
 
 async function saveAllowance(sid, val) {
   try {
-    const emp = staff.find(s => s.id === sid) || archived.find(s => s.id === sid);
     await setDoc(doc(db, 'Establishment Report', sid), {
       holidayAllowance: val,
     }, { merge: true });
@@ -795,7 +798,6 @@ async function confirmArchive() {
       leaveReason: reason,
     }, { merge: true });
 
-    // Move locally
     staff = staff.filter(s => s.id !== sid);
     archived.unshift({ ...emp, archivedAt: new Date().toISOString(), leaveReason: reason });
     allowances[sid] = allowances[sid] || 25;
@@ -880,7 +882,7 @@ const ALL_BANK_HOLIDAYS_SORTED = [
 
 const BH_NAMES = {
   '01-01': "New Year's Day", '04-18': 'Good Friday', '04-03': 'Good Friday', '03-29': 'Good Friday', '03-26': 'Good Friday',
-  '04-21': 'Easter Monday', '04-06': 'Easter Monday', '03-29': 'Easter Monday',
+  '04-21': 'Easter Monday', '04-06': 'Easter Monday',
   '05-06': 'Early May BH', '05-05': 'Early May BH', '05-03': 'Early May BH', '05-04': 'Early May BH',
   '05-27': 'Spring BH', '05-26': 'Spring BH', '05-25': 'Spring BH', '05-31': 'Spring BH',
   '08-26': 'Summer BH', '08-25': 'Summer BH', '08-31': 'Summer BH', '08-30': 'Summer BH',
@@ -1010,12 +1012,14 @@ function renderRow(emp, i, isArchived = false) {
     return new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
   };
 
+  // ── Name cell — now includes staff ID badge ──
   const nameCell = isArchived ? `
     <div class="emp-cell">
       <div class="emp-name-cell">
         <div class="emp-avatar archived">${esc(ini)}</div>
         <div>
           <div class="emp-name">${esc(emp.name)}</div>
+          <div class="emp-id" title="Firebase document ID">${esc(emp.id)}</div>
           <div class="archived-date">Archived ${fmtArchiveDate(emp.archivedAt)}</div>
           ${emp.leaveReason ? `<div class="archived-reason">${esc(emp.leaveReason)}</div>` : ''}
         </div>
@@ -1024,7 +1028,10 @@ function renderRow(emp, i, isArchived = false) {
     <div class="emp-cell">
       <div class="emp-name-cell">
         <div class="emp-avatar">${esc(ini)}</div>
-        <div><div class="emp-name">${esc(emp.name)}</div></div>
+        <div>
+          <div class="emp-name">${esc(emp.name)}</div>
+          <div class="emp-id" title="Firebase document ID">${esc(emp.id)}</div>
+        </div>
       </div>
     </div>`;
 
@@ -1242,6 +1249,9 @@ function openDetail(emp) {
   const barClass = pct >= 100 ? 'danger' : pct >= 80 ? 'warn' : '';
 
   $('detailBody').innerHTML = `
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:14px;padding:6px 10px;background:var(--bg);border-radius:6px;border:1px solid var(--border2);">
+      ID: ${esc(emp.id)}
+    </div>
     ${isArc ? `<div style="background:rgba(120,120,120,.08);border:1px solid rgba(120,120,120,.2);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--muted);margin-bottom:16px;">
       📦 Archived employee — stats are preserved for reference but excluded from active totals.
       ${emp.leaveReason ? `Reason: <strong>${esc(emp.leaveReason)}</strong>` : ''}
