@@ -22,6 +22,7 @@
   --cell-aap:#0d1f2a;   --cell-aap-t:#38bdf8;
   --cell-train:#1a1a10; --cell-train-t:#a3e635;
   --cell-wknd:#0d1525; --shadow:0 16px 40px rgba(0,0,0,0.5);
+  --non-eng-stripe:rgba(245,158,11,0.04);
 }
 [data-theme="light"] {
   --bg:#f0f4f8; --bg2:#ffffff; --bg3:#e8eef5;
@@ -36,6 +37,7 @@
   --cell-aap:#dbeafe;   --cell-aap-t:#1d4ed8;
   --cell-train:#ecfccb; --cell-train-t:#3f6212;
   --cell-wknd:#e8eef5; --shadow:0 8px 24px rgba(0,0,0,0.12);
+  --non-eng-stripe:rgba(245,158,11,0.05);
 }
 :root {
   --accent:#00A3E0; --accent2:#005EB8;
@@ -63,6 +65,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .btn-export:hover{background:rgba(16,185,129,.1);border-color:var(--green);}
 .theme-btn{width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;font-size:15px;transition:all .15s;color:var(--muted);}
 .theme-btn:hover{border-color:var(--accent);color:var(--text);}
+
+/* ── Engineer toggle ── */
+.eng-toggle-wrap{display:flex;align-items:center;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0;}
+.eng-toggle-btn{font-family:var(--sans);font-size:11px;font-weight:500;border:none;background:none;cursor:pointer;padding:6px 12px;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.eng-toggle-btn:first-child{border-right:1px solid var(--border);}
+.eng-toggle-btn.active{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;}
+.eng-toggle-btn.active-amber{background:linear-gradient(135deg,#92400e,var(--amber));color:#fff;}
+.eng-toggle-btn:not(.active):not(.active-amber):hover{color:var(--text);background:var(--border2);}
+.non-eng-pill{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:8.5px;font-weight:700;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber);letter-spacing:.03em;}
+
 .toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border2);background:var(--bg2);position:relative;z-index:1;gap:10px;flex-wrap:wrap;}
 .legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .legend-item{display:flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--muted);}
@@ -77,8 +89,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .grid-outer::-webkit-scrollbar-track{background:var(--bg2);}
 .grid-outer::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
 .report-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
-.col-staff{position:sticky;left:0;z-index:30;background:var(--bg2);min-width:200px;max-width:200px;border-right:2px solid var(--border);}
-.col-ded{position:sticky;left:200px;z-index:30;background:var(--bg2);min-width:92px;max-width:92px;border-right:2px solid var(--border);text-align:right;}
+.col-staff{position:sticky;left:0;z-index:30;background:var(--bg2);min-width:210px;max-width:210px;border-right:2px solid var(--border);}
+.col-ded{position:sticky;left:210px;z-index:30;background:var(--bg2);min-width:100px;max-width:100px;border-right:2px solid var(--border);text-align:right;}
 .report-table thead th{position:sticky;top:0;z-index:20;background:var(--bg3);border-bottom:2px solid var(--border);padding:0;height:54px;}
 .report-table thead th.col-staff{z-index:41;background:var(--bg3);}
 .report-table thead th.col-ded{z-index:40;background:var(--bg3);}
@@ -97,15 +109,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .th-day-inner.is-wknd .th-day-name,.th-day-inner.is-wknd .th-day-num{color:var(--faint);}
 .report-table tbody tr:hover .col-staff,.report-table tbody tr:hover .col-ded{filter:brightness(1.08);}
 .report-table tbody tr:hover td.cell-day:not(.cell-wknd){filter:brightness(1.1);}
-.td-staff-inner{display:flex;align-items:center;gap:8px;padding:0 12px;height:40px;border-bottom:1px solid var(--border2);}
+.td-staff-inner{display:flex;align-items:center;gap:8px;padding:0 12px;height:46px;border-bottom:1px solid var(--border2);}
 .staff-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:grid;place-items:center;font-size:9px;font-weight:600;color:#fff;flex-shrink:0;font-family:var(--mono);}
+.staff-avatar.non-eng{background:linear-gradient(135deg,#92400e,var(--amber));}
+.staff-name-wrap{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .staff-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.td-ded-inner{display:flex;align-items:center;justify-content:flex-end;padding:0 10px;height:40px;border-bottom:1px solid var(--border2);}
+.td-ded-inner{display:flex;align-items:center;justify-content:flex-end;padding:0 10px;height:46px;border-bottom:1px solid var(--border2);}
 .ded-amount{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--red);}
 .ded-zero{color:var(--faint);}
-.cell-day{height:40px;min-width:44px;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);padding:0;text-align:center;vertical-align:middle;cursor:pointer;position:relative;}
-.cell-wknd{background:var(--cell-wknd);cursor:default;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);height:40px;min-width:44px;}
+.ded-exempt{font-family:var(--mono);font-size:9.5px;color:var(--muted);font-style:italic;}
+.cell-day{height:46px;min-width:44px;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);padding:0;text-align:center;vertical-align:middle;cursor:pointer;position:relative;}
+.cell-wknd{background:var(--cell-wknd);cursor:default;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);height:46px;min-width:44px;}
 .cell-today-col{background:rgba(0,163,224,.04);}
+/* Non-engineer row tinting */
+tr.row-non-eng td{background-color:var(--non-eng-stripe);}
+tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in srgb, var(--bg2) 90%, var(--amber) 10%);}
 .cell-chip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;transition:transform .1s;}
 .cell-day:hover .cell-chip{transform:scale(1.12);}
 .s-In{background:var(--cell-in);color:var(--cell-in-t);}
@@ -131,6 +149,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .popup-hours-input{font-family:var(--mono);font-size:12px;font-weight:600;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:4px 8px;width:68px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;}
 .popup-hours-input:focus{border-color:var(--accent);}
 .popup-hours-calc{font-family:var(--mono);font-size:10px;color:var(--red);margin-left:auto;white-space:nowrap;}
+.popup-non-eng-notice{padding:7px 11px;border-top:1px solid var(--border);background:rgba(245,158,11,.06);font-size:10px;color:var(--amber);font-family:var(--mono);}
 .popup-save-btn{width:100%;padding:8px;border:none;border-top:1px solid var(--border);background:rgba(0,163,224,.1);color:var(--accent);font-family:var(--sans);font-size:11.5px;font-weight:600;cursor:pointer;transition:background .15s;}
 .popup-save-btn:hover{background:rgba(0,163,224,.2);}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:800;align-items:center;justify-content:center;padding:16px;}
@@ -192,6 +211,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       <button class="month-nav-btn" id="nextMonth">›</button>
     </div>
     <button class="btn btn-ghost" id="todayBtn">Today</button>
+
+    <!-- Engineer / All Staff toggle -->
+    <div class="eng-toggle-wrap" title="Filter by staff type">
+      <button class="eng-toggle-btn active" id="toggleAll">👥 All Staff</button>
+      <button class="eng-toggle-btn" id="toggleEng">⚙ Engineers Only</button>
+    </div>
+
     <button class="btn btn-export" id="exportBtn">↓ Export</button>
     <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
   </div>
@@ -208,6 +234,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div class="legend-item"><div class="lchip s-Training">Tr</div>Training</div>
     <div class="legend-item"><div class="lchip" style="background:var(--cell-wknd);color:var(--faint)">—</div>Weekend</div>
     <div class="legend-item"><div class="lchip s-BH">BH</div>Bank Hol</div>
+    <div class="legend-item" style="margin-left:6px;padding-left:10px;border-left:1px solid var(--border)">
+      <div class="non-eng-pill">⚙ excl.</div>
+      <span>Non-engineer (no deduction)</span>
+    </div>
   </div>
   <div class="toolbar-right">
     <div class="search-wrap">
@@ -240,13 +270,13 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="modal-body">
       <div class="modal-grid">
-        <div class="modal-stat"><div class="modal-stat-label">Staff</div><div class="modal-stat-val" id="xStaff">0</div></div>
+        <div class="modal-stat"><div class="modal-stat-label">Staff (visible)</div><div class="modal-stat-val" id="xStaff">0</div></div>
         <div class="modal-stat"><div class="modal-stat-label">Working Days</div><div class="modal-stat-val" id="xDays">0</div></div>
         <div class="modal-stat danger"><div class="modal-stat-label">Total Deductions</div><div class="modal-stat-val" id="xTotal">£0.00</div></div>
         <div class="modal-stat"><div class="modal-stat-label">Period</div><div class="modal-stat-val" id="xPeriod" style="font-size:13px;">—</div></div>
       </div>
       <div>
-        <div class="modal-section-label">Deduction Breakdown</div>
+        <div class="modal-section-label">Deduction Breakdown (engineers only)</div>
         <div class="modal-ded-list" id="xDedList"></div>
       </div>
     </div>
@@ -305,7 +335,6 @@ const dname = (y,m,d) => new Date(y,m-1,d).toLocaleDateString('en-GB',{weekday:'
 const gbp   = n => `£${n.toFixed(2)}`;
 const ded   = h => (h||0)*HOURLY_RATE;
 
-// Produce a safe doc-ID slug from an employee name
 function nameSlug(name) {
   return name.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
 }
@@ -316,7 +345,9 @@ function getE(sid, dt) {
   return { status: r.status || 'In', hours: parseFloat(r.hours) || 0 };
 }
 
+// Deduction only applies if the employee IS an engineer (not non-engineer)
 function staffTotal(sid) {
+  if (nonEngineers.has(sid)) return 0; // Non-engineers are never deducted
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   let t = 0;
   Object.keys(entries[sid]||{}).forEach(dt => {
@@ -331,9 +362,9 @@ function staffTotal(sid) {
 // ── State ──────────────────────────────────────────────────────────────────
 const now = new Date();
 let vy = now.getFullYear(), vm = now.getMonth() + 1;
-// staff: [{ id: firestoreDocId, name: string }]
-// entries: { [staffDocId]: { [dateStr]: { status, hours } } }
-let staff = [], entries = {}, searchQ = '';
+let staff = [], entries = {}, nonEngineers = new Set(), searchQ = '';
+// engFilter: 'all' | 'engineers'
+let engFilter = localStorage.getItem('er_engFilter') || 'all';
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -354,6 +385,17 @@ $('exportConfirm').onclick = doExport;
 $('exportModal').onclick = e => { if (e.target === $('exportModal')) closeExport(); };
 document.addEventListener('click', e => { if (!popup.contains(e.target)) popup.style.display = 'none'; });
 
+// Engineer toggle
+$('toggleAll').onclick = () => { engFilter = 'all'; localStorage.setItem('er_engFilter','all'); updateEngToggleUI(); render(); };
+$('toggleEng').onclick = () => { engFilter = 'engineers'; localStorage.setItem('er_engFilter','engineers'); updateEngToggleUI(); render(); };
+
+function updateEngToggleUI() {
+  const isAll = engFilter === 'all';
+  $('toggleAll').className = 'eng-toggle-btn' + (isAll ? ' active' : '');
+  $('toggleEng').className = 'eng-toggle-btn' + (!isAll ? ' active' : '');
+}
+updateEngToggleUI();
+
 // ── Theme ──────────────────────────────────────────────────────────────────
 function toggleTheme() {
   const h = document.documentElement, d = h.dataset.theme === 'dark';
@@ -367,30 +409,28 @@ function toggleTheme() {
 })();
 
 // ── Firebase ───────────────────────────────────────────────────────────────
-
 async function loadAll() {
   showLoad(true, 'Loading staff from Employee Database…');
   try {
-    // Single collection scan — same collection used by both apps
     const snap = await getDocs(collection(db, 'Establishment Report'));
     staff = [];
     entries = {};
+    nonEngineers = new Set();
 
-    // First pass: collect staff members (created by Employee Database)
     snap.forEach(d => {
       const data = d.data();
+      // Load active staff (not archived)
       if (data._type === 'staff') {
         staff.push({ id: d.id, name: data.name });
         entries[d.id] = {};
+        if (data.nonEngineer === true) nonEngineers.add(d.id);
       }
     });
     staff.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Build a name → id lookup for resolving entries saved by name
     const nameToId = {};
     staff.forEach(s => { nameToId[s.name.toLowerCase()] = s.id; });
 
-    // Second pass: load entry records — match by staffId OR staffName
     snap.forEach(d => {
       const data = d.data();
       if (data._type !== 'entry') return;
@@ -399,10 +439,8 @@ async function loadAll() {
 
       let sid = null;
       if (data.staffId && entries[data.staffId] !== undefined) {
-        // Matched by Firestore doc ID (original format)
         sid = data.staffId;
       } else if (data.staffName) {
-        // Matched by employee name (new format)
         sid = nameToId[data.staffName.toLowerCase()] || null;
       }
       if (!sid) return;
@@ -412,8 +450,8 @@ async function loadAll() {
       entries[sid][dt] = { status: rawStatus, hours: rawHours };
     });
 
-    console.log(`✓ Loaded ${staff.length} staff from Employee Database`);
-    toast(`Loaded ${staff.length} staff`);
+    console.log(`✓ Loaded ${staff.length} staff · ${nonEngineers.size} non-engineers`);
+    toast(`Loaded ${staff.length} staff (${nonEngineers.size} non-engineer${nonEngineers.size!==1?'s':''})`);
   } catch (e) {
     console.error(e);
     toast('Error loading data', true);
@@ -422,7 +460,6 @@ async function loadAll() {
   render();
 }
 
-// Load a specific month's entries from Firestore (called on month navigation)
 async function loadMonth(y, m) {
   const pfx = `${y}-${String(m).padStart(2,'0')}`;
   showLoad(true, `Loading ${pfx}…`);
@@ -460,21 +497,18 @@ async function loadMonth(y, m) {
   showLoad(false);
 }
 
-// Save an attendance entry — keyed by employee NAME for cross-app compatibility
 async function saveE(sid, dt, status, hours) {
   showPill('saving');
   const pfx = dt.substring(0, 7);
   const emp = staff.find(s => s.id === sid);
-  const staffName = emp ? emp.name : sid; // fallback to id if name not found
-
-  // Doc ID is human-readable and name-based so Employee Database can find entries
+  const staffName = emp ? emp.name : sid;
   const docId = `entry_${nameSlug(staffName)}_${dt}`;
 
   try {
     await setDoc(doc(db, 'Establishment Report', docId), {
       _type:     'entry',
-      staffId:   sid,        // kept for backward-compatibility
-      staffName: staffName,  // PRIMARY — used by Employee Database to match records
+      staffId:   sid,
+      staffName: staffName,
       date:      dt,
       month:     pfx,
       status,
@@ -509,18 +543,35 @@ function goToday() {
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
+function getFilteredStaff() {
+  let fil = staff;
+  // Apply engineer filter
+  if (engFilter === 'engineers') {
+    fil = fil.filter(s => !nonEngineers.has(s.id));
+  }
+  // Apply search
+  if (searchQ) {
+    fil = fil.filter(s => s.name.toLowerCase().includes(searchQ));
+  }
+  return fil;
+}
+
 function render() {
   const nd = days(vy, vm), todayStr = dk(now.getFullYear(), now.getMonth()+1, now.getDate());
   mlabel.textContent = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', { month:'long', year:'numeric' });
-  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+  const fil = getFilteredStaff();
   if (!fil.length) { table.style.display='none'; empty.style.display='flex'; return; }
   empty.style.display='none'; table.style.display='table';
 
+  // Grand total only counts engineers
   const grandTotal = fil.reduce((s, m) => s + staffTotal(m.id), 0);
 
   // Header
   let hh = `<tr>
-    <th class="col-staff"><div class="th-staff-inner"><div class="th-staff-label">Staff</div><div class="th-staff-count">${fil.length}</div></div></th>
+    <th class="col-staff"><div class="th-staff-inner">
+      <div class="th-staff-label">${engFilter==='engineers' ? '⚙ Engineers' : 'All Staff'}</div>
+      <div class="th-staff-count">${fil.length}</div>
+    </div></th>
     <th class="col-ded"><div class="th-ded-inner"><div class="th-ded-label">Deduction</div><div class="th-ded-total">${gbp(grandTotal)}</div></div></th>`;
   for (let d = 1; d <= nd; d++) {
     const k = dk(vy, vm, d), w = isWkd(vy, vm, d), b = isBH(k), t = k === todayStr;
@@ -534,17 +585,35 @@ function render() {
   let bh = '';
   fil.forEach(s => {
     const ini = s.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-    const dt = staffTotal(s.id);
-    bh += `<tr>
-      <td class="col-staff"><div class="td-staff-inner"><div class="staff-avatar">${ini}</div><span class="staff-name" title="${esc(s.name)}">${esc(s.name)}</span></div></td>
-      <td class="col-ded"><div class="td-ded-inner"><span class="ded-amount ${dt>0?'':'ded-zero'}">${dt>0?'−'+gbp(dt):'—'}</span></div></td>`;
+    const dt = staffTotal(s.id); // 0 for non-engineers
+    const isNonEng = nonEngineers.has(s.id);
+    const rowClass = isNonEng ? ' row-non-eng' : '';
+    const avatarClass = isNonEng ? ' non-eng' : '';
+
+    bh += `<tr class="${rowClass}">
+      <td class="col-staff"><div class="td-staff-inner">
+        <div class="staff-avatar${avatarClass}">${ini}</div>
+        <div class="staff-name-wrap">
+          <span class="staff-name" title="${esc(s.name)}">${esc(s.name)}</span>
+          ${isNonEng ? `<span class="non-eng-pill">⚙ non-eng</span>` : ''}
+        </div>
+      </div></td>
+      <td class="col-ded"><div class="td-ded-inner">
+        ${isNonEng
+          ? `<span class="ded-exempt">exempt</span>`
+          : dt > 0
+            ? `<span class="ded-amount">−${gbp(dt)}</span>`
+            : `<span class="ded-amount ded-zero">—</span>`
+        }
+      </div></td>`;
+
     for (let d = 1; d <= nd; d++) {
       const k = dk(vy,vm,d), w = isWkd(vy,vm,d), b = isBH(k), t = k === todayStr;
       if (w) { bh += `<td class="cell-wknd"></td>`; continue; }
       let abbr, cls;
       if (b) { abbr='BH'; cls='s-BH'; }
       else { const e = getE(s.id, k); const opt = STATUSES.find(o => o.code===e.status)||STATUSES[0]; abbr=opt.abbr; cls=opt.cls; }
-      bh += `<td class="cell-day${t?' cell-today-col':''}" data-date="${k}" data-staff="${s.id}" data-bh="${b?1:0}"><span class="cell-chip ${cls}">${abbr}</span></td>`;
+      bh += `<td class="cell-day${t?' cell-today-col':''}" data-date="${k}" data-staff="${s.id}" data-bh="${b?1:0}" data-noneng="${isNonEng?1:0}"><span class="cell-chip ${cls}">${abbr}</span></td>`;
     }
     bh += '</tr>';
   });
@@ -570,11 +639,12 @@ function render() {
 function onCell(e) {
   e.stopPropagation();
   const cell = e.currentTarget, dt = cell.dataset.date, sid = cell.dataset.staff;
+  const isNonEng = cell.dataset.noneng === '1';
   const cur = getE(sid, dt);
-  openPopup(sid, dt, cur.status, cur.hours||0, cell);
+  openPopup(sid, dt, cur.status, cur.hours||0, cell, isNonEng);
 }
 
-function openPopup(sid, dt, selStatus, selHours, anchor) {
+function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
   const selOpt = STATUSES.find(o => o.code===selStatus) || STATUSES[0];
   const [,,day] = dt.split('-');
   let html = `<div class="popup-header">Day ${parseInt(day)} · ${dt}</div>`;
@@ -586,13 +656,24 @@ function openPopup(sid, dt, selStatus, selHours, anchor) {
       ${opt.code===selStatus ? '<span class="popup-check">✓</span>' : ''}
     </div>`;
   });
-  if (selOpt.deducts) {
+
+  // Show hours input only for engineers with deductable statuses
+  if (selOpt.deducts && !isNonEng) {
     const d = ded(selHours);
     html += `<div class="popup-hours-row">
       <span class="popup-hours-label">Hours absent:</span>
       <input class="popup-hours-input" id="pHours" type="number" value="${selHours||''}" min="0" max="24" step="0.5" placeholder="0">
       <span class="popup-hours-calc" id="pCalc">${selHours>0?'−'+gbp(d):''}</span>
     </div>`;
+  } else if (selOpt.deducts && isNonEng) {
+    // Non-engineer: show hours input for record-keeping, but note no deduction
+    const d = ded(selHours);
+    html += `<div class="popup-hours-row">
+      <span class="popup-hours-label">Hours absent:</span>
+      <input class="popup-hours-input" id="pHours" type="number" value="${selHours||''}" min="0" max="24" step="0.5" placeholder="0">
+      <span class="popup-hours-calc" id="pCalc" style="color:var(--muted)">${selHours>0?gbp(d)+' (no ded.)':''}</span>
+    </div>
+    <div class="popup-non-eng-notice">⚙ Non-engineer — absence logged but no pay deduction applied.</div>`;
   }
   html += `<button class="popup-save-btn" id="pSave">Save</button>`;
   popup.innerHTML = html;
@@ -611,12 +692,21 @@ function openPopup(sid, dt, selStatus, selHours, anchor) {
     ev.stopPropagation();
     cStatus = o.dataset.code;
     if (!STATUSES.find(s => s.code===cStatus)?.deducts) cHours = 0;
-    openPopup(sid, dt, cStatus, cHours, anchor);
+    openPopup(sid, dt, cStatus, cHours, anchor, isNonEng);
   }));
 
   const hi = $('pHours'), pc = $('pCalc');
   if (hi) {
-    hi.addEventListener('input', () => { cHours = parseFloat(hi.value)||0; if(pc) pc.textContent = cHours>0?'−'+gbp(ded(cHours)):''; });
+    hi.addEventListener('input', () => {
+      cHours = parseFloat(hi.value)||0;
+      if (pc) {
+        if (isNonEng) {
+          pc.textContent = cHours > 0 ? gbp(ded(cHours)) + ' (no ded.)' : '';
+        } else {
+          pc.textContent = cHours > 0 ? '−' + gbp(ded(cHours)) : '';
+        }
+      }
+    });
     hi.addEventListener('click', ev => ev.stopPropagation());
     hi.addEventListener('keydown', ev => ev.stopPropagation());
   }
@@ -635,8 +725,8 @@ function openPopup(sid, dt, selStatus, selHours, anchor) {
 function openExport() {
   const nd = days(vy, vm);
   let wd = 0; for (let d=1;d<=nd;d++) if(isWD(vy,vm,d)) wd++;
-  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
-  const grand = fil.reduce((s,m) => s+staffTotal(m.id), 0);
+  const fil = getFilteredStaff();
+  const grand = fil.reduce((s,m) => s+staffTotal(m.id), 0); // non-engineers contribute 0
   const period = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', {month:'short',year:'numeric'});
   $('xStaff').textContent=fil.length; $('xDays').textContent=wd;
   $('xTotal').textContent=gbp(grand); $('xPeriod').textContent=period;
@@ -651,21 +741,21 @@ function closeExport() { $('exportModal').classList.remove('show'); }
 
 function doExport() {
   const nd  = days(vy, vm);
-  const fil = staff.filter(s => !searchQ || s.name.toLowerCase().includes(searchQ));
+  const fil = getFilteredStaff();
   const period = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', {month:'long', year:'numeric'});
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   const generated = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
 
-  // ── Style palette ──────────────────────────────────────────────────────
   const NAVY     = "003366";
   const NAVY_MID = "004080";
+  const AMBER_MID= "92400E";
   const WHITE    = "FFFFFF";
   const GOLD_LT  = "FFF8E7";
   const GRAY_LT  = "FAFAFA";
+  const AMBER_LT = "FFFBEB";
   const RED_FG   = "C0392B";
   const WKND_BG  = "F0F0F0";
 
-  // Status colours [bgColor, fontColor]
   const S_STYLE = {
     'In':               ['E8F5E9','1B5E20'],
     'Holiday':          ['E3F2FD','0D47A1'],
@@ -677,81 +767,47 @@ function doExport() {
     'BH':               ['E3F2FD','0D47A1'],
   };
 
-  // Cell style factories
   const font = (sz=9, bold=false, color='222222', italic=false) =>
     ({ name:'Arial', sz, bold, color, italic });
-
   const fill = (fgColor) => ({ patternType:'solid', fgColor:{rgb:fgColor} });
-
   const border = (style='thin', color='CCCCCC') => {
     const s = { style, color:{rgb:color} };
     return { top:s, bottom:s, left:s, right:s };
   };
-
   const thick_border = () => {
     const th = { style:'medium', color:{rgb:NAVY} };
     const tn = { style:'thin',   color:{rgb:'CCCCCC'} };
     return { top:th, bottom:th, left:th, right:th };
   };
-
   const A = (h='center', v='center', wrap=false) => ({ horizontal:h, vertical:v, wrapText:wrap });
-
-  // Helper: make a styled cell
   const sc = (value, type, style) => ({ v:value, t:type, s:style });
-
-  // Helper: number cell with format
   const nc = (value, z, style) => ({ v:value, t:'n', z, s:style });
-
-  // Helper: blank filled cell
   const blank = (fgColor) => sc('', 's', { fill:fill(fgColor), border:border('thin', fgColor) });
 
-  // Shared styles
-  const titleStyle = {
-    font:      font(13, true, WHITE),
-    fill:      fill(NAVY),
-    alignment: A('center'),
-    border:    border('medium', NAVY),
-  };
-  const subStyle = {
-    font:      font(8, false, 'AAAAAA', true),
-    fill:      fill('001F3F'),
-    alignment: A('center'),
-  };
-  const hdrStyle = (align='center') => ({
-    font:      font(9, true, WHITE),
-    fill:      fill(NAVY_MID),
-    alignment: A(align),
-    border:    border('thin', WHITE),
+  const titleStyle = { font:font(13,true,WHITE), fill:fill(NAVY), alignment:A('center'), border:border('medium',NAVY) };
+  const subStyle   = { font:font(8,false,'AAAAAA',true), fill:fill('001F3F'), alignment:A('center') };
+  const hdrStyle   = (align='center') => ({ font:font(9,true,WHITE), fill:fill(NAVY_MID), alignment:A(align), border:border('thin',WHITE) });
+  const totalStyle = (align='center') => ({ font:font(9,true,WHITE), fill:fill(NAVY), alignment:A(align), border:thick_border() });
+  const nameStyle  = (rowBg, hasDed, isNonEng) => ({
+    font:  font(9, hasDed, '222222'),
+    fill:  fill(isNonEng ? AMBER_LT : hasDed ? GOLD_LT : rowBg),
+    alignment: A('left','center'),
+    border: border(),
   });
-  const totalStyle = (align='center') => ({
-    font:      font(9, true, WHITE),
-    fill:      fill(NAVY),
-    alignment: A(align),
-    border:    thick_border(),
-  });
-
-  // Row style helpers
-  const nameStyle = (rowBg, hasDed) => ({
-    font:      font(9, hasDed, '222222'),
-    fill:      fill(hasDed ? GOLD_LT : rowBg),
-    alignment: A('left', 'center'),
-    border:    border(),
-  });
-  const dedStyle = (hasDed) => ({
-    font:      font(9, hasDed, hasDed ? RED_FG : 'BBBBBB'),
-    fill:      fill(hasDed ? GOLD_LT : WHITE),
+  const dedStyle = (hasDed, isNonEng) => ({
+    font:  font(9, hasDed, isNonEng ? AMBER_MID : hasDed ? RED_FG : 'BBBBBB'),
+    fill:  fill(isNonEng ? AMBER_LT : hasDed ? GOLD_LT : WHITE),
     alignment: A('right'),
-    border:    border(),
+    border: border(),
   });
   const bodyStyle = (bg='FFFFFF', align='center', bold=false, color='555555') => ({
-    font:      font(9, bold, color),
-    fill:      fill(bg),
+    font:  font(9, bold, color),
+    fill:  fill(bg),
     alignment: A(align),
-    border:    border(),
+    border: border(),
   });
 
-  // ── Build a worksheet from a 2D array of styled cells ─────────────────
-  function buildWS(rows, colWidths, freezeAt=null) {
+  function buildWS(rows, colWidths) {
     const ws = {};
     let maxCol = 0;
     rows.forEach((row, ri) => {
@@ -764,8 +820,6 @@ function doExport() {
     });
     ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:rows.length-1, c:maxCol}});
     ws['!cols'] = colWidths.map(w => ({wch:w}));
-    if (freezeAt) ws['!freeze'] = freezeAt;
-    // Merge cells for title rows (col 0 spans all)
     ws['!merges'] = [
       {s:{r:0,c:0}, e:{r:0,c:maxCol}},
       {s:{r:1,c:0}, e:{r:1,c:maxCol}},
@@ -773,36 +827,26 @@ function doExport() {
     return ws;
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // SHEET 1 — Attendance Grid
-  // ══════════════════════════════════════════════════════════════════════
+  // ── Sheet 1: Attendance Grid ───────────────────────────────────────────
   const dayCols = [];
   for (let d=1; d<=nd; d++) {
     const k=dk(vy,vm,d), w=isWkd(vy,vm,d), b=isBH(k);
     dayCols.push({d, k, w, b, name: dname(vy,vm,d)});
   }
-
   const STATUS_ABBR = {
     'In':'In','Holiday':'H','Half day Holiday':'½H',
     'Sick':'S','AAUP':'AU','AAP':'AP','Training':'Tr'
   };
-
+  const viewLabel = engFilter === 'engineers' ? 'ENGINEERS ONLY' : 'ALL STAFF';
   const rows1 = [];
-
-  // Row 0: Title
-  rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID`, 's', titleStyle),
+  rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID (${viewLabel})`, 's', titleStyle),
     ...Array(1 + dayCols.length).fill(blank(NAVY)) ]);
-
-  // Row 1: Subtitle
-  rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Hourly Rate: £${HOURLY_RATE.toFixed(2)}`, 's', subStyle),
+  rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Hourly Rate: £${HOURLY_RATE.toFixed(2)}  |  ⚙ = Non-engineer (no deduction)`, 's', subStyle),
     ...Array(1 + dayCols.length).fill(blank('001F3F')) ]);
-
-  // Row 2: Spacer
   rows1.push([ blank('FFFFFF'), ...Array(1 + dayCols.length).fill(blank('FFFFFF')) ]);
 
-  // Row 3: Column headers (day numbers)
   const hdr3 = [
-    sc('Staff Member',   's', hdrStyle('left')),
+    sc('Staff Member', 's', hdrStyle('left')),
     sc('Deduction (£)', 's', hdrStyle('right')),
   ];
   dayCols.forEach(col => {
@@ -816,7 +860,6 @@ function doExport() {
   });
   rows1.push(hdr3);
 
-  // Row 4: Day name sub-row
   const hdr4 = [
     sc('', 's', { fill:fill('002850'), border:border('thin','002850') }),
     sc('', 's', { fill:fill('002850'), border:border('thin','002850') }),
@@ -832,85 +875,73 @@ function doExport() {
   });
   rows1.push(hdr4);
 
-  // Data rows
   fil.forEach((s, ri) => {
     const rowBg  = ri % 2 === 0 ? WHITE : GRAY_LT;
     const total  = staffTotal(s.id);
+    const isNonEng = nonEngineers.has(s.id);
     const hasDed = total > 0;
+    const nameDisplay = isNonEng ? `⚙ ${s.name}` : s.name;
     const dataRow = [
-      sc(s.name, 's', nameStyle(rowBg, hasDed)),
-      hasDed
-        ? nc(total, '"£"#,##0.00', dedStyle(true))
-        : sc('—', 's', dedStyle(false)),
+      sc(nameDisplay, 's', nameStyle(rowBg, hasDed, isNonEng)),
+      isNonEng
+        ? sc('Non-eng', 's', dedStyle(false, true))
+        : hasDed
+          ? nc(total, '"£"#,##0.00', dedStyle(true, false))
+          : sc('—', 's', dedStyle(false, false)),
     ];
 
     dayCols.forEach(col => {
-      if (col.w) {
-        dataRow.push(blank(WKND_BG));
-        return;
-      }
+      if (col.w) { dataRow.push(blank(WKND_BG)); return; }
       if (col.b) {
-        dataRow.push(sc('BH', 's', {
-          font: font(8, true, S_STYLE.BH[1]),
-          fill: fill(S_STYLE.BH[0]),
-          alignment: A(),
-          border: border(),
-        }));
+        dataRow.push(sc('BH', 's', { font:font(8,true,S_STYLE.BH[1]), fill:fill(S_STYLE.BH[0]), alignment:A(), border:border() }));
         return;
       }
-      const e   = getE(s.id, col.k);
-      const st  = e.status || 'In';
+      const e = getE(s.id, col.k);
+      const st = e.status || 'In';
       const [bg, fg] = S_STYLE[st] || ['FFFFFF','000000'];
       const abbr = STATUS_ABBR[st] || st.substring(0,2);
-      const label = (STATUSES.find(o=>o.code===st)?.deducts && e.hours > 0)
+      const label = (STATUSES.find(o=>o.code===st)?.deducts && e.hours > 0 && !isNonEng)
         ? `${abbr} ${e.hours}h`
         : abbr;
-      dataRow.push(sc(label, 's', {
-        font: font(8, true, fg),
-        fill: fill(bg),
-        alignment: A(),
-        border: border(),
-      }));
+      dataRow.push(sc(label, 's', { font:font(8,true,fg), fill:fill(isNonEng ? AMBER_LT : bg), alignment:A(), border:border() }));
     });
     rows1.push(dataRow);
   });
 
-  // Totals row
   const grand = fil.reduce((a,s)=>a+staffTotal(s.id), 0);
-  const totRow1 = [
-    sc('TOTAL DEDUCTIONS', 's', totalStyle('left')),
+  rows1.push([
+    sc('TOTAL DEDUCTIONS (engineers only)', 's', totalStyle('left')),
     nc(grand, '"£"#,##0.00', totalStyle('right')),
     ...dayCols.map(() => blank(NAVY)),
-  ];
-  rows1.push(totRow1);
-
-  // Footer note
-  rows1.push([ sc('† Bank Holiday', 's', { font:font(8,false,'888888'), fill:fill(WHITE), alignment:A('left') }),
+  ]);
+  rows1.push([ sc('† Bank Holiday  ⚙ Non-engineer (no pay deduction applied)', 's', { font:font(8,false,'888888'), fill:fill(WHITE), alignment:A('left') }),
     ...Array(1+dayCols.length).fill(blank(WHITE)) ]);
 
-  const ws1 = buildWS(rows1, [22, 14, ...dayCols.map(() => 4.2)]);
+  const ws1 = buildWS(rows1, [24, 14, ...dayCols.map(() => 4.2)]);
 
-  // ══════════════════════════════════════════════════════════════════════
-  // SHEET 2 — Deduction Summary
-  // ══════════════════════════════════════════════════════════════════════
+  // ── Sheet 2: Deduction Summary ─────────────────────────────────────────
   const staffStats = fil.map(s => {
+    const isNonEng = nonEngineers.has(s.id);
     let hrs=0, ev=0;
-    Object.keys(entries[s.id]||{}).forEach(dt => {
-      if (!dt.startsWith(pfx)) return;
-      const e = getE(s.id, dt);
-      const opt = STATUSES.find(o => o.code===e.status);
-      if (opt?.deducts && e.hours > 0) { hrs += e.hours; ev++; }
-    });
-    return { name:s.name, ev, hrs, total:staffTotal(s.id) };
+    if (!isNonEng) {
+      Object.keys(entries[s.id]||{}).forEach(dt => {
+        if (!dt.startsWith(pfx)) return;
+        const e = getE(s.id, dt);
+        const opt = STATUSES.find(o => o.code===e.status);
+        if (opt?.deducts && e.hours > 0) { hrs += e.hours; ev++; }
+      });
+    }
+    return { name:s.name, isNonEng, ev, hrs, total:staffTotal(s.id) };
   }).sort((a,b) => b.total - a.total);
 
   const rows2 = [];
-  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank(NAVY), blank(NAVY), blank(NAVY) ]);
-  rows2.push([ sc(`Period: ${period}  |  Hourly Rate: £${HOURLY_RATE.toFixed(8)}  |  Deductable: Sick, AAUP`, 's', subStyle),
-    blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
-  rows2.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
+  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
+  rows2.push([ sc(`Period: ${period}  |  Hourly Rate: £${HOURLY_RATE.toFixed(8)}  |  Deductable: Sick, AAUP (engineers only)`, 's', subStyle),
+    blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
+  rows2.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
   rows2.push([
     sc('Staff Member',    's', hdrStyle('left')),
+    sc('Type',           's', hdrStyle()),
     sc('Absence Events',  's', hdrStyle()),
     sc('Hours Absent',    's', hdrStyle()),
     sc('Deduction (£)',   's', hdrStyle('right')),
@@ -920,11 +951,15 @@ function doExport() {
     const rowBg  = ri % 2 === 0 ? WHITE : GRAY_LT;
     const hasDed = s.total > 0;
     rows2.push([
-      sc(s.name, 's', nameStyle(rowBg, hasDed)),
-      s.ev > 0 ? nc(s.ev,    '0;-0;"-"',        bodyStyle(hasDed ? GOLD_LT : rowBg)) : sc('—', 's', bodyStyle(hasDed ? GOLD_LT : rowBg)),
-      s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"',  bodyStyle(hasDed ? GOLD_LT : rowBg)) : sc('—', 's', bodyStyle(hasDed ? GOLD_LT : rowBg)),
-      hasDed ? nc(s.total,   '"£"#,##0.00',      { ...bodyStyle(GOLD_LT, 'right', true, RED_FG) })
-             : sc('—', 's', bodyStyle(rowBg, 'right', false, 'BBBBBB')),
+      sc(s.name, 's', nameStyle(rowBg, hasDed, s.isNonEng)),
+      sc(s.isNonEng ? '⚙ Non-eng' : 'Engineer', 's', { font:font(8, false, s.isNonEng ? AMBER_MID : '555555'), fill:fill(s.isNonEng ? AMBER_LT : rowBg), alignment:A(), border:border() }),
+      s.ev > 0  ? nc(s.ev,   '0;-0;"-"',       bodyStyle(s.isNonEng ? AMBER_LT : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? AMBER_LT : rowBg)),
+      s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"', bodyStyle(s.isNonEng ? AMBER_LT : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? AMBER_LT : rowBg)),
+      s.isNonEng
+        ? sc('Exempt', 's', { font:font(9, false, AMBER_MID, true), fill:fill(AMBER_LT), alignment:A('right'), border:border() })
+        : hasDed
+          ? nc(s.total, '"£"#,##0.00', { ...bodyStyle(GOLD_LT,'right',true,RED_FG) })
+          : sc('—', 's', bodyStyle(rowBg,'right',false,'BBBBBB')),
     ]);
   });
 
@@ -932,20 +967,19 @@ function doExport() {
   const totDed = staffStats.reduce((a,s)=>a+s.total, 0);
   rows2.push([
     sc('TOTAL',  's', totalStyle('left')),
+    sc('',       's', { font:font(9,false,WHITE), fill:fill(NAVY), alignment:A(), border:thick_border() }),
     nc(staffStats.reduce((a,s)=>a+s.ev,0), '0', totalStyle()),
     nc(totHrs,   '0.00',        totalStyle()),
     nc(totDed,   '"£"#,##0.00', totalStyle('right')),
   ]);
 
-  const ws2 = buildWS(rows2, [26, 16, 16, 16]);
+  const ws2 = buildWS(rows2, [26, 12, 16, 16, 16]);
 
-  // ══════════════════════════════════════════════════════════════════════
-  // SHEET 3 — Deduction Events
-  // ══════════════════════════════════════════════════════════════════════
+  // ── Sheet 3: Deduction Events ──────────────────────────────────────────
   const rows3 = [];
   rows3.push([ sc('DEDUCTION EVENTS — DETAILED LOG', 's', titleStyle),
     blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
-  rows3.push([ sc(`Period: ${period}  |  Each row represents one deductable absence event`, 's', subStyle),
+  rows3.push([ sc(`Period: ${period}  |  Engineers only — non-engineers are exempt from deductions`, 's', subStyle),
     blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
   rows3.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
   rows3.push([
@@ -963,7 +997,7 @@ function doExport() {
   };
 
   let hasEvents = false;
-  fil.forEach(s => {
+  fil.filter(s => !nonEngineers.has(s.id)).forEach(s => {
     Object.keys(entries[s.id]||{}).filter(dt=>dt.startsWith(pfx)).sort().forEach(dt => {
       const e = getE(s.id, dt);
       const opt = STATUSES.find(o => o.code===e.status);
@@ -975,11 +1009,11 @@ function doExport() {
       const dedAmt = ded(e.hours);
 
       rows3.push([
-        sc(s.name,   's', bodyStyle(WHITE,    'left',    true,  '222222')),
-        sc(`${d}/${m}/${y}`, 's', bodyStyle(WHITE, 'center', false, '555555')),
-        sc(dayStr,   's', bodyStyle(WHITE,    'center',  false, '555555')),
+        sc(s.name,   's', bodyStyle(WHITE,'left',true,'222222')),
+        sc(`${d}/${m}/${y}`, 's', bodyStyle(WHITE,'center',false,'555555')),
+        sc(dayStr,   's', bodyStyle(WHITE,'center',false,'555555')),
         sc(e.status, 's', { font:font(9,true,sfg), fill:fill(sbg), alignment:A(), border:border() }),
-        nc(e.hours,  '0.00',         bodyStyle(WHITE, 'center', false, '555555')),
+        nc(e.hours,  '0.00',         bodyStyle(WHITE,'center',false,'555555')),
         nc(dedAmt,   '"£"#,##0.00',  { font:font(9,true,RED_FG), fill:fill(GOLD_LT), alignment:A('right'), border:border() }),
       ]);
     });
@@ -1001,7 +1035,6 @@ function doExport() {
 
   const ws3 = buildWS(rows3, [26, 12, 14, 12, 14, 16]);
 
-  // ── Write workbook ──────────────────────────────────────────────────────
   const wb2 = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb2, ws1, 'Attendance Grid');
   XLSX.utils.book_append_sheet(wb2, ws2, 'Deduction Summary');
