@@ -706,8 +706,8 @@ body{
 
 <div id="toast"></div>
 
-<!-- ZXing barcode library -->
-<script src="https://unpkg.com/@zxing/browser@0.1.4/umd/index.min.js"></script>
+<!-- ZXing barcode library (CDN with onerror fallback) -->
+<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.4/umd/index.min.js" onerror="window._zxingFailed=true"></script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -1012,10 +1012,13 @@ function openScanner(target) {
 }
 
 async function startScanner() {
-  // Ensure the library has loaded
-  if (typeof ZXingBrowser === 'undefined') {
-    $('scannerStatus').textContent = 'Scanner library not loaded. Use manual entry.';
-    $('scannerPlaceholderText').textContent = 'Library unavailable';
+  // Ensure the library has loaded — check both the global and the error flag
+  if (typeof ZXingBrowser === 'undefined' || window._zxingFailed) {
+    $('scannerStatus').textContent = 'Scanner library failed to load. Use manual entry below ↓';
+    $('scannerPlaceholderText').textContent = 'Enter barcode manually';
+    $('scannerVideo').style.display = 'none';
+    $('scannerOverlayEl').style.display = 'none';
+    $('scannerPlaceholder').style.display = 'flex';
     return;
   }
 
@@ -1111,15 +1114,27 @@ function onBarcodeScanned(code) {
   $('scannerStatus').textContent = `✅ Scanned: ${code}`;
   $('scanSuccessOverlay').style.display = 'flex';
 
-  if (scannerCallbackTarget === 'inline') {
-    $('addBarcode').value = code;
-  }
-
   toast(`Barcode: ${code}`);
+
   setTimeout(() => {
     $('scanSuccessOverlay').style.display = 'none';
     closeScanner();
-  }, 900);
+
+    if (scannerCallbackTarget === 'inline') {
+      // Inline scan: just fill the barcode field in the already-open Add modal
+      $('addBarcode').value = code;
+    } else {
+      // Standalone scan: open Add Asset modal with barcode pre-filled
+      openAddAsset();
+      $('addBarcode').value = code;
+      // Scroll to barcode field to confirm to user it's filled
+      setTimeout(() => {
+        const el = $('addBarcode');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        $('addName').focus();
+      }, 350);
+    }
+  }, 800);
 }
 
 $('manualBarcodeConfirm').addEventListener('click', () => {
