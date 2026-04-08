@@ -733,6 +733,7 @@ let searchQ='',filterType='',filterStatus='',viewMode='grid';
 let editingId=null,pendingDeleteId=null,customFields=[];
 let scannerCallbackTarget=null;
 let html5QrcodeInstance=null; // holds the live Html5Qrcode instance
+let scanHandled=false;         // guard against duplicate decode callbacks
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1009,6 +1010,7 @@ function openScanner(target) {
   $('scannerStatus').textContent = 'Requesting camera access…';
   $('scannerModal').classList.add('show');
 
+  scanHandled = false; // reset guard for new scan session
   // Small delay so modal animation completes before camera starts
   setTimeout(startScanner, 350);
 }
@@ -1033,19 +1035,22 @@ async function startScanner() {
     html5QrcodeInstance = new Html5Qrcode('scannerReader');
 
     await html5QrcodeInstance.start(
-      { facingMode: 'environment' }, // prefer rear camera
+      { facingMode: 'environment' }, // prefer rear/environment camera
       {
-        fps: 15,
-        qrbox: { width: 250, height: 100 }, // wide box suits 1-D barcodes
-        aspectRatio: 1.5,
+        fps: 10,
+        // NO qrbox — scan the entire camera frame so the user doesn't
+        // have to position the barcode in an exact tiny region
         disableFlip: false
       },
       (decodedText) => {
-        // Success callback — called once per detected barcode
-        onBarcodeScanned(decodedText);
+        // Success callback fires on every matching frame — use guard to fire once
+        if (!scanHandled) {
+          scanHandled = true;
+          onBarcodeScanned(decodedText);
+        }
       },
       () => {
-        // Error callback fires on every frame with no barcode — ignore silently
+        // Per-frame error (no barcode found) — ignore silently
       }
     );
 
