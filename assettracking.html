@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Asset Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +15,7 @@
   --surface:rgba(10,22,40,0.97);
   --row-hover:rgba(0,163,224,0.04);
   --shadow:0 20px 50px rgba(0,0,0,0.6);
+  --input-bg:#0d1a2e;
 }
 [data-theme="light"] {
   --bg:#f0f4f8;--bg2:#ffffff;--bg3:#e8eef5;--bg4:#f8fafc;
@@ -23,14 +24,13 @@
   --surface:rgba(255,255,255,0.98);
   --row-hover:rgba(0,163,224,0.04);
   --shadow:0 20px 50px rgba(0,0,0,0.15);
+  --input-bg:#f8fafc;
 }
 :root {
   --accent:#00A3E0;--accent2:#005EB8;--accent3:#0077c8;
   --green:#10B981;--amber:#F59E0B;--red:#EF4444;--purple:#8B5CF6;--orange:#F97316;
   --sans:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
   --radius:10px;
-
-  /* Asset type colours */
   --phone-bg:rgba(0,163,224,.1);  --phone-t:#00A3E0;  --phone-b:rgba(0,163,224,.3);
   --laptop-bg:rgba(139,92,246,.1);--laptop-t:#8B5CF6; --laptop-b:rgba(139,92,246,.3);
   --tablet-bg:rgba(16,185,129,.1);--tablet-t:#10B981; --tablet-b:rgba(16,185,129,.3);
@@ -38,8 +38,6 @@
   --peripheral-bg:rgba(245,158,11,.1);--peripheral-t:#F59E0B;--peripheral-b:rgba(245,158,11,.3);
   --vehicle-bg:rgba(239,68,68,.1); --vehicle-t:#EF4444;--vehicle-b:rgba(239,68,68,.3);
   --other-bg:rgba(122,143,168,.1); --other-t:#7a8fa8; --other-b:rgba(122,143,168,.3);
-
-  /* Status colours */
   --status-available-bg:rgba(16,185,129,.1);--status-available-t:#10B981;
   --status-assigned-bg:rgba(0,163,224,.1);  --status-assigned-t:#00A3E0;
   --status-repair-bg:rgba(245,158,11,.1);   --status-repair-t:#F59E0B;
@@ -48,54 +46,55 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;-webkit-tap-highlight-color:transparent;}
 [data-theme="dark"] body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 8% 15%,rgba(0,163,224,.07) 0%,transparent 50%),radial-gradient(ellipse at 92% 85%,rgba(0,94,184,.06) 0%,transparent 50%);pointer-events:none;z-index:0;}
 
-/* ── Header ── */
-.header{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px;}
-.header-left{display:flex;align-items:center;gap:14px;}
-.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:10px;display:grid;place-items:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,163,224,.3);}
-.header-titles{display:flex;flex-direction:column;gap:1px;}
-.header-title{font-size:15px;font-weight:600;letter-spacing:-.01em;}
-.header-sub{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
-.header-right{display:flex;align-items:center;gap:8px;}
-.theme-btn{width:36px;height:36px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;font-size:16px;transition:all .15s;color:var(--muted);}
+/* Header */
+.header{position:sticky;top:0;z-index:200;background:var(--surface);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;gap:8px;}
+.header-left{display:flex;align-items:center;gap:10px;min-width:0;}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:9px;display:grid;place-items:center;font-size:16px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,163,224,.3);}
+.header-titles{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.header-title{font-size:14px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;}
+.header-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+.header-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.theme-btn{width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;font-size:15px;transition:all .15s;color:var(--muted);}
 .theme-btn:hover{border-color:var(--accent);}
 
-/* ── Buttons ── */
-.btn{font-family:var(--sans);font-size:12px;font-weight:500;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;}
+/* Buttons */
+.btn{font-family:var(--sans);font-size:12px;font-weight:500;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;touch-action:manipulation;}
 .btn-accent{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 3px 10px rgba(0,163,224,.3);}
 .btn-accent:hover{opacity:.88;transform:translateY(-1px);}
+.btn-accent:active{transform:translateY(0);opacity:.75;}
 .btn-ghost{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
 .btn-ghost:hover{color:var(--text);border-color:var(--accent);}
+.btn-ghost:active{opacity:.7;}
 .btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);}
 .btn-danger:hover{background:rgba(239,68,68,.2);border-color:var(--red);}
-.btn-green{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--green);}
-.btn-green:hover{background:rgba(16,185,129,.2);border-color:var(--green);}
-.btn-sm{font-size:11px;padding:5px 10px;border-radius:7px;}
+.btn-sm{font-size:11px;padding:6px 10px;border-radius:7px;}
 
-/* ── Toolbar ── */
-.toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border2);background:var(--bg2);position:relative;z-index:1;gap:12px;flex-wrap:wrap;}
-.toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.search-wrap{position:relative;}
+/* Toolbar */
+.toolbar{padding:10px 16px;border-bottom:1px solid var(--border2);background:var(--bg2);position:relative;z-index:1;}
+.toolbar-row1{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.toolbar-row2{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.search-wrap{position:relative;flex:1;}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
-.asset-search{font-family:var(--sans);font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 12px 7px 30px;outline:none;width:200px;transition:border-color .15s;}
+.asset-search{font-family:var(--sans);font-size:16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px 9px 30px;outline:none;width:100%;transition:border-color .15s;-webkit-appearance:none;}
 .asset-search:focus{border-color:var(--accent);}
-.filter-select{font-family:var(--sans);font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;outline:none;cursor:pointer;transition:border-color .15s;appearance:none;padding-right:24px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8fa8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
+.filter-select{font-family:var(--sans);font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 24px 8px 9px;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8fa8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-color:var(--bg3);flex:1;min-width:0;}
 .filter-select:focus{border-color:var(--accent);}
-.toolbar-right{display:flex;align-items:center;gap:8px;}
-.count-badge{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:4px 10px;}
+.toolbar-right{display:flex;align-items:center;gap:6px;}
+.count-badge{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:4px 9px;white-space:nowrap;}
 .count-badge span{color:var(--accent);font-weight:600;}
 .view-toggle{display:flex;gap:2px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;}
-.view-btn{background:none;border:none;color:var(--muted);cursor:pointer;width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:13px;transition:all .12s;}
+.view-btn{background:none;border:none;color:var(--muted);cursor:pointer;width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:13px;transition:all .12s;touch-action:manipulation;}
 .view-btn.active{background:var(--bg2);color:var(--accent);border:1px solid var(--border);}
 
-/* ── Main ── */
-.main{position:relative;z-index:1;padding:20px 24px;max-width:1600px;margin:0 auto;}
+/* Main */
+.main{position:relative;z-index:1;padding:16px;max-width:1600px;margin:0 auto;}
 
-/* ── Summary Cards ── */
-.summary-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
-.sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;transition:border-color .15s,transform .15s;cursor:pointer;}
+/* Summary Cards */
+.summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 12px;position:relative;overflow:hidden;transition:border-color .15s,transform .15s;cursor:pointer;}
 .sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .sum-card.c-all::before{background:linear-gradient(90deg,var(--accent2),var(--accent));}
 .sum-card.c-available::before{background:linear-gradient(90deg,#059669,var(--green));}
@@ -104,42 +103,43 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .sum-card.c-retired::before{background:linear-gradient(90deg,#4b5563,#9ca3af);}
 .sum-card.c-lost::before{background:linear-gradient(90deg,#dc2626,var(--red));}
 .sum-card:hover{transform:translateY(-2px);border-color:var(--accent3);}
+.sum-card:active{transform:translateY(0);}
 .sum-card.active-filter{border-color:var(--accent);background:rgba(0,163,224,.05);}
-.sum-label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.sum-val{font-family:var(--mono);font-size:24px;font-weight:600;line-height:1;color:var(--text);}
-.sum-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.sum-label{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.sum-val{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1;color:var(--text);}
+.sum-sub{font-size:9px;color:var(--muted);margin-top:2px;}
 
-/* ── Asset Grid (card view) ── */
-.asset-grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+/* Asset Grid */
+.asset-grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
 .asset-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s,transform .15s,box-shadow .15s;animation:fadeIn .25s ease both;cursor:pointer;position:relative;}
 .asset-card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.3);border-color:var(--accent3);}
+.asset-card:active{transform:translateY(0);}
 .asset-card-top{height:4px;}
-.asset-card-body{padding:16px;}
-.asset-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
-.asset-icon-wrap{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-size:20px;flex-shrink:0;}
-.asset-card-title{font-size:13.5px;font-weight:600;margin-bottom:2px;line-height:1.3;}
-.asset-card-id{font-family:var(--mono);font-size:9.5px;color:var(--muted);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;display:inline-block;}
-.asset-card-meta{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
-.asset-meta-row{display:flex;align-items:center;gap:8px;font-size:11.5px;}
-.asset-meta-label{color:var(--muted);min-width:70px;font-size:10.5px;}
+.asset-card-body{padding:14px;}
+.asset-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.asset-card-title{font-size:13px;font-weight:600;margin-bottom:2px;line-height:1.3;}
+.asset-card-id{font-family:var(--mono);font-size:9px;color:var(--muted);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;display:inline-block;}
+.asset-card-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.asset-meta-row{display:flex;align-items:center;gap:8px;font-size:11px;}
+.asset-meta-label{color:var(--muted);min-width:65px;font-size:10px;}
 .asset-meta-val{color:var(--text);font-weight:500;}
-.asset-meta-val.mono{font-family:var(--mono);font-size:11px;}
-.asset-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border2);}
+.asset-meta-val.mono{font-family:var(--mono);font-size:10.5px;}
+.asset-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border2);}
 .asset-barcode{font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;align-items:center;gap:4px;}
 
-/* ── Asset Table (list view) ── */
-.asset-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-.asset-table{width:100%;border-collapse:collapse;}
-.asset-table thead th{padding:10px 14px;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg3);border-bottom:2px solid var(--border);text-align:left;}
+/* Asset Table */
+.asset-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.asset-table{width:100%;border-collapse:collapse;min-width:600px;}
+.asset-table thead th{padding:10px 12px;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg3);border-bottom:2px solid var(--border);text-align:left;white-space:nowrap;}
 .asset-table tbody tr{border-bottom:1px solid var(--border2);transition:background .1s;animation:fadeIn .2s ease both;cursor:pointer;}
 .asset-table tbody tr:last-child{border-bottom:none;}
 .asset-table tbody tr:hover{background:var(--row-hover);}
-.asset-table tbody td{padding:11px 14px;font-size:12.5px;vertical-align:middle;}
+.asset-table tbody td{padding:10px 12px;font-size:12px;vertical-align:middle;}
 .tbl-name{font-weight:500;}
 .tbl-id{font-family:var(--mono);font-size:9px;color:var(--muted);}
 
-/* ── Badges & Tags ── */
-.type-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;border:1px solid;}
+/* Badges */
+.type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;border:1px solid;}
 .type-badge.phone{background:var(--phone-bg);color:var(--phone-t);border-color:var(--phone-b);}
 .type-badge.laptop{background:var(--laptop-bg);color:var(--laptop-t);border-color:var(--laptop-b);}
 .type-badge.tablet{background:var(--tablet-bg);color:var(--tablet-t);border-color:var(--tablet-b);}
@@ -147,121 +147,133 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .type-badge.peripheral{background:var(--peripheral-bg);color:var(--peripheral-t);border-color:var(--peripheral-b);}
 .type-badge.vehicle{background:var(--vehicle-bg);color:var(--vehicle-t);border-color:var(--vehicle-b);}
 .type-badge.other{background:var(--other-bg);color:var(--other-t);border-color:var(--other-b);}
-.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid;}
-.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;font-size:10px;font-weight:600;border:1px solid;}
+.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
 .status-badge.available{background:var(--status-available-bg);color:var(--status-available-t);border-color:rgba(16,185,129,.3);}
 .status-badge.assigned{background:var(--status-assigned-bg);color:var(--status-assigned-t);border-color:rgba(0,163,224,.3);}
 .status-badge.repair{background:var(--status-repair-bg);color:var(--status-repair-t);border-color:rgba(245,158,11,.3);}
 .status-badge.retired{background:var(--status-retired-bg);color:var(--status-retired-t);border-color:rgba(122,143,168,.3);}
 .status-badge.lost{background:var(--status-lost-bg);color:var(--status-lost-t);border-color:rgba(239,68,68,.3);}
 
-/* ── Modals ── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:800;align-items:center;justify-content:center;padding:16px;}
+/* Modals - slide up from bottom on mobile */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:800;align-items:flex-end;justify-content:center;padding:0;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--bg3);border:1px solid var(--border);border-radius:16px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;animation:popIn .18s cubic-bezier(.34,1.56,.64,1);}
-.modal.modal-wide{max-width:700px;}
-@keyframes popIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+.modal{background:var(--bg3);border:1px solid var(--border);border-top-left-radius:20px;border-top-right-radius:20px;border-bottom-left-radius:0;border-bottom-right-radius:0;width:100%;max-width:100%;max-height:92vh;overflow-y:auto;overflow-x:hidden;animation:slideUp .22s cubic-bezier(.34,1.2,.64,1);-webkit-overflow-scrolling:touch;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
-.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg3);z-index:1;}
-.modal-head h2{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;}
-.modal-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:13px;display:grid;place-items:center;transition:all .15s;}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;cursor:grab;}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg3);z-index:1;}
+.modal-head h2{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.modal-close{background:var(--bg);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:13px;display:grid;place-items:center;transition:all .15s;flex-shrink:0;touch-action:manipulation;}
 .modal-close:hover{color:var(--red);border-color:var(--red);}
-.modal-body{padding:22px;}
-.modal-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--bg3);}
+.modal-body{padding:18px;}
+.modal-footer{padding:14px 18px;padding-bottom:max(14px,env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--bg3);}
 
-/* ── Form ── */
-.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* Form */
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .form-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
 .form-required{color:var(--red);}
-.form-input,.form-select,.form-textarea{font-family:var(--sans);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 12px;outline:none;transition:border-color .15s;width:100%;}
+.form-input,.form-select,.form-textarea{font-family:var(--sans);font-size:16px;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;outline:none;transition:border-color .15s;width:100%;-webkit-appearance:none;}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
 .form-input::placeholder{color:var(--faint);}
-.form-select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8fa8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.form-select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a8fa8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;background-color:var(--input-bg);}
 .form-textarea{resize:vertical;min-height:72px;}
-.form-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border2);margin-top:4px;}
+.form-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border2);margin-top:4px;}
 .form-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--red);}
 
-/* ── Custom Fields ── */
+/* Custom Fields */
 .custom-fields-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
 .custom-field-row{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;}
-.custom-field-key{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;min-width:120px;}
+.custom-field-key{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;min-width:100px;}
 .custom-field-val{font-size:12px;color:var(--text);flex:1;}
-.custom-field-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;transition:color .12s;}
+.custom-field-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:4px;transition:color .12s;touch-action:manipulation;}
 .custom-field-del:hover{color:var(--red);}
-.add-custom-field-row{display:flex;gap:8px;align-items:center;}
-.add-custom-field-row .form-input{padding:7px 10px;}
+.add-custom-field-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.add-custom-field-row .form-input{flex:1;min-width:100px;}
 
-/* ── Barcode Scanner ── */
-.scanner-area{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;margin-bottom:14px;}
-.scanner-video{width:100%;display:block;border-radius:10px;}
+/* Scanner */
+.scanner-area{background:#000;border-radius:12px;overflow:hidden;position:relative;margin-bottom:14px;aspect-ratio:4/3;width:100%;max-height:300px;}
+#scannerVideo{width:100%;height:100%;object-fit:cover;display:block;}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.scanner-frame{width:60%;aspect-ratio:3/1;border:2px solid var(--accent);border-radius:6px;box-shadow:0 0 0 9999px rgba(0,0,0,.4);position:relative;}
-.scanner-frame::before,.scanner-frame::after{content:'';position:absolute;width:16px;height:16px;border-color:var(--accent);border-style:solid;}
+.scanner-frame{width:70%;max-width:260px;height:80px;border:2px solid var(--accent);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);position:relative;}
+.scanner-frame::before,.scanner-frame::after{content:'';position:absolute;width:18px;height:18px;border-color:var(--accent);border-style:solid;}
 .scanner-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
 .scanner-frame::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
+.scanner-corner-tl{position:absolute;top:-2px;right:-2px;width:18px;height:18px;border-top:3px solid var(--accent);border-right:3px solid var(--accent);}
+.scanner-corner-br{position:absolute;bottom:-2px;left:-2px;width:18px;height:18px;border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);}
 .scanner-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scan 2s linear infinite;}
 @keyframes scan{0%{top:10%;}100%{top:90%;}}
-.scanner-placeholder{padding:40px;text-align:center;color:var(--muted);font-size:13px;}
-.scanner-placeholder-icon{font-size:40px;margin-bottom:10px;display:block;}
+.scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:13px;gap:8px;background:#000;}
+.scanner-placeholder-icon{font-size:36px;opacity:.5;}
 .manual-barcode-input{display:flex;gap:8px;align-items:center;}
+.scan-success{position:absolute;inset:0;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:48px;}
 
-/* ── Detail Modal ── */
-.detail-section{margin-bottom:20px;}
-.detail-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border2);}
+/* Detail Modal */
+.detail-section{margin-bottom:18px;}
+.detail-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border2);}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.detail-stat{background:var(--bg);border-radius:8px;padding:12px 14px;border-left:3px solid var(--faint);}
-.detail-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;}
-.detail-stat-val{font-family:var(--mono);font-size:16px;font-weight:600;word-break:break-all;}
-.detail-stat-sub{font-size:10px;color:var(--muted);margin-top:2px;}
-.detail-full-stat{background:var(--bg);border-radius:8px;padding:12px 14px;border-left:3px solid var(--accent);}
-.detail-full-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);font-size:12px;}
+.detail-stat{background:var(--bg);border-radius:8px;padding:10px 12px;border-left:3px solid var(--faint);}
+.detail-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:3px;}
+.detail-stat-val{font-family:var(--mono);font-size:13px;font-weight:600;word-break:break-all;}
+.detail-full-stat{background:var(--bg);border-radius:8px;padding:10px 12px;border-left:3px solid var(--accent);}
+.detail-full-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border2);font-size:12px;gap:8px;}
 .detail-full-row:last-child{border-bottom:none;}
-.detail-full-key{color:var(--muted);font-size:11px;}
-.detail-full-val{font-family:var(--mono);font-size:11.5px;font-weight:500;word-break:break-all;text-align:right;max-width:60%;}
-.history-entry{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:11.5px;}
+.detail-full-key{color:var(--muted);font-size:11px;flex-shrink:0;}
+.detail-full-val{font-family:var(--mono);font-size:11px;font-weight:500;word-break:break-all;text-align:right;}
+.history-entry{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2);font-size:11px;}
 .history-entry:last-child{border-bottom:none;}
-.history-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;}
-.history-date{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:100px;}
-
-/* ── QR/Barcode print label ── */
+.history-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:3px;}
+.history-date{font-family:var(--mono);font-size:9.5px;color:var(--muted);min-width:95px;}
 .barcode-display{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.15em;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center;word-break:break-all;}
-.barcode-bars{display:flex;justify-content:center;gap:1px;margin:8px 0;}
-.barcode-bars span{display:inline-block;height:32px;width:2px;background:var(--text);}
-.barcode-bars span.thin{width:1px;}
-.barcode-bars span.gap{background:transparent;width:2px;}
 
-/* ── Loading & Toast ── */
+/* Loading & Toast */
 .loading-overlay{position:fixed;inset:0;background:rgba(10,22,40,.88);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:900;}
 .loading-overlay.hidden{display:none;}
-.spinner{width:42px;height:42px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 14px;}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 12px;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.loading-text{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:6px;}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:99px;font-size:11.5px;font-family:var(--mono);z-index:950;transition:transform .22s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;}
+.loading-text{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;}
+#toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:99px;font-size:12px;font-family:var(--mono);z-index:950;transition:transform .22s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
 #toast.show{transform:translateX(-50%) translateY(0);}
 
-/* ── Empty state ── */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--muted);text-align:center;gap:12px;}
-.empty-icon{font-size:48px;opacity:.35;}
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--muted);text-align:center;gap:10px;}
+.empty-icon{font-size:44px;opacity:.35;}
 .empty-text{font-size:13px;}
 
-/* ── Delete confirm ── */
+/* Delete confirm */
 .delete-confirm{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px;text-align:center;margin-bottom:16px;}
 
-@media(max-width:768px){
+/* Desktop overrides */
+@media(min-width:640px){
+  .modal-overlay{align-items:center;padding:16px;}
+  .modal{border-radius:16px;max-width:580px;animation:popIn .18s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes popIn{from{opacity:0;transform:scale(.9);}to{opacity:1;transform:scale(1);}}
+  .modal.modal-wide{max-width:700px;}
+  .modal-handle{display:none;}
+  .summary-strip{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));}
+  .main{padding:20px 24px;}
+  .header{padding:0 24px;height:64px;}
+  .toolbar{padding:12px 24px;}
+}
+@media(max-width:480px){
   .form-row{grid-template-columns:1fr;}
   .detail-grid{grid-template-columns:1fr;}
   .asset-grid-cards{grid-template-columns:1fr;}
+  .header-sub{display:none;}
+  .count-badge{display:none;}
+}
+@media(max-width:380px){
+  .summary-strip{grid-template-columns:repeat(2,1fr);}
+  .sum-card.c-all{grid-column:1/-1;}
+  .sum-sub{display:none;}
 }
 </style>
 </head>
 <body>
 
 <div class="loading-overlay" id="loadingOverlay">
-  <div>
-    <div class="spinner"></div>
-    <div class="loading-text" id="loadingText">Loading asset database…</div>
-  </div>
+  <div><div class="spinner"></div><div class="loading-text" id="loadingText">Loading asset database…</div></div>
 </div>
 
 <header class="header">
@@ -269,48 +281,51 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     <div class="logo">📦</div>
     <div class="header-titles">
       <div class="header-title">Asset Tracker</div>
-      <div class="header-sub">Inventory &amp; Assignment Management</div>
+      <div class="header-sub">Inventory Management</div>
     </div>
   </div>
   <div class="header-right">
-    <button class="btn btn-ghost" id="scanBarcodeBtn" style="gap:6px;">📷 <span>Scan</span></button>
+    <button class="btn btn-ghost btn-sm" id="scanBarcodeBtn">📷 Scan</button>
     <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
   </div>
 </header>
 
 <div class="toolbar">
-  <div class="toolbar-left">
+  <div class="toolbar-row1">
     <div class="search-wrap">
       <span class="search-icon">⌕</span>
-      <input class="asset-search" type="text" id="assetSearch" placeholder="Search assets, serials, assigned to…">
+      <input class="asset-search" type="text" id="assetSearch" placeholder="Search assets, serials, assigned to…" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
-    <select class="filter-select" id="typeFilter">
-      <option value="">All Types</option>
-      <option value="Phone">📱 Phone</option>
-      <option value="Laptop">💻 Laptop</option>
-      <option value="Tablet">📟 Tablet</option>
-      <option value="Monitor">🖥️ Monitor</option>
-      <option value="Peripheral">🖱️ Peripheral</option>
-      <option value="Vehicle">🚗 Vehicle</option>
-      <option value="Other">📦 Other</option>
-    </select>
-    <select class="filter-select" id="statusFilter">
-      <option value="">All Statuses</option>
-      <option value="Available">✅ Available</option>
-      <option value="Assigned">👤 Assigned</option>
-      <option value="In Repair">🔧 In Repair</option>
-      <option value="Retired">🗄️ Retired</option>
-      <option value="Lost">❌ Lost</option>
-    </select>
   </div>
-  <div class="toolbar-right">
-    <div class="view-toggle">
-      <button class="view-btn active" id="viewGrid" title="Card view">⊞</button>
-      <button class="view-btn" id="viewList" title="List view">☰</button>
+  <div class="toolbar-row2">
+    <div style="display:flex;gap:6px;flex:1;min-width:0;">
+      <select class="filter-select" id="typeFilter">
+        <option value="">All Types</option>
+        <option value="Phone">📱 Phone</option>
+        <option value="Laptop">💻 Laptop</option>
+        <option value="Tablet">📟 Tablet</option>
+        <option value="Monitor">🖥️ Monitor</option>
+        <option value="Peripheral">🖱️ Peripheral</option>
+        <option value="Vehicle">🚗 Vehicle</option>
+        <option value="Other">📦 Other</option>
+      </select>
+      <select class="filter-select" id="statusFilter">
+        <option value="">All Status</option>
+        <option value="Available">✅ Available</option>
+        <option value="Assigned">👤 Assigned</option>
+        <option value="In Repair">🔧 Repair</option>
+        <option value="Retired">🗄️ Retired</option>
+        <option value="Lost">❌ Lost</option>
+      </select>
     </div>
-    <button class="btn btn-accent" id="addAssetBtn">+ Add Asset</button>
-    <button class="btn btn-ghost" id="refreshBtn">↻</button>
-    <div class="count-badge"><span id="assetCount">0</span> assets</div>
+    <div class="toolbar-right">
+      <div class="view-toggle">
+        <button class="view-btn active" id="viewGrid" title="Card view">⊞</button>
+        <button class="view-btn" id="viewList" title="List view">☰</button>
+      </div>
+      <button class="btn btn-accent btn-sm" id="addAssetBtn">+ Add</button>
+      <div class="count-badge"><span id="assetCount">0</span></div>
+    </div>
   </div>
 </div>
 
@@ -319,20 +334,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   <div id="assetContainer"></div>
 </div>
 
-<!-- ── Add / Edit Asset Modal ── -->
+<!-- Add / Edit Asset Modal -->
 <div class="modal-overlay" id="addAssetModal">
   <div class="modal modal-wide">
+    <div class="modal-handle"></div>
     <div class="modal-head">
       <h2 id="addModalTitle">➕ Add Asset</h2>
       <button class="modal-close" id="addAssetClose">✕</button>
     </div>
     <div class="modal-body">
-
       <div class="form-section-title">Basic Info</div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Asset Name <span class="form-required">*</span></label>
-          <input class="form-input" type="text" id="addName" placeholder="e.g. iPhone 15 Pro Max">
+          <input class="form-input" type="text" id="addName" placeholder="e.g. iPhone 15 Pro Max" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">Asset Type <span class="form-required">*</span></label>
@@ -360,32 +375,31 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         </div>
         <div class="form-group">
           <label class="form-label">Assigned To</label>
-          <input class="form-input" type="text" id="addAssignedTo" placeholder="Employee name or dept">
+          <input class="form-input" type="text" id="addAssignedTo" placeholder="Employee or dept" autocomplete="off">
         </div>
       </div>
-
       <div class="form-section-title">Identification</div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Barcode / Asset Tag</label>
           <div class="manual-barcode-input">
-            <input class="form-input" type="text" id="addBarcode" placeholder="Scan or type barcode">
+            <input class="form-input" type="text" id="addBarcode" placeholder="Scan or type barcode" autocomplete="off">
             <button class="btn btn-ghost btn-sm" id="inlineBarcodeScan" title="Scan barcode">📷</button>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Serial Number</label>
-          <input class="form-input" type="text" id="addSerial" placeholder="Serial / Model no.">
+          <input class="form-input" type="text" id="addSerial" placeholder="Serial / Model no." autocomplete="off">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Make / Manufacturer</label>
-          <input class="form-input" type="text" id="addMake" placeholder="e.g. Apple, Dell, HP">
+          <input class="form-input" type="text" id="addMake" placeholder="e.g. Apple, Dell, HP" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">Model</label>
-          <input class="form-input" type="text" id="addModel" placeholder="e.g. MacBook Pro 14">
+          <input class="form-input" type="text" id="addModel" placeholder="e.g. MacBook Pro 14" autocomplete="off">
         </div>
       </div>
       <div class="form-row">
@@ -400,26 +414,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div class="form-group">
         <label class="form-label">Location</label>
-        <input class="form-input" type="text" id="addLocation" placeholder="Office, site, storage location…">
+        <input class="form-input" type="text" id="addLocation" placeholder="Office, site, storage…" autocomplete="off">
       </div>
       <div class="form-group">
         <label class="form-label">Notes</label>
         <textarea class="form-textarea" id="addNotes" placeholder="Condition, warranty info, anything relevant…"></textarea>
       </div>
-
-      <!-- Dynamic type-specific fields -->
       <div id="typeSpecificFields"></div>
-
-      <!-- Custom Fields -->
-      <div class="form-section-title">Custom Fields <span style="font-size:9px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">(add any extra details)</span></div>
+      <div class="form-section-title">Custom Fields</div>
       <div class="custom-fields-list" id="customFieldsList"></div>
       <div class="add-custom-field-row">
-        <input class="form-input" type="text" id="customFieldKey" placeholder="Field name (e.g. IMEI, VIN, Warranty Ref)" style="flex:1.2">
-        <input class="form-input" type="text" id="customFieldVal" placeholder="Value" style="flex:1">
+        <input class="form-input" type="text" id="customFieldKey" placeholder="Field name (e.g. IMEI, VIN)">
+        <input class="form-input" type="text" id="customFieldVal" placeholder="Value">
         <button class="btn btn-ghost btn-sm" id="addCustomFieldBtn">+ Add</button>
       </div>
-
-      <div class="form-error" id="addFormError" style="display:none;margin-top:14px;"></div>
+      <div class="form-error" id="addFormError" style="display:none;margin-top:12px;"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="addAssetCancelBtn">Cancel</button>
@@ -428,30 +437,36 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- ── Barcode Scanner Modal ── -->
+<!-- Barcode Scanner Modal -->
 <div class="modal-overlay" id="scannerModal">
-  <div class="modal" style="max-width:460px;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-handle"></div>
     <div class="modal-head">
-      <h2>📷 Barcode Scanner</h2>
+      <h2>📷 Scan Barcode</h2>
       <button class="modal-close" id="scannerClose">✕</button>
     </div>
     <div class="modal-body">
       <div class="scanner-area" id="scannerArea">
         <div class="scanner-placeholder" id="scannerPlaceholder">
           <span class="scanner-placeholder-icon">📷</span>
-          Starting camera…
+          <span id="scannerPlaceholderText">Starting camera…</span>
         </div>
-        <video class="scanner-video" id="scannerVideo" autoplay muted playsinline style="display:none;"></video>
+        <video id="scannerVideo" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover;"></video>
         <div class="scanner-overlay" id="scannerOverlayEl" style="display:none;">
-          <div class="scanner-frame"><div class="scanner-line"></div></div>
+          <div class="scanner-frame">
+            <div class="scanner-corner-tl"></div>
+            <div class="scanner-corner-br"></div>
+            <div class="scanner-line"></div>
+          </div>
         </div>
+        <div id="scanSuccessOverlay" class="scan-success" style="display:none;">✅</div>
       </div>
-      <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px;text-align:center;">Or enter manually:</div>
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:10px;text-align:center;" id="scannerStatus">Point camera at barcode…</p>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;">Or enter manually:</p>
       <div class="manual-barcode-input">
-        <input class="form-input" type="text" id="manualBarcodeInput" placeholder="Type or paste barcode…">
-        <button class="btn btn-accent btn-sm" id="manualBarcodeConfirm">Confirm</button>
+        <input class="form-input" type="text" id="manualBarcodeInput" placeholder="Type or paste barcode…" autocomplete="off">
+        <button class="btn btn-accent btn-sm" id="manualBarcodeConfirm">Use</button>
       </div>
-      <div style="font-size:10.5px;color:var(--muted);margin-top:10px;text-align:center;" id="scannerStatus">Waiting for barcode…</div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="scannerCancelBtn">Cancel</button>
@@ -459,9 +474,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- ── Asset Detail Modal ── -->
+<!-- Asset Detail Modal -->
 <div class="modal-overlay" id="detailModal">
   <div class="modal modal-wide">
+    <div class="modal-handle"></div>
     <div class="modal-head">
       <h2 id="detailTitle">Asset Detail</h2>
       <button class="modal-close" id="detailClose">✕</button>
@@ -475,12 +491,16 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- ── Delete Confirm Modal ── -->
+<!-- Delete Confirm Modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
+    <div class="modal-handle"></div>
     <div class="modal-head"><h2>Delete Asset</h2><button class="modal-close" id="deleteClose">✕</button></div>
     <div class="modal-body">
-      <div class="delete-confirm"><p>Permanently delete <strong id="deleteName">this asset</strong>?</p><p style="font-size:11px;color:var(--muted);margin-top:6px;">This cannot be undone.</p></div>
+      <div class="delete-confirm">
+        <p>Permanently delete <strong id="deleteName">this asset</strong>?</p>
+        <p style="font-size:11px;color:var(--muted);margin-top:6px;">This cannot be undone.</p>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" id="deleteCancelBtn">Cancel</button>
@@ -490,9 +510,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <div id="toast"></div>
-
-<!-- ZXing barcode library -->
-<script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -510,163 +527,99 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 const COLLECTION = 'Asset Tracker';
 
-// ── State ────────────────────────────────────────────────────────────────
 let assets = [];
-let searchQ = '', filterType = '', filterStatus = '', viewMode = 'grid';
-let editingId = null;
-let pendingDeleteId = null;
-let customFields = []; // [{key, val}]
-let scannerCallbackTarget = null; // 'standalone' | 'inline'
-let scannerStream = null;
-let zxingReader = null;
+let searchQ='',filterType='',filterStatus='',viewMode='grid';
+let editingId=null,pendingDeleteId=null,customFields=[];
+let scannerCallbackTarget=null,scannerStream=null,scannerActive=false,animFrame=null;
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmtDate = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
-const fmtCurrency = v => v!=null && v!=='' ? '£'+parseFloat(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtDate=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+const fmtCurrency=v=>v!=null&&v!==''?'£'+parseFloat(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 
-// ── Type config ──────────────────────────────────────────────────────────
-const TYPE_CONFIG = {
-  'Phone':      { icon:'📱', cls:'phone',      fields:[{key:'IMEI',label:'IMEI Number',placeholder:'e.g. 356938035643809'},{key:'Network',label:'Network / SIM',placeholder:'e.g. EE, Vodafone'},{key:'PhoneNumber',label:'Phone Number',placeholder:'07...'}]},
-  'Laptop':     { icon:'💻', cls:'laptop',     fields:[{key:'OS',label:'Operating System',placeholder:'e.g. Windows 11, macOS 14'},{key:'RAM',label:'RAM',placeholder:'e.g. 16GB'},{key:'Storage',label:'Storage',placeholder:'e.g. 512GB SSD'}]},
-  'Tablet':     { icon:'📟', cls:'tablet',     fields:[{key:'OS',label:'Operating System',placeholder:'e.g. iPadOS 17'},{key:'Storage',label:'Storage',placeholder:'e.g. 256GB'}]},
-  'Monitor':    { icon:'🖥️', cls:'monitor',    fields:[{key:'ScreenSize',label:'Screen Size',placeholder:'e.g. 27"'},{key:'Resolution',label:'Resolution',placeholder:'e.g. 4K UHD'}]},
-  'Peripheral': { icon:'🖱️', cls:'peripheral', fields:[{key:'Connection',label:'Connection Type',placeholder:'e.g. USB-C, Bluetooth'}]},
-  'Vehicle':    { icon:'🚗', cls:'vehicle',    fields:[{key:'VIN',label:'VIN / Chassis No.',placeholder:'17-char VIN'},{key:'RegPlate',label:'Reg. Plate',placeholder:'e.g. AB21 XYZ'},{key:'MOTExpiry',label:'MOT Expiry',placeholder:'DD/MM/YYYY'},{key:'Mileage',label:'Mileage',placeholder:'e.g. 45000'}]},
-  'Other':      { icon:'📦', cls:'other',      fields:[]},
+const TYPE_CONFIG={
+  'Phone':{icon:'📱',cls:'phone',fields:[{key:'IMEI',label:'IMEI Number',placeholder:'e.g. 356938035643809'},{key:'Network',label:'Network / SIM',placeholder:'e.g. EE, Vodafone'},{key:'PhoneNumber',label:'Phone Number',placeholder:'07...'}]},
+  'Laptop':{icon:'💻',cls:'laptop',fields:[{key:'OS',label:'Operating System',placeholder:'e.g. Windows 11, macOS 14'},{key:'RAM',label:'RAM',placeholder:'e.g. 16GB'},{key:'Storage',label:'Storage',placeholder:'e.g. 512GB SSD'}]},
+  'Tablet':{icon:'📟',cls:'tablet',fields:[{key:'OS',label:'Operating System',placeholder:'e.g. iPadOS 17'},{key:'Storage',label:'Storage',placeholder:'e.g. 256GB'}]},
+  'Monitor':{icon:'🖥️',cls:'monitor',fields:[{key:'ScreenSize',label:'Screen Size',placeholder:'e.g. 27"'},{key:'Resolution',label:'Resolution',placeholder:'e.g. 4K UHD'}]},
+  'Peripheral':{icon:'🖱️',cls:'peripheral',fields:[{key:'Connection',label:'Connection Type',placeholder:'e.g. USB-C, Bluetooth'}]},
+  'Vehicle':{icon:'🚗',cls:'vehicle',fields:[{key:'VIN',label:'VIN / Chassis No.',placeholder:'17-char VIN'},{key:'RegPlate',label:'Reg. Plate',placeholder:'e.g. AB21 XYZ'},{key:'MOTExpiry',label:'MOT Expiry',placeholder:'DD/MM/YYYY'},{key:'Mileage',label:'Mileage',placeholder:'e.g. 45000'}]},
+  'Other':{icon:'📦',cls:'other',fields:[]},
 };
-const STATUS_CLS = {'Available':'available','Assigned':'assigned','In Repair':'repair','Retired':'retired','Lost':'lost'};
+const STATUS_CLS={'Available':'available','Assigned':'assigned','In Repair':'repair','Retired':'retired','Lost':'lost'};
 
-// ── Theme ────────────────────────────────────────────────────────────────
-$('themeBtn').onclick = toggleTheme;
+// Theme
+$('themeBtn').onclick=toggleTheme;
 function toggleTheme(){
   const h=document.documentElement,d=h.dataset.theme==='dark';
-  h.dataset.theme=d?'light':'dark';
-  $('themeBtn').textContent=d?'☀️':'🌙';
+  h.dataset.theme=d?'light':'dark';$('themeBtn').textContent=d?'☀️':'🌙';
   localStorage.setItem('assetdb_theme',d?'light':'dark');
 }
-(()=>{
-  const s=localStorage.getItem('assetdb_theme');
-  if(s){document.documentElement.dataset.theme=s;$('themeBtn').textContent=s==='dark'?'🌙':'☀️';}
-})();
+(()=>{const s=localStorage.getItem('assetdb_theme');if(s){document.documentElement.dataset.theme=s;$('themeBtn').textContent=s==='dark'?'🌙':'☀️';}})();
 
-// ── Firebase load ────────────────────────────────────────────────────────
+// Firebase
 async function loadAll(){
   showLoad(true,'Loading assets…');
   try{
-    const snap = await getDocs(collection(db, COLLECTION));
-    assets = [];
-    snap.forEach(d=>{
-      const data = d.data();
-      if(data._type === 'asset') assets.push({id:d.id, ...data});
-    });
+    const snap=await getDocs(collection(db,COLLECTION));
+    assets=[];
+    snap.forEach(d=>{const data=d.data();if(data._type==='asset')assets.push({id:d.id,...data});});
     assets.sort((a,b)=>a.name.localeCompare(b.name));
     toast(`Loaded ${assets.length} asset${assets.length!==1?'s':''}`);
-  } catch(e){console.error(e);toast('Error loading assets',true);}
-  showLoad(false);
-  render();
+  }catch(e){console.error(e);toast('Error loading assets',true);}
+  showLoad(false);render();
 }
+async function saveAsset(id,data){await setDoc(doc(db,COLLECTION,id),data);}
+async function deleteAsset(id){await deleteDoc(doc(db,COLLECTION,id));}
 
-async function saveAsset(id, data){
-  await setDoc(doc(db, COLLECTION, id), data);
-}
-
-async function deleteAsset(id){
-  await deleteDoc(doc(db, COLLECTION, id));
-}
-
-// ── Render ────────────────────────────────────────────────────────────────
+// Render
 function render(){
-  let fil = assets.filter(a=>{
-    if(filterType && a.type !== filterType) return false;
-    if(filterStatus && a.status !== filterStatus) return false;
+  let fil=assets.filter(a=>{
+    if(filterType&&a.type!==filterType)return false;
+    if(filterStatus&&a.status!==filterStatus)return false;
     if(searchQ){
-      const q = searchQ.toLowerCase();
-      return (a.name||'').toLowerCase().includes(q)
-        || (a.assignedTo||'').toLowerCase().includes(q)
-        || (a.barcode||'').toLowerCase().includes(q)
-        || (a.serial||'').toLowerCase().includes(q)
-        || (a.make||'').toLowerCase().includes(q)
-        || (a.model||'').toLowerCase().includes(q)
-        || Object.values(a.customFields||{}).some(v=>String(v).toLowerCase().includes(q));
+      const q=searchQ.toLowerCase();
+      return(a.name||'').toLowerCase().includes(q)||(a.assignedTo||'').toLowerCase().includes(q)||(a.barcode||'').toLowerCase().includes(q)||(a.serial||'').toLowerCase().includes(q)||(a.make||'').toLowerCase().includes(q)||(a.model||'').toLowerCase().includes(q)||Object.values(a.customFields||{}).some(v=>String(v).toLowerCase().includes(q));
     }
     return true;
   });
-  $('assetCount').textContent = fil.length;
+  $('assetCount').textContent=fil.length;
   renderSummary(fil);
-  const container = $('assetContainer');
-  if(!fil.length){
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">${assets.length?'No assets match your filters.':'No assets yet — add your first one above.'}</div></div>`;
-    return;
-  }
-  if(viewMode === 'grid'){
-    container.innerHTML = `<div class="asset-grid-cards">${fil.map((a,i)=>renderCard(a,i)).join('')}</div>`;
-  } else {
-    container.innerHTML = renderTable(fil);
-  }
-  fil.forEach(a=>{
-    const el = document.getElementById(`asset-${a.id}`);
-    if(el) el.addEventListener('click',()=>openDetail(a));
-  });
+  const c=$('assetContainer');
+  if(!fil.length){c.innerHTML=`<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">${assets.length?'No assets match your filters.':'No assets yet — tap + Add to get started.'}</div></div>`;return;}
+  if(viewMode==='grid'){c.innerHTML=`<div class="asset-grid-cards">${fil.map((a,i)=>renderCard(a,i)).join('')}</div>`;}
+  else{c.innerHTML=renderTable(fil);}
+  fil.forEach(a=>{const el=document.getElementById(`asset-${a.id}`);if(el)el.addEventListener('click',()=>openDetail(a));});
 }
 
 function renderSummary(fil){
-  const total = fil.length;
-  const byStatus = {'Available':0,'Assigned':0,'In Repair':0,'Retired':0,'Lost':0};
-  fil.forEach(a=>{if(byStatus[a.status]!=null)byStatus[a.status]++;});
-  const activeFilter = filterStatus;
-  $('summaryStrip').innerHTML = `
-    <div class="sum-card c-all ${!activeFilter?'active-filter':''}" data-status="">
-      <div class="sum-label">Total Assets</div><div class="sum-val">${total}</div>
-      <div class="sum-sub">${filterType||'All types'}</div>
-    </div>
-    <div class="sum-card c-available ${activeFilter==='Available'?'active-filter':''}" data-status="Available">
-      <div class="sum-label">Available</div><div class="sum-val" style="color:var(--green)">${byStatus['Available']}</div>
-      <div class="sum-sub">unassigned</div>
-    </div>
-    <div class="sum-card c-assigned ${activeFilter==='Assigned'?'active-filter':''}" data-status="Assigned">
-      <div class="sum-label">Assigned</div><div class="sum-val" style="color:var(--accent)">${byStatus['Assigned']}</div>
-      <div class="sum-sub">in use</div>
-    </div>
-    <div class="sum-card c-repair ${activeFilter==='In Repair'?'active-filter':''}" data-status="In Repair">
-      <div class="sum-label">In Repair</div><div class="sum-val" style="color:var(--amber)">${byStatus['In Repair']}</div>
-      <div class="sum-sub">awaiting fix</div>
-    </div>
-    <div class="sum-card c-retired ${activeFilter==='Retired'?'active-filter':''}" data-status="Retired">
-      <div class="sum-label">Retired</div><div class="sum-val" style="color:var(--muted)">${byStatus['Retired']}</div>
-      <div class="sum-sub">decommissioned</div>
-    </div>
-    <div class="sum-card c-lost ${activeFilter==='Lost'?'active-filter':''}" data-status="Lost">
-      <div class="sum-label">Lost</div><div class="sum-val" style="color:var(--red)">${byStatus['Lost']}</div>
-      <div class="sum-sub">missing</div>
-    </div>
-  `;
+  const total=fil.length;
+  const by={'Available':0,'Assigned':0,'In Repair':0,'Retired':0,'Lost':0};
+  fil.forEach(a=>{if(by[a.status]!=null)by[a.status]++;});
+  const af=filterStatus;
+  $('summaryStrip').innerHTML=`
+    <div class="sum-card c-all ${!af?'active-filter':''}" data-status=""><div class="sum-label">Total</div><div class="sum-val">${total}</div><div class="sum-sub">${filterType||'All types'}</div></div>
+    <div class="sum-card c-available ${af==='Available'?'active-filter':''}" data-status="Available"><div class="sum-label">Available</div><div class="sum-val" style="color:var(--green)">${by['Available']}</div><div class="sum-sub">unassigned</div></div>
+    <div class="sum-card c-assigned ${af==='Assigned'?'active-filter':''}" data-status="Assigned"><div class="sum-label">Assigned</div><div class="sum-val" style="color:var(--accent)">${by['Assigned']}</div><div class="sum-sub">in use</div></div>
+    <div class="sum-card c-repair ${af==='In Repair'?'active-filter':''}" data-status="In Repair"><div class="sum-label">Repair</div><div class="sum-val" style="color:var(--amber)">${by['In Repair']}</div><div class="sum-sub">awaiting</div></div>
+    <div class="sum-card c-retired ${af==='Retired'?'active-filter':''}" data-status="Retired"><div class="sum-label">Retired</div><div class="sum-val" style="color:var(--muted)">${by['Retired']}</div><div class="sum-sub">decommissioned</div></div>
+    <div class="sum-card c-lost ${af==='Lost'?'active-filter':''}" data-status="Lost"><div class="sum-label">Lost</div><div class="sum-val" style="color:var(--red)">${by['Lost']}</div><div class="sum-sub">missing</div></div>`;
   document.querySelectorAll('.sum-card[data-status]').forEach(card=>{
-    card.addEventListener('click',()=>{
-      const s = card.dataset.status;
-      filterStatus = filterStatus===s&&s!=='' ? '' : s;
-      $('statusFilter').value = filterStatus;
-      render();
-    });
+    card.addEventListener('click',()=>{const s=card.dataset.status;filterStatus=filterStatus===s&&s!==''?'':s;$('statusFilter').value=filterStatus;render();});
   });
 }
 
-function renderCard(a, i){
-  const tc = TYPE_CONFIG[a.type] || TYPE_CONFIG['Other'];
-  const sCls = STATUS_CLS[a.status]||'available';
-  const topColor = getTypeColor(a.type);
-  const customEntries = Object.entries(a.customFields||{});
-  const typeFields = tc.fields.filter(f=>a[f.key.toLowerCase().replace(/\s/g,'')] || a.typeFields?.[f.key]);
-
+function renderCard(a,i){
+  const tc=TYPE_CONFIG[a.type]||TYPE_CONFIG['Other'];
+  const sCls=STATUS_CLS[a.status]||'available';
+  const topColor=getTypeColor(a.type);
+  const customEntries=Object.entries(a.customFields||{});
   return `<div class="asset-card" id="asset-${a.id}" style="animation-delay:${i*0.03}s">
     <div class="asset-card-top" style="background:${topColor}"></div>
     <div class="asset-card-body">
       <div class="asset-card-header">
-        <div>
-          <div class="asset-card-title">${esc(a.name)}</div>
-          <div class="asset-card-id">${esc(a.id)}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <div style="min-width:0;flex:1;"><div class="asset-card-title">${esc(a.name)}</div><div class="asset-card-id">${esc(a.id)}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-left:8px;flex-shrink:0;">
           <span class="type-badge ${tc.cls}">${tc.icon} ${esc(a.type)}</span>
           <span class="status-badge ${sCls}">${esc(a.status)}</span>
         </div>
@@ -679,17 +632,17 @@ function renderCard(a, i){
         ${customEntries.slice(0,2).map(([k,v])=>`<div class="asset-meta-row"><span class="asset-meta-label">${esc(k)}</span><span class="asset-meta-val mono">${esc(v)}</span></div>`).join('')}
       </div>
       <div class="asset-card-footer">
-        ${a.barcode?`<div class="asset-barcode">▋▍▎▍▋ ${esc(a.barcode)}</div>`:'<div class="asset-barcode" style="color:var(--faint)">No barcode</div>'}
-        ${a.purchaseDate?`<div style="font-family:var(--mono);font-size:9.5px;color:var(--muted)">${fmtDate(a.purchaseDate)}</div>`:''}
+        ${a.barcode?`<div class="asset-barcode">▋▍ ${esc(a.barcode)}</div>`:'<div class="asset-barcode" style="color:var(--faint)">No barcode</div>'}
+        ${a.purchaseDate?`<div style="font-family:var(--mono);font-size:9px;color:var(--muted)">${fmtDate(a.purchaseDate)}</div>`:''}
       </div>
     </div>
   </div>`;
 }
 
 function renderTable(fil){
-  const rows = fil.map((a,i)=>{
-    const tc = TYPE_CONFIG[a.type]||TYPE_CONFIG['Other'];
-    const sCls = STATUS_CLS[a.status]||'available';
+  const rows=fil.map((a,i)=>{
+    const tc=TYPE_CONFIG[a.type]||TYPE_CONFIG['Other'];
+    const sCls=STATUS_CLS[a.status]||'available';
     return `<tr id="asset-${a.id}" style="animation-delay:${i*0.02}s">
       <td><div class="tbl-name">${esc(a.name)}</div><div class="tbl-id">${esc(a.id)}</div></td>
       <td><span class="type-badge ${tc.cls}">${tc.icon} ${esc(a.type)}</span></td>
@@ -697,269 +650,145 @@ function renderTable(fil){
       <td>${esc([a.make,a.model].filter(Boolean).join(' '))||'—'}</td>
       <td style="font-family:var(--mono);font-size:11px;">${esc(a.serial)||'—'}</td>
       <td>${esc(a.assignedTo)||'—'}</td>
-      <td style="font-family:var(--mono);font-size:10.5px;color:var(--muted)">${esc(a.barcode)||'—'}</td>
-      <td style="font-size:11px;color:var(--muted)">${fmtDate(a.purchaseDate)}</td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${esc(a.barcode)||'—'}</td>
     </tr>`;
   }).join('');
   return `<div class="asset-table-wrap"><table class="asset-table">
-    <thead><tr>
-      <th>Asset</th><th>Type</th><th>Status</th><th>Make / Model</th><th>Serial</th><th>Assigned To</th><th>Barcode</th><th>Purchased</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`;
+    <thead><tr><th>Asset</th><th>Type</th><th>Status</th><th>Make / Model</th><th>Serial</th><th>Assigned To</th><th>Barcode</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
 }
 
 function getTypeColor(type){
-  const map = {
-    'Phone':'linear-gradient(90deg,#0369a1,#00A3E0)',
-    'Laptop':'linear-gradient(90deg,#6d28d9,#8B5CF6)',
-    'Tablet':'linear-gradient(90deg,#059669,#10B981)',
-    'Monitor':'linear-gradient(90deg,#ea580c,#F97316)',
-    'Peripheral':'linear-gradient(90deg,#d97706,#F59E0B)',
-    'Vehicle':'linear-gradient(90deg,#dc2626,#EF4444)',
-    'Other':'linear-gradient(90deg,#4b5563,#7a8fa8)',
-  };
+  const map={'Phone':'linear-gradient(90deg,#0369a1,#00A3E0)','Laptop':'linear-gradient(90deg,#6d28d9,#8B5CF6)','Tablet':'linear-gradient(90deg,#059669,#10B981)','Monitor':'linear-gradient(90deg,#ea580c,#F97316)','Peripheral':'linear-gradient(90deg,#d97706,#F59E0B)','Vehicle':'linear-gradient(90deg,#dc2626,#EF4444)','Other':'linear-gradient(90deg,#4b5563,#7a8fa8)'};
   return map[type]||map['Other'];
 }
 
-// ── Add / Edit Modal ──────────────────────────────────────────────────────
+// Add/Edit Modal
 function openAddAsset(){
-  editingId = null;
-  customFields = [];
-  $('addModalTitle').textContent = '➕ Add Asset';
-  $('addAssetConfirmBtn').textContent = 'Save Asset';
+  editingId=null;customFields=[];
+  $('addModalTitle').textContent='➕ Add Asset';$('addAssetConfirmBtn').textContent='Save Asset';
   $('addName').value='';$('addType').value='Phone';$('addStatus').value='Available';
   $('addAssignedTo').value='';$('addBarcode').value='';$('addSerial').value='';
   $('addMake').value='';$('addModel').value='';$('addPurchaseDate').value='';
   $('addPurchasePrice').value='';$('addLocation').value='';$('addNotes').value='';
   $('addFormError').style.display='none';
-  renderTypeFields();
-  renderCustomFieldsList();
+  renderTypeFields();renderCustomFieldsList();
   $('addAssetModal').classList.add('show');
-  setTimeout(()=>$('addName').focus(),100);
+  setTimeout(()=>$('addName').focus(),300);
 }
 
 function openEditAsset(a){
-  editingId = a.id;
-  customFields = Object.entries(a.customFields||{}).map(([key,val])=>({key,val}));
-  $('addModalTitle').textContent = '✏️ Edit Asset';
-  $('addAssetConfirmBtn').textContent = 'Save Changes';
-  $('addName').value = a.name||'';
-  $('addType').value = a.type||'Phone';
-  $('addStatus').value = a.status||'Available';
-  $('addAssignedTo').value = a.assignedTo||'';
-  $('addBarcode').value = a.barcode||'';
-  $('addSerial').value = a.serial||'';
-  $('addMake').value = a.make||'';
-  $('addModel').value = a.model||'';
-  $('addPurchaseDate').value = a.purchaseDate||'';
-  $('addPurchasePrice').value = a.purchasePrice||'';
-  $('addLocation').value = a.location||'';
-  $('addNotes').value = a.notes||'';
+  editingId=a.id;customFields=Object.entries(a.customFields||{}).map(([key,val])=>({key,val}));
+  $('addModalTitle').textContent='✏️ Edit Asset';$('addAssetConfirmBtn').textContent='Save Changes';
+  $('addName').value=a.name||'';$('addType').value=a.type||'Phone';$('addStatus').value=a.status||'Available';
+  $('addAssignedTo').value=a.assignedTo||'';$('addBarcode').value=a.barcode||'';$('addSerial').value=a.serial||'';
+  $('addMake').value=a.make||'';$('addModel').value=a.model||'';$('addPurchaseDate').value=a.purchaseDate||'';
+  $('addPurchasePrice').value=a.purchasePrice||'';$('addLocation').value=a.location||'';$('addNotes').value=a.notes||'';
   $('addFormError').style.display='none';
-  renderTypeFields(a);
-  renderCustomFieldsList();
-  $('addAssetModal').classList.add('show');
-  $('detailModal').classList.remove('show');
+  renderTypeFields(a);renderCustomFieldsList();
+  $('addAssetModal').classList.add('show');$('detailModal').classList.remove('show');
 }
 
 function renderTypeFields(existingAsset=null){
-  const type = $('addType').value;
-  const tc = TYPE_CONFIG[type]||TYPE_CONFIG['Other'];
-  const container = $('typeSpecificFields');
+  const type=$('addType').value;const tc=TYPE_CONFIG[type]||TYPE_CONFIG['Other'];
+  const container=$('typeSpecificFields');
   if(!tc.fields.length){container.innerHTML='';return;}
-  container.innerHTML = `<div class="form-section-title">${tc.icon} ${type} Details</div>
-    <div class="form-row">${tc.fields.map(f=>`
-      <div class="form-group">
-        <label class="form-label">${esc(f.label)}</label>
-        <input class="form-input" id="tf-${f.key}" type="text" placeholder="${esc(f.placeholder)}" value="${esc(existingAsset?existingAsset.typeFields?.[f.key]||'':'')}">
-      </div>`).join('')}
-    </div>`;
+  container.innerHTML=`<div class="form-section-title">${tc.icon} ${type} Details</div>
+    <div class="form-row">${tc.fields.map(f=>`<div class="form-group"><label class="form-label">${esc(f.label)}</label><input class="form-input" id="tf-${f.key}" type="text" placeholder="${esc(f.placeholder)}" value="${esc(existingAsset?existingAsset.typeFields?.[f.key]||'':'')}"></div>`).join('')}</div>`;
 }
-
 $('addType').addEventListener('change',()=>renderTypeFields());
 
 function renderCustomFieldsList(){
-  const list = $('customFieldsList');
+  const list=$('customFieldsList');
   if(!customFields.length){list.innerHTML='';return;}
-  list.innerHTML = customFields.map((f,i)=>`
-    <div class="custom-field-row">
-      <span class="custom-field-key">${esc(f.key)}</span>
-      <span class="custom-field-val">${esc(f.val)}</span>
-      <button class="custom-field-del" data-i="${i}" title="Remove">✕</button>
-    </div>`).join('');
-  list.querySelectorAll('.custom-field-del').forEach(btn=>{
-    btn.addEventListener('click',()=>{customFields.splice(parseInt(btn.dataset.i),1);renderCustomFieldsList();});
-  });
+  list.innerHTML=customFields.map((f,i)=>`<div class="custom-field-row"><span class="custom-field-key">${esc(f.key)}</span><span class="custom-field-val">${esc(f.val)}</span><button class="custom-field-del" data-i="${i}" title="Remove">✕</button></div>`).join('');
+  list.querySelectorAll('.custom-field-del').forEach(btn=>{btn.addEventListener('click',()=>{customFields.splice(parseInt(btn.dataset.i),1);renderCustomFieldsList();});});
 }
-
 $('addCustomFieldBtn').addEventListener('click',()=>{
-  const k = $('customFieldKey').value.trim();
-  const v = $('customFieldVal').value.trim();
-  if(!k) return;
-  customFields.push({key:k,val:v});
-  $('customFieldKey').value='';$('customFieldVal').value='';
-  renderCustomFieldsList();
+  const k=$('customFieldKey').value.trim(),v=$('customFieldVal').value.trim();
+  if(!k)return;customFields.push({key:k,val:v});$('customFieldKey').value='';$('customFieldVal').value='';renderCustomFieldsList();
 });
 $('customFieldKey').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addCustomFieldBtn').click();}});
 $('customFieldVal').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('addCustomFieldBtn').click();}});
 
 async function submitAsset(){
-  const name = $('addName').value.trim();
-  const type = $('addType').value;
-  const errEl = $('addFormError');
-  errEl.style.display='none';
+  const name=$('addName').value.trim();const type=$('addType').value;
+  const errEl=$('addFormError');errEl.style.display='none';
   if(!name){errEl.textContent='Please enter an asset name.';errEl.style.display='block';$('addName').focus();return;}
-
-  const tc = TYPE_CONFIG[type]||TYPE_CONFIG['Other'];
-  const typeFields = {};
-  tc.fields.forEach(f=>{
-    const el = $(`tf-${f.key}`);
-    if(el && el.value.trim()) typeFields[f.key] = el.value.trim();
-  });
-
-  const customObj = {};
-  customFields.forEach(f=>{if(f.key) customObj[f.key]=f.val;});
-
-  const id = editingId || 'asset_'+Date.now();
-  const now = new Date().toISOString();
-
-  let history = [];
+  const tc=TYPE_CONFIG[type]||TYPE_CONFIG['Other'];
+  const typeFields={};tc.fields.forEach(f=>{const el=$(`tf-${f.key}`);if(el&&el.value.trim())typeFields[f.key]=el.value.trim();});
+  const customObj={};customFields.forEach(f=>{if(f.key)customObj[f.key]=f.val;});
+  const id=editingId||'asset_'+Date.now();const now=new Date().toISOString();
+  let history=[];
   if(editingId){
-    const existing = assets.find(a=>a.id===editingId);
-    history = existing?.history||[];
-    const oldStatus = existing?.status;
-    const newStatus = $('addStatus').value;
-    if(oldStatus!==newStatus) history.push({date:now,note:`Status changed: ${oldStatus} → ${newStatus}`});
-  } else {
-    history.push({date:now,note:'Asset created'});
-  }
-
-  const data = {
-    _type:'asset', name, type,
-    status: $('addStatus').value,
-    assignedTo: $('addAssignedTo').value.trim(),
-    barcode: $('addBarcode').value.trim(),
-    serial: $('addSerial').value.trim(),
-    make: $('addMake').value.trim(),
-    model: $('addModel').value.trim(),
-    purchaseDate: $('addPurchaseDate').value,
-    purchasePrice: $('addPurchasePrice').value ? parseFloat($('addPurchasePrice').value) : null,
-    location: $('addLocation').value.trim(),
-    notes: $('addNotes').value.trim(),
-    typeFields, customFields: customObj, history,
-    createdAt: editingId ? (assets.find(a=>a.id===editingId)?.createdAt||now) : now,
-    updatedAt: now,
-  };
-
+    const existing=assets.find(a=>a.id===editingId);history=existing?.history||[];
+    const oldStatus=existing?.status;const newStatus=$('addStatus').value;
+    if(oldStatus!==newStatus)history.push({date:now,note:`Status: ${oldStatus} → ${newStatus}`});
+    history.push({date:now,note:'Asset updated'});
+  }else{history.push({date:now,note:'Asset created'});}
+  const data={_type:'asset',name,type,status:$('addStatus').value,assignedTo:$('addAssignedTo').value.trim(),barcode:$('addBarcode').value.trim(),serial:$('addSerial').value.trim(),make:$('addMake').value.trim(),model:$('addModel').value.trim(),purchaseDate:$('addPurchaseDate').value,purchasePrice:$('addPurchasePrice').value?parseFloat($('addPurchasePrice').value):null,location:$('addLocation').value.trim(),notes:$('addNotes').value.trim(),typeFields,customFields:customObj,history,createdAt:editingId?(assets.find(a=>a.id===editingId)?.createdAt||now):now,updatedAt:now};
   $('addAssetConfirmBtn').disabled=true;$('addAssetConfirmBtn').textContent='Saving…';
   try{
-    await saveAsset(id, data);
-    if(editingId){
-      const idx = assets.findIndex(a=>a.id===editingId);
-      if(idx>=0) assets[idx]={id,...data};
-    } else {
-      assets.push({id,...data});
-      assets.sort((a,b)=>a.name.localeCompare(b.name));
-    }
-    $('addAssetModal').classList.remove('show');
-    toast(`${name} ${editingId?'updated':'added'}`);
-    render();
-  }catch(e){
-    console.error(e);errEl.textContent='Error saving. Please try again.';errEl.style.display='block';
-  }finally{
-    $('addAssetConfirmBtn').disabled=false;$('addAssetConfirmBtn').textContent=editingId?'Save Changes':'Save Asset';
-  }
+    await saveAsset(id,data);
+    if(editingId){const idx=assets.findIndex(a=>a.id===editingId);if(idx>=0)assets[idx]={id,...data};}
+    else{assets.push({id,...data});assets.sort((a,b)=>a.name.localeCompare(b.name));}
+    $('addAssetModal').classList.remove('show');toast(`${name} ${editingId?'updated':'added'}`);render();
+  }catch(e){console.error(e);errEl.textContent='Error saving. Please try again.';errEl.style.display='block';}
+  finally{$('addAssetConfirmBtn').disabled=false;$('addAssetConfirmBtn').textContent=editingId?'Save Changes':'Save Asset';}
 }
 
-// ── Detail Modal ──────────────────────────────────────────────────────────
+// Detail Modal
 function openDetail(a){
-  const tc = TYPE_CONFIG[a.type]||TYPE_CONFIG['Other'];
-  const sCls = STATUS_CLS[a.status]||'available';
-  $('detailTitle').innerHTML = `${tc.icon} ${esc(a.name)}`;
-
-  const customEntries = Object.entries(a.customFields||{});
-  const typeEntries = Object.entries(a.typeFields||{});
-  const historyArr = (a.history||[]).slice().reverse();
-
-  $('detailBody').innerHTML = `
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+  const tc=TYPE_CONFIG[a.type]||TYPE_CONFIG['Other'];
+  const sCls=STATUS_CLS[a.status]||'available';
+  $('detailTitle').innerHTML=`${tc.icon} ${esc(a.name)}`;
+  const customEntries=Object.entries(a.customFields||{});
+  const typeEntries=Object.entries(a.typeFields||{});
+  const historyArr=(a.history||[]).slice().reverse();
+  $('detailBody').innerHTML=`
+    <div style="display:flex;gap:7px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
       <span class="type-badge ${tc.cls}">${tc.icon} ${esc(a.type)}</span>
       <span class="status-badge ${sCls}">${esc(a.status)}</span>
       ${a.assignedTo?`<span style="font-size:12px;color:var(--muted)">→ ${esc(a.assignedTo)}</span>`:''}
     </div>
-
-    <div class="detail-section">
-      <div class="detail-section-title">Asset Details</div>
+    <div class="detail-section"><div class="detail-section-title">Asset Details</div>
       <div class="detail-grid">
-        <div class="detail-stat"><div class="detail-stat-label">Make / Model</div><div class="detail-stat-val" style="font-size:13px">${esc([a.make,a.model].filter(Boolean).join(' '))||'—'}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Serial Number</div><div class="detail-stat-val" style="font-size:13px">${esc(a.serial)||'—'}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Purchase Date</div><div class="detail-stat-val" style="font-size:13px">${fmtDate(a.purchaseDate)}</div></div>
-        <div class="detail-stat"><div class="detail-stat-label">Purchase Price</div><div class="detail-stat-val" style="font-size:13px">${fmtCurrency(a.purchasePrice)}</div></div>
-        <div class="detail-stat" style="grid-column:1/-1"><div class="detail-stat-label">Location</div><div class="detail-stat-val" style="font-size:13px">${esc(a.location)||'—'}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Make / Model</div><div class="detail-stat-val" style="font-size:12px">${esc([a.make,a.model].filter(Boolean).join(' '))||'—'}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Serial Number</div><div class="detail-stat-val" style="font-size:12px">${esc(a.serial)||'—'}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Purchase Date</div><div class="detail-stat-val" style="font-size:12px">${fmtDate(a.purchaseDate)}</div></div>
+        <div class="detail-stat"><div class="detail-stat-label">Purchase Price</div><div class="detail-stat-val" style="font-size:12px">${fmtCurrency(a.purchasePrice)}</div></div>
+        <div class="detail-stat" style="grid-column:1/-1"><div class="detail-stat-label">Location</div><div class="detail-stat-val" style="font-size:12px">${esc(a.location)||'—'}</div></div>
       </div>
     </div>
-
-    ${a.barcode?`<div class="detail-section">
-      <div class="detail-section-title">Barcode / Asset Tag</div>
-      <div class="barcode-display">${esc(a.barcode)}</div>
-    </div>`:''}
-
-    ${typeEntries.length?`<div class="detail-section">
-      <div class="detail-section-title">${tc.icon} ${esc(a.type)} Specific Details</div>
-      <div class="detail-full-stat">${typeEntries.map(([k,v])=>`<div class="detail-full-row"><span class="detail-full-key">${esc(k)}</span><span class="detail-full-val">${esc(v)}</span></div>`).join('')}</div>
-    </div>`:''}
-
-    ${customEntries.length?`<div class="detail-section">
-      <div class="detail-section-title">Custom Fields</div>
-      <div class="detail-full-stat">${customEntries.map(([k,v])=>`<div class="detail-full-row"><span class="detail-full-key">${esc(k)}</span><span class="detail-full-val">${esc(v)}</span></div>`).join('')}</div>
-    </div>`:''}
-
-    ${a.notes?`<div class="detail-section">
-      <div class="detail-section-title">Notes</div>
-      <div style="background:var(--bg);border-radius:8px;padding:12px 14px;font-size:12.5px;line-height:1.6;color:var(--text);border-left:3px solid var(--faint);">${esc(a.notes)}</div>
-    </div>`:''}
-
-    ${historyArr.length?`<div class="detail-section">
-      <div class="detail-section-title">History</div>
-      <div>${historyArr.map(h=>`<div class="history-entry"><div class="history-dot"></div><div class="history-date">${new Date(h.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div><div>${esc(h.note)}</div></div>`).join('')}</div>
-    </div>`:''}
-
-    <div style="font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)">
-      ID: ${esc(a.id)} · Added ${new Date(a.createdAt||Date.now()).toLocaleDateString('en-GB')}${a.updatedAt?` · Updated ${new Date(a.updatedAt).toLocaleDateString('en-GB')}`:''}
-    </div>
-  `;
-
-  $('detailDeleteBtn').onclick = ()=>openDelete(a);
-  $('detailEditBtn').onclick = ()=>openEditAsset(a);
+    ${a.barcode?`<div class="detail-section"><div class="detail-section-title">Barcode / Asset Tag</div><div class="barcode-display">${esc(a.barcode)}</div></div>`:''}
+    ${typeEntries.length?`<div class="detail-section"><div class="detail-section-title">${tc.icon} ${esc(a.type)} Details</div><div class="detail-full-stat">${typeEntries.map(([k,v])=>`<div class="detail-full-row"><span class="detail-full-key">${esc(k)}</span><span class="detail-full-val">${esc(v)}</span></div>`).join('')}</div></div>`:''}
+    ${customEntries.length?`<div class="detail-section"><div class="detail-section-title">Custom Fields</div><div class="detail-full-stat">${customEntries.map(([k,v])=>`<div class="detail-full-row"><span class="detail-full-key">${esc(k)}</span><span class="detail-full-val">${esc(v)}</span></div>`).join('')}</div></div>`:''}
+    ${a.notes?`<div class="detail-section"><div class="detail-section-title">Notes</div><div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;color:var(--text);border-left:3px solid var(--faint);">${esc(a.notes)}</div></div>`:''}
+    ${historyArr.length?`<div class="detail-section"><div class="detail-section-title">History</div><div>${historyArr.map(h=>`<div class="history-entry"><div class="history-dot"></div><div class="history-date">${new Date(h.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div><div>${esc(h.note)}</div></div>`).join('')}</div></div>`:''}
+    <div style="font-family:var(--mono);font-size:9px;color:var(--faint);margin-top:8px;padding-top:8px;border-top:1px solid var(--border2)">ID: ${esc(a.id)} · Added ${new Date(a.createdAt||Date.now()).toLocaleDateString('en-GB')}</div>`;
+  $('detailDeleteBtn').onclick=()=>openDelete(a);
+  $('detailEditBtn').onclick=()=>openEditAsset(a);
   $('detailModal').classList.add('show');
 }
 
-// ── Delete ────────────────────────────────────────────────────────────────
-function openDelete(a){
-  pendingDeleteId = a.id;
-  $('deleteName').textContent = a.name;
-  $('deleteModal').classList.add('show');
-}
-
+// Delete
+function openDelete(a){pendingDeleteId=a.id;$('deleteName').textContent=a.name;$('deleteModal').classList.add('show');}
 async function confirmDelete(){
-  if(!pendingDeleteId) return;
-  const id = pendingDeleteId; pendingDeleteId = null;
-  $('deleteModal').classList.remove('show');
-  $('detailModal').classList.remove('show');
-  const a = assets.find(x=>x.id===id);
-  try{
-    await deleteAsset(id);
-    assets = assets.filter(x=>x.id!==id);
-    toast(`${a?.name||'Asset'} deleted`);render();
-  }catch(e){console.error(e);toast('Error deleting',true);}
+  if(!pendingDeleteId)return;
+  const id=pendingDeleteId;pendingDeleteId=null;
+  $('deleteModal').classList.remove('show');$('detailModal').classList.remove('show');
+  const a=assets.find(x=>x.id===id);
+  try{await deleteAsset(id);assets=assets.filter(x=>x.id!==id);toast(`${a?.name||'Asset'} deleted`);render();}
+  catch(e){console.error(e);toast('Error deleting',true);}
 }
 
 // ── Barcode Scanner ───────────────────────────────────────────────────────
+// Uses native BarcodeDetector API (Chrome/Android) with jsQR fallback for QR
 function openScanner(target){
-  scannerCallbackTarget = target;
+  scannerCallbackTarget=target;
   $('manualBarcodeInput').value='';
-  $('scannerStatus').textContent='Waiting for barcode…';
+  $('scannerStatus').textContent='Starting camera…';
+  $('scanSuccessOverlay').style.display='none';
   $('scannerModal').classList.add('show');
   startCamera();
 }
@@ -970,101 +799,159 @@ function closeScanner(){
 }
 
 async function startCamera(){
-  $('scannerPlaceholder').textContent='Starting camera…';
-  $('scannerPlaceholder').style.display='block';
-  $('scannerVideo').style.display='none';
-  $('scannerOverlayEl').style.display='none';
+  const placeholder=$('scannerPlaceholder');
+  const video=$('scannerVideo');
+  const overlay=$('scannerOverlayEl');
+  placeholder.style.display='flex';
+  $('scannerPlaceholderText').textContent='Starting camera…';
+  video.style.display='none';
+  overlay.style.display='none';
+  scannerActive=false;
+
   try{
-    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    scannerStream = stream;
-    const video = $('scannerVideo');
-    video.srcObject = stream;
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}
+    });
+    scannerStream=stream;
+    video.srcObject=stream;
     video.style.display='block';
-    $('scannerPlaceholder').style.display='none';
-    $('scannerOverlayEl').style.display='flex';
+    placeholder.style.display='none';
+    overlay.style.display='flex';
+    await video.play().catch(()=>{});
+    scannerActive=true;
     $('scannerStatus').textContent='Point camera at barcode…';
-    startZxing(video);
+    startBarcodeDetection(video);
   }catch(e){
-    $('scannerPlaceholder').textContent='Camera unavailable. Use manual entry below.';
     console.warn('Camera error:',e);
+    if(e.name==='NotAllowedError'){
+      $('scannerPlaceholderText').textContent='Camera permission denied. Use manual entry below.';
+    }else{
+      $('scannerPlaceholderText').textContent='Camera unavailable. Use manual entry below.';
+    }
   }
 }
 
-function startZxing(video){
-  try{
-    if(typeof ZXing === 'undefined') return;
-    const hints = new Map();
-    const formats = [
-      ZXing.BarcodeFormat.QR_CODE, ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.CODE_39, ZXing.BarcodeFormat.EAN_13,
-      ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.DATA_MATRIX,
-      ZXing.BarcodeFormat.AZTEC,
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    zxingReader = new ZXing.BrowserMultiFormatReader(hints);
-    zxingReader.decodeFromVideoElement(video, (result, err)=>{
-      if(result){
-        onBarcodeScanned(result.getText());
-      }
+function startBarcodeDetection(video){
+  if('BarcodeDetector' in window){
+    // Native API - best for barcodes and QR on Android/Chrome/Safari 17+
+    BarcodeDetector.getSupportedFormats().then(formats=>{
+      const detector=new BarcodeDetector({formats});
+      const tick=async()=>{
+        if(!scannerActive)return;
+        try{
+          const results=await detector.detect(video);
+          if(results.length>0){onBarcodeScanned(results[0].rawValue);return;}
+        }catch(e){}
+        animFrame=requestAnimationFrame(tick);
+      };
+      animFrame=requestAnimationFrame(tick);
+    }).catch(()=>{
+      // Fallback if getSupportedFormats fails
+      const detector=new BarcodeDetector();
+      const tick=async()=>{
+        if(!scannerActive)return;
+        try{const r=await detector.detect(video);if(r.length>0){onBarcodeScanned(r[0].rawValue);return;}}catch(e){}
+        animFrame=requestAnimationFrame(tick);
+      };
+      animFrame=requestAnimationFrame(tick);
     });
-  }catch(e){console.warn('ZXing error:',e);}
+  }else{
+    // jsQR fallback (QR codes only)
+    loadJsQR().then(jsQR=>{
+      if(!jsQR){
+        $('scannerStatus').textContent='Auto-scan unavailable. Use manual entry below.';
+        return;
+      }
+      $('scannerStatus').textContent='QR code scanning active…';
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d',{willReadFrequently:true});
+      const tick=()=>{
+        if(!scannerActive)return;
+        if(video.readyState>=2&&video.videoWidth>0){
+          canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+          ctx.drawImage(video,0,0);
+          try{
+            const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+            const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+            if(code){onBarcodeScanned(code.data);return;}
+          }catch(e){}
+        }
+        animFrame=requestAnimationFrame(tick);
+      };
+      animFrame=requestAnimationFrame(tick);
+    });
+  }
+}
+
+let jsQRLoaded=null;
+function loadJsQR(){
+  if(jsQRLoaded!==null)return Promise.resolve(jsQRLoaded);
+  return new Promise(resolve=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+    s.onload=()=>{jsQRLoaded=window.jsQR||null;resolve(jsQRLoaded);};
+    s.onerror=()=>{jsQRLoaded=null;resolve(null);};
+    document.head.appendChild(s);
+  });
 }
 
 function stopCamera(){
-  if(zxingReader){try{zxingReader.reset();}catch(e){} zxingReader=null;}
+  scannerActive=false;
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
   if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
+  const video=$('scannerVideo');
+  if(video){video.srcObject=null;video.style.display='none';}
+  const overlay=$('scannerOverlayEl');
+  if(overlay)overlay.style.display='none';
 }
 
 function onBarcodeScanned(code){
-  stopCamera();
+  if(!code||!scannerActive)return;
+  scannerActive=false;
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
   $('scannerStatus').textContent=`✅ Scanned: ${code}`;
-  if(scannerCallbackTarget==='inline'){
-    $('addBarcode').value = code;
-  }
-  setTimeout(closeScanner, 800);
-  toast(`Barcode scanned: ${code}`);
+  $('scanSuccessOverlay').style.display='flex';
+  if(scannerCallbackTarget==='inline')$('addBarcode').value=code;
+  toast(`Barcode: ${code}`);
+  setTimeout(()=>{$('scanSuccessOverlay').style.display='none';closeScanner();},700);
 }
 
 $('manualBarcodeConfirm').addEventListener('click',()=>{
-  const val = $('manualBarcodeInput').value.trim();
-  if(!val) return;
-  onBarcodeScanned(val);
+  const val=$('manualBarcodeInput').value.trim();if(!val)return;onBarcodeScanned(val);
 });
 $('manualBarcodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('manualBarcodeConfirm').click();});
 
-// ── Event wiring ──────────────────────────────────────────────────────────
-$('addAssetBtn').onclick = openAddAsset;
-$('addAssetClose').onclick = ()=>$('addAssetModal').classList.remove('show');
-$('addAssetCancelBtn').onclick = ()=>$('addAssetModal').classList.remove('show');
-$('addAssetModal').onclick = e=>{if(e.target===$('addAssetModal'))$('addAssetModal').classList.remove('show');};
-$('addAssetConfirmBtn').onclick = submitAsset;
-
-$('scanBarcodeBtn').onclick = ()=>openScanner('standalone');
+// Event wiring
+$('addAssetBtn').onclick=openAddAsset;
+$('addAssetClose').onclick=()=>$('addAssetModal').classList.remove('show');
+$('addAssetCancelBtn').onclick=()=>$('addAssetModal').classList.remove('show');
+$('addAssetModal').onclick=e=>{if(e.target===$('addAssetModal'))$('addAssetModal').classList.remove('show');};
+$('addAssetConfirmBtn').onclick=submitAsset;
+$('scanBarcodeBtn').onclick=()=>openScanner('standalone');
 $('inlineBarcodeScan').addEventListener('click',()=>openScanner('inline'));
-$('scannerClose').onclick = closeScanner;
-$('scannerCancelBtn').onclick = closeScanner;
-$('scannerModal').onclick = e=>{if(e.target===$('scannerModal'))closeScanner();};
+$('scannerClose').onclick=closeScanner;
+$('scannerCancelBtn').onclick=closeScanner;
+$('scannerModal').onclick=e=>{if(e.target===$('scannerModal'))closeScanner();};
+$('detailClose').onclick=()=>$('detailModal').classList.remove('show');
+$('detailCloseBtn').onclick=()=>$('detailModal').classList.remove('show');
+$('detailModal').onclick=e=>{if(e.target===$('detailModal'))$('detailModal').classList.remove('show');};
+$('deleteClose').onclick=()=>$('deleteModal').classList.remove('show');
+$('deleteCancelBtn').onclick=()=>$('deleteModal').classList.remove('show');
+$('deleteConfirmBtn').onclick=confirmDelete;
+$('deleteModal').onclick=e=>{if(e.target===$('deleteModal'))$('deleteModal').classList.remove('show');};
+$('assetSearch').oninput=e=>{searchQ=e.target.value.trim().toLowerCase();render();};
+$('typeFilter').onchange=e=>{filterType=e.target.value;render();};
+$('statusFilter').onchange=e=>{filterStatus=e.target.value;render();};
+$('viewGrid').onclick=()=>{viewMode='grid';$('viewGrid').classList.add('active');$('viewList').classList.remove('active');render();};
+$('viewList').onclick=()=>{viewMode='list';$('viewList').classList.add('active');$('viewGrid').classList.remove('active');render();};
 
-$('detailClose').onclick = ()=>$('detailModal').classList.remove('show');
-$('detailCloseBtn').onclick = ()=>$('detailModal').classList.remove('show');
-$('detailModal').onclick = e=>{if(e.target===$('detailModal'))$('detailModal').classList.remove('show');};
-
-$('deleteClose').onclick = ()=>$('deleteModal').classList.remove('show');
-$('deleteCancelBtn').onclick = ()=>$('deleteModal').classList.remove('show');
-$('deleteConfirmBtn').onclick = confirmDelete;
-$('deleteModal').onclick = e=>{if(e.target===$('deleteModal'))$('deleteModal').classList.remove('show');};
-
-$('refreshBtn').onclick = loadAll;
-$('assetSearch').oninput = e=>{searchQ=e.target.value.trim().toLowerCase();render();};
-$('typeFilter').onchange = e=>{filterType=e.target.value;render();};
-$('statusFilter').onchange = e=>{filterStatus=e.target.value;render();};
-$('viewGrid').onclick = ()=>{viewMode='grid';$('viewGrid').classList.add('active');$('viewList').classList.remove('active');render();};
-$('viewList').onclick = ()=>{viewMode='list';$('viewList').classList.add('active');$('viewGrid').classList.remove('active');render();};
-
-// ── Util ──────────────────────────────────────────────────────────────────
 function showLoad(v,msg){$('loadingOverlay').classList.toggle('hidden',!v);if(msg&&$('loadingText'))$('loadingText').textContent=msg;}
 let tt;
-function toast(msg,err=false){const el=$('toast');el.textContent=msg;el.style.borderColor=err?'var(--red)':'var(--border)';el.style.color=err?'var(--red)':'var(--text)';el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);}
+function toast(msg,err=false){
+  const el=$('toast');el.textContent=msg;
+  el.style.borderColor=err?'var(--red)':'var(--border)';el.style.color=err?'var(--red)':'var(--text)';
+  el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);
+}
 
 loadAll();
 </script>
