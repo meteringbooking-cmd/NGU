@@ -43,7 +43,6 @@
   --status-repair-bg:rgba(245,158,11,.1);   --status-repair-t:#F59E0B;
   --status-retired-bg:rgba(122,143,168,.1); --status-retired-t:#7a8fa8;
   --status-lost-bg:rgba(239,68,68,.1);      --status-lost-t:#EF4444;
-  /* Safe area vars */
   --sat: env(safe-area-inset-top, 0px);
   --sar: env(safe-area-inset-right, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -52,43 +51,37 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{
   scroll-behavior:smooth;
-  /* Prevent the page from resizing when keyboard opens */
   height: -webkit-fill-available;
 }
 body{
   font-family:var(--sans);
   background:var(--bg);
   color:var(--text);
-  /* Use dvh to avoid keyboard resize on mobile */
   min-height: 100dvh;
   min-height: -webkit-fill-available;
   overflow-x:hidden;
   transition:background .25s,color .25s;
   -webkit-tap-highlight-color:transparent;
-  /* Prevent overscroll bounce pushing layout */
   overscroll-behavior-y: none;
 }
 [data-theme="dark"] body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 8% 15%,rgba(0,163,224,.07) 0%,transparent 50%),radial-gradient(ellipse at 92% 85%,rgba(0,94,184,.06) 0%,transparent 50%);pointer-events:none;z-index:0;}
 
-/* ── Layout shell — fixed header + scrollable content ── */
 .app-shell {
   display: flex;
   flex-direction: column;
   height: 100dvh;
   height: -webkit-fill-available;
-  overflow: hidden; /* shell itself doesn't scroll */
+  overflow: hidden;
 }
 .scroll-area {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  /* Keep scroll position stable when keyboard appears */
   overscroll-behavior-y: contain;
 }
 
-/* Header */
 .header{
-  position:relative; /* no longer sticky — shell handles it */
+  position:relative;
   z-index:200;
   background:var(--surface);
   backdrop-filter:blur(14px);
@@ -101,7 +94,7 @@ body{
   justify-content:space-between;
   height:56px;
   gap:8px;
-  flex-shrink: 0; /* never shrink when keyboard opens */
+  flex-shrink: 0;
 }
 .header-left{display:flex;align-items:center;gap:10px;min-width:0;}
 .logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:9px;display:grid;place-items:center;font-size:16px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,163,224,.3);}
@@ -112,7 +105,6 @@ body{
 .theme-btn{width:34px;height:34px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;font-size:15px;transition:all .15s;color:var(--muted);}
 .theme-btn:hover{border-color:var(--accent);}
 
-/* Buttons */
 .btn{font-family:var(--sans);font-size:12px;font-weight:500;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;touch-action:manipulation;}
 .btn-accent{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;box-shadow:0 3px 10px rgba(0,163,224,.3);}
 .btn-accent:hover{opacity:.88;transform:translateY(-1px);}
@@ -124,7 +116,6 @@ body{
 .btn-danger:hover{background:rgba(239,68,68,.2);border-color:var(--red);}
 .btn-sm{font-size:11px;padding:6px 10px;border-radius:7px;}
 
-/* Toolbar */
 .toolbar{
   padding:10px 16px;
   padding-left: max(16px, var(--sal));
@@ -139,7 +130,7 @@ body{
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
 .asset-search{
   font-family:var(--sans);
-  font-size:16px; /* 16px prevents iOS zoom */
+  font-size:16px;
   background:var(--bg3);
   border:1px solid var(--border);
   border-radius:8px;
@@ -153,7 +144,7 @@ body{
 .asset-search:focus{border-color:var(--accent);}
 .filter-select{
   font-family:var(--sans);
-  font-size:16px; /* 16px prevents iOS zoom */
+  font-size:16px;
   background:var(--bg3);
   border:1px solid var(--border);
   border-radius:8px;
@@ -178,10 +169,8 @@ body{
 .view-btn{background:none;border:none;color:var(--muted);cursor:pointer;width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:13px;transition:all .12s;touch-action:manipulation;}
 .view-btn.active{background:var(--bg2);color:var(--accent);border:1px solid var(--border);}
 
-/* Main content — lives inside .scroll-area */
 .main{position:relative;z-index:1;padding:16px;max-width:1600px;margin:0 auto;padding-bottom: max(24px, calc(var(--sab) + 16px));}
 
-/* Summary Cards */
 .summary-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
 .sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 12px;position:relative;overflow:hidden;transition:border-color .15s,transform .15s;cursor:pointer;}
 .sum-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
@@ -198,7 +187,6 @@ body{
 .sum-val{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1;color:var(--text);}
 .sum-sub{font-size:9px;color:var(--muted);margin-top:2px;}
 
-/* Asset Grid */
 .asset-grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
 .asset-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .15s,transform .15s,box-shadow .15s;animation:fadeIn .25s ease both;cursor:pointer;position:relative;}
 .asset-card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.3);border-color:var(--accent3);}
@@ -216,7 +204,6 @@ body{
 .asset-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border2);}
 .asset-barcode{font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;align-items:center;gap:4px;}
 
-/* Asset Table */
 .asset-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .asset-table{width:100%;border-collapse:collapse;min-width:600px;}
 .asset-table thead th{padding:10px 12px;font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg3);border-bottom:2px solid var(--border);text-align:left;white-space:nowrap;}
@@ -227,7 +214,6 @@ body{
 .tbl-name{font-weight:500;}
 .tbl-id{font-family:var(--mono);font-size:9px;color:var(--muted);}
 
-/* Badges */
 .type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;border:1px solid;}
 .type-badge.phone{background:var(--phone-bg);color:var(--phone-t);border-color:var(--phone-b);}
 .type-badge.laptop{background:var(--laptop-bg);color:var(--laptop-t);border-color:var(--laptop-b);}
@@ -244,12 +230,6 @@ body{
 .status-badge.retired{background:var(--status-retired-bg);color:var(--status-retired-t);border-color:rgba(122,143,168,.3);}
 .status-badge.lost{background:var(--status-lost-bg);color:var(--status-lost-t);border-color:rgba(239,68,68,.3);}
 
-/* ── Modals ── */
-/* 
-  Key fix: modals are fixed-position overlays that do NOT affect document flow.
-  On mobile they slide up from the bottom. The modal itself scrolls internally.
-  We prevent the background from shifting by never changing body overflow.
-*/
 .modal-overlay{
   display:none;
   position:fixed;
@@ -260,7 +240,6 @@ body{
   align-items:flex-end;
   justify-content:center;
   padding:0;
-  /* Prevent the overlay from causing layout shifts */
   contain: strict;
 }
 .modal-overlay.show{display:flex;}
@@ -273,12 +252,11 @@ body{
   border-bottom-right-radius:0;
   width:100%;
   max-width:100%;
-  /* Use dvh so modal doesn't go behind keyboard */
   max-height:90dvh;
   max-height:90vh;
   display:flex;
   flex-direction:column;
-  overflow:hidden; /* children scroll, not the modal itself */
+  overflow:hidden;
   animation:slideUp .22s cubic-bezier(.34,1.2,.64,1);
 }
 .modal-body-scroll {
@@ -306,7 +284,6 @@ body{
 .modal-body{padding:18px;}
 .modal-footer{
   padding:14px 18px;
-  /* Safe area padding so buttons aren't hidden behind home bar */
   padding-bottom: max(14px, calc(var(--sab) + 6px));
   border-top:1px solid var(--border);
   display:flex;
@@ -316,14 +293,13 @@ body{
   flex-shrink:0;
 }
 
-/* Form */
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .form-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
 .form-required{color:var(--red);}
 .form-input,.form-select,.form-textarea{
   font-family:var(--sans);
-  font-size:16px; /* CRITICAL: 16px prevents iOS auto-zoom on focus */
+  font-size:16px;
   background:var(--input-bg);
   border:1px solid var(--border);
   border-radius:8px;
@@ -349,7 +325,6 @@ body{
 .form-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border2);margin-top:4px;}
 .form-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--red);}
 
-/* Custom Fields */
 .custom-fields-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
 .custom-field-row{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;}
 .custom-field-key{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;min-width:100px;}
@@ -366,11 +341,10 @@ body{
   overflow:hidden;
   position:relative;
   margin-bottom:14px;
-  /* Fixed height is more stable than aspect-ratio on mobile */
   height: 260px;
   width:100%;
 }
-#scannerVideo{width:100%;height:100%;object-fit:cover;display:block;}
+#scannerVideo{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;}
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 .scanner-frame{
   width:70%;
@@ -388,12 +362,11 @@ body{
 .scanner-corner-br{position:absolute;bottom:-2px;left:-2px;width:18px;height:18px;border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);}
 .scanner-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scan 2s linear infinite;}
 @keyframes scan{0%{top:10%;}100%{top:90%;}}
-.scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:13px;gap:8px;background:#000;border-radius:12px;}
+.scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:13px;gap:8px;background:#000;border-radius:12px;z-index:2;}
 .scanner-placeholder-icon{font-size:36px;opacity:.5;}
 .manual-barcode-input{display:flex;gap:8px;align-items:center;}
-.scan-success{position:absolute;inset:0;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:12px;}
+.scan-success{position:absolute;inset:0;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:12px;z-index:3;}
 
-/* Detail Modal */
 .detail-section{margin-bottom:18px;}
 .detail-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border2);}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -411,7 +384,6 @@ body{
 .history-date{font-family:var(--mono);font-size:9.5px;color:var(--muted);min-width:95px;}
 .barcode-display{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.15em;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center;word-break:break-all;}
 
-/* Loading & Toast */
 .loading-overlay{position:fixed;inset:0;background:rgba(10,22,40,.88);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:900;}
 .loading-overlay.hidden{display:none;}
 .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 12px;}
@@ -420,7 +392,6 @@ body{
 
 #toast{
   position:fixed;
-  /* Pin to bottom, above home bar */
   bottom: max(24px, calc(var(--sab) + 16px));
   left:50%;
   transform:translateX(-50%) translateY(80px);
@@ -441,19 +412,15 @@ body{
 }
 #toast.show{transform:translateX(-50%) translateY(0);}
 
-/* Empty state */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--muted);text-align:center;gap:10px;}
 .empty-icon{font-size:44px;opacity:.35;}
 .empty-text{font-size:13px;}
 
-/* Delete confirm */
 .delete-confirm{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:14px;text-align:center;margin-bottom:16px;}
 
-/* Scanner status text */
 #scannerStatus {font-size:11.5px;color:var(--muted);margin-bottom:10px;text-align:center;}
 .scanner-hint {font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;}
 
-/* Desktop overrides */
 @media(min-width:640px){
   .modal-overlay{align-items:center;padding:16px;}
   .modal{
@@ -490,7 +457,6 @@ body{
   <div><div class="spinner"></div><div class="loading-text" id="loadingText">Loading asset database…</div></div>
 </div>
 
-<!-- App shell: fixed header + scrollable body -->
 <div class="app-shell">
 
   <header class="header">
@@ -546,7 +512,6 @@ body{
     </div>
   </div>
 
-  <!-- Scrollable content area -->
   <div class="scroll-area">
     <div class="main">
       <div class="summary-strip" id="summaryStrip"></div>
@@ -554,7 +519,7 @@ body{
     </div>
   </div>
 
-</div><!-- /app-shell -->
+</div>
 
 <!-- Add / Edit Asset Modal -->
 <div class="modal-overlay" id="addAssetModal">
@@ -674,9 +639,9 @@ body{
         <div class="scanner-area" id="scannerArea">
           <div class="scanner-placeholder" id="scannerPlaceholder">
             <span class="scanner-placeholder-icon">📷</span>
-            <span id="scannerPlaceholderText">Tap to start camera…</span>
+            <span id="scannerPlaceholderText">Starting camera…</span>
           </div>
-          <video id="scannerVideo" autoplay muted playsinline style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"></video>
+          <video id="scannerVideo" autoplay muted playsinline></video>
           <div class="scanner-overlay" id="scannerOverlayEl" style="display:none;">
             <div class="scanner-frame">
               <div class="scanner-corner-tl"></div>
@@ -686,7 +651,7 @@ body{
           </div>
           <div id="scanSuccessOverlay" class="scan-success" style="display:none;">✅</div>
         </div>
-        <p id="scannerStatus">Initialising camera…</p>
+        <p id="scannerStatus">Ready</p>
         <p class="scanner-hint">Or enter manually:</p>
         <div class="manual-barcode-input">
           <input class="form-input" type="text" id="manualBarcodeInput" placeholder="Type or paste barcode…" autocomplete="off" inputmode="text">
@@ -741,7 +706,7 @@ body{
 
 <div id="toast"></div>
 
-<!-- ZXing barcode library — much better cross-browser support than BarcodeDetector -->
+<!-- ZXing barcode library -->
 <script src="https://unpkg.com/@zxing/browser@0.1.4/umd/index.min.js"></script>
 
 <script type="module">
@@ -763,7 +728,8 @@ const COLLECTION = 'Asset Tracker';
 let assets = [];
 let searchQ='',filterType='',filterStatus='',viewMode='grid';
 let editingId=null,pendingDeleteId=null,customFields=[];
-let scannerCallbackTarget=null,zxingReader=null,scannerActive=false;
+let scannerCallbackTarget=null;
+let activeZxingReader=null; // holds the live BrowserMultiFormatReader instance
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -907,7 +873,6 @@ function openAddAsset(){
   $('addFormError').style.display='none';
   renderTypeFields();renderCustomFieldsList();
   $('addAssetModal').classList.add('show');
-  // Delay focus so iOS doesn't resize before modal is visible
   setTimeout(()=>$('addName').focus(),400);
 }
 
@@ -1016,162 +981,155 @@ async function confirmDelete(){
   catch(e){console.error(e);toast('Error deleting',true);}
 }
 
-// ── Barcode Scanner (ZXing) ───────────────────────────────────────────────
+// ── Barcode Scanner ───────────────────────────────────────────────────────
 /*
-  ZXing-browser handles: QR, Code128, Code39, EAN-13, EAN-8, UPC-A, UPC-E,
-  ITF, Codabar, DataMatrix, Aztec, PDF417, RSS-14 — far more reliable
-  than the native BarcodeDetector API which is Chrome/Android only.
+  FIX: The original code used a custom frame-by-frame decode loop that
+  referenced ZXingBrowser.BarcodeFormat, ZXingBrowser.DecodeHintType etc.
+  These come from @zxing/library (a peer dependency), not @zxing/browser,
+  so they are undefined in the UMD bundle from unpkg.
+
+  The correct approach is to use the high-level API:
+    new ZXingBrowser.BrowserMultiFormatReader()
+    reader.decodeFromVideoDevice(deviceId, videoElement, callback)
+
+  This API handles its own camera stream, decoding loop, and cleanup —
+  no manual getUserMedia, requestAnimationFrame, or canvas needed.
 */
 
-function openScanner(target){
-  scannerCallbackTarget=target;
-  $('manualBarcodeInput').value='';
-  $('scannerStatus').textContent='Initialising camera…';
-  $('scanSuccessOverlay').style.display='none';
-  $('scannerPlaceholder').style.display='flex';
-  $('scannerPlaceholderText').textContent='Starting camera…';
-  $('scannerVideo').style.display='none';
-  $('scannerOverlayEl').style.display='none';
+function openScanner(target) {
+  scannerCallbackTarget = target;
+  $('manualBarcodeInput').value = '';
+  $('scanSuccessOverlay').style.display = 'none';
+  $('scannerPlaceholder').style.display = 'flex';
+  $('scannerPlaceholderText').textContent = 'Starting camera…';
+  $('scannerVideo').style.display = 'none';
+  $('scannerOverlayEl').style.display = 'none';
+  $('scannerStatus').textContent = 'Requesting camera access…';
   $('scannerModal').classList.add('show');
-  startZxingScanner();
+
+  // Small delay so modal animation completes before camera starts
+  setTimeout(startScanner, 300);
 }
 
-async function startZxingScanner(){
-  // ZXing is loaded as a UMD global from the script tag
-  if(typeof ZXingBrowser === 'undefined'){
-    $('scannerPlaceholderText').textContent='Scanner library loading…';
-    // Retry after a tick — script may still be loading
-    setTimeout(startZxingScanner, 500);
+async function startScanner() {
+  // Ensure the library has loaded
+  if (typeof ZXingBrowser === 'undefined') {
+    $('scannerStatus').textContent = 'Scanner library not loaded. Use manual entry.';
+    $('scannerPlaceholderText').textContent = 'Library unavailable';
     return;
   }
 
-  const video = $('scannerVideo');
-  const placeholder = $('scannerPlaceholder');
-
   try {
-    // Pick rear camera on mobile
-    const constraints = {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width:  { ideal: 1280 },
-        height: { ideal: 720 },
-      }
-    };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    video.srcObject = stream;
-    video.style.display = 'block';
-    placeholder.style.display = 'none';
-    $('scannerOverlayEl').style.display = 'flex';
-    await video.play().catch(()=>{});
-    $('scannerStatus').textContent = 'Point camera at barcode or QR code…';
-    scannerActive = true;
-    scanFrame(video);
-  } catch(e) {
-    console.warn('Camera error:', e);
-    if(e.name === 'NotAllowedError'){
-      $('scannerPlaceholderText').textContent = 'Camera permission denied — use manual entry below.';
-    } else {
-      $('scannerPlaceholderText').textContent = 'Camera unavailable — use manual entry below.';
-    }
-    $('scannerStatus').textContent = 'Manual entry only';
-  }
-}
+    // Stop any existing reader first
+    await stopScanner();
 
-// Use ZXing to decode from the video element frame-by-frame
-let animFrame = null;
-let zxingHint = null;
+    const videoEl = $('scannerVideo');
+    const reader = new ZXingBrowser.BrowserMultiFormatReader();
+    activeZxingReader = reader;
 
-function getZxingReader(){
-  if(zxingReader) return zxingReader;
-  // Support as many formats as possible
-  const hints = new Map();
-  const formats = [
-    ZXingBrowser.BarcodeFormat.QR_CODE,
-    ZXingBrowser.BarcodeFormat.CODE_128,
-    ZXingBrowser.BarcodeFormat.CODE_39,
-    ZXingBrowser.BarcodeFormat.EAN_13,
-    ZXingBrowser.BarcodeFormat.EAN_8,
-    ZXingBrowser.BarcodeFormat.UPC_A,
-    ZXingBrowser.BarcodeFormat.UPC_E,
-    ZXingBrowser.BarcodeFormat.ITF,
-    ZXingBrowser.BarcodeFormat.CODABAR,
-    ZXingBrowser.BarcodeFormat.DATA_MATRIX,
-    ZXingBrowser.BarcodeFormat.PDF_417,
-    ZXingBrowser.BarcodeFormat.AZTEC,
-  ].filter(Boolean); // filter in case some formats aren't available in this build
-  if(formats.length) hints.set(ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS, formats);
-  hints.set(ZXingBrowser.DecodeHintType.TRY_HARDER, true);
-  zxingReader = new ZXingBrowser.BrowserMultiFormatReader(hints);
-  return zxingReader;
-}
-
-function scanFrame(video){
-  if(!scannerActive) return;
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d', {willReadFrequently: true});
-
-  const tick = () => {
-    if(!scannerActive) return;
-    if(video.readyState < 2 || video.videoWidth === 0){
-      animFrame = requestAnimationFrame(tick);
-      return;
-    }
-    canvas.width  = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-
+    // List cameras and prefer the rear-facing one
+    let deviceId = undefined; // undefined = ZXing picks the default
     try {
-      const reader = getZxingReader();
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      // ZXing expects a LuminanceSource — use the BrowserMultiFormatReader's decode helper
-      const luminance = new ZXingBrowser.HTMLCanvasElementLuminanceSource(canvas);
-      const binaryBitmap = new ZXingBrowser.BinaryBitmap(new ZXingBrowser.HybridBinarizer(luminance));
-      const result = reader.decodeBitmap(binaryBitmap);
-      if(result){
-        onBarcodeScanned(result.getText());
-        return;
+      const devices = await ZXingBrowser.BrowserMultiFormatReader.listVideoInputDevices();
+      if (devices && devices.length > 0) {
+        // Prefer a camera whose label contains 'back' or 'rear' (mobile rear camera)
+        const rear = devices.find(d =>
+          /back|rear|environment/i.test(d.label)
+        );
+        deviceId = rear ? rear.deviceId : devices[devices.length - 1].deviceId;
       }
-    } catch(e){
-      // NotFoundException is thrown when no barcode found — totally normal
+    } catch (_) {
+      // listVideoInputDevices may fail on some browsers — fall back to default
     }
-    animFrame = requestAnimationFrame(tick);
-  };
-  animFrame = requestAnimationFrame(tick);
-}
 
-function stopCamera(){
-  scannerActive = false;
-  if(animFrame){ cancelAnimationFrame(animFrame); animFrame = null; }
-  const video = $('scannerVideo');
-  if(video && video.srcObject){
-    video.srcObject.getTracks().forEach(t => t.stop());
-    video.srcObject = null;
+    // Show video element and overlay
+    videoEl.style.display = 'block';
+    $('scannerPlaceholder').style.display = 'none';
+    $('scannerOverlayEl').style.display = 'flex';
+    $('scannerStatus').textContent = 'Point camera at barcode or QR code…';
+
+    // decodeFromVideoDevice streams the camera into videoEl and calls the
+    // callback each time a barcode is found (or on error).
+    reader.decodeFromVideoDevice(deviceId, videoEl, (result, err) => {
+      if (result) {
+        onBarcodeScanned(result.getText());
+      }
+      // err is thrown on every frame where no barcode is found — ignore
+      // NotFoundException; only surface real errors
+      if (err && !(err.name === 'NotFoundException')) {
+        console.warn('ZXing decode error:', err);
+      }
+    });
+
+  } catch (e) {
+    console.error('Scanner start error:', e);
+    $('scannerVideo').style.display = 'none';
+    $('scannerOverlayEl').style.display = 'none';
+    $('scannerPlaceholder').style.display = 'flex';
+
+    if (e.name === 'NotAllowedError' || e.message?.includes('Permission')) {
+      $('scannerPlaceholderText').textContent = 'Camera permission denied.';
+      $('scannerStatus').textContent = 'Use manual entry below ↓';
+    } else if (e.name === 'NotFoundError') {
+      $('scannerPlaceholderText').textContent = 'No camera found.';
+      $('scannerStatus').textContent = 'Use manual entry below ↓';
+    } else {
+      $('scannerPlaceholderText').textContent = 'Camera unavailable.';
+      $('scannerStatus').textContent = `Error: ${e.message || e.name}. Use manual entry ↓`;
+    }
   }
-  if(video) video.style.display = 'none';
-  const overlay = $('scannerOverlayEl');
-  if(overlay) overlay.style.display = 'none';
 }
 
-function closeScanner(){
-  stopCamera();
+async function stopScanner() {
+  if (activeZxingReader) {
+    try {
+      activeZxingReader.reset(); // stops stream + decode loop
+    } catch (_) {}
+    activeZxingReader = null;
+  }
+  // Belt-and-braces: also stop any tracks on the video element directly
+  const videoEl = $('scannerVideo');
+  if (videoEl && videoEl.srcObject) {
+    videoEl.srcObject.getTracks().forEach(t => t.stop());
+    videoEl.srcObject = null;
+  }
+}
+
+function closeScanner() {
+  stopScanner();
   $('scannerModal').classList.remove('show');
+  $('scannerVideo').style.display = 'none';
+  $('scannerOverlayEl').style.display = 'none';
+  $('scannerPlaceholder').style.display = 'flex';
 }
 
-function onBarcodeScanned(code){
-  if(!code || !scannerActive) return;
-  scannerActive = false;
-  if(animFrame){ cancelAnimationFrame(animFrame); animFrame = null; }
+function onBarcodeScanned(code) {
+  if (!code) return;
+  // Stop scanning immediately so we don't fire multiple times
+  stopScanner();
+
   $('scannerStatus').textContent = `✅ Scanned: ${code}`;
   $('scanSuccessOverlay').style.display = 'flex';
-  if(scannerCallbackTarget === 'inline') $('addBarcode').value = code;
+
+  if (scannerCallbackTarget === 'inline') {
+    $('addBarcode').value = code;
+  }
+
   toast(`Barcode: ${code}`);
-  setTimeout(()=>{ $('scanSuccessOverlay').style.display = 'none'; closeScanner(); }, 800);
+  setTimeout(() => {
+    $('scanSuccessOverlay').style.display = 'none';
+    closeScanner();
+  }, 900);
 }
 
-$('manualBarcodeConfirm').addEventListener('click',()=>{
-  const val=$('manualBarcodeInput').value.trim();if(!val)return;onBarcodeScanned(val);
+$('manualBarcodeConfirm').addEventListener('click', () => {
+  const val = $('manualBarcodeInput').value.trim();
+  if (!val) return;
+  onBarcodeScanned(val);
 });
-$('manualBarcodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('manualBarcodeConfirm').click();});
+$('manualBarcodeInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('manualBarcodeConfirm').click();
+});
 
 // ── Event wiring ──────────────────────────────────────────────────────────
 $('addAssetBtn').onclick=openAddAsset;
