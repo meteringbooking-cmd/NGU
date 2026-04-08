@@ -640,6 +640,9 @@ body{
     <div class="modal-body-scroll">
       <div class="modal-body">
         <div class="scanner-area" id="scannerArea">
+          <!-- Direct video element for BarcodeDetector approach -->
+          <video id="scannerVideo" autoplay muted playsinline style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
+          <!-- Fallback div for html5-qrcode -->
           <div id="scannerReader"></div>
           <div class="scanner-overlay" id="scannerOverlayEl" style="display:none;">
             <div class="scanner-frame">
@@ -732,7 +735,10 @@ let assets = [];
 let searchQ='',filterType='',filterStatus='',viewMode='grid';
 let editingId=null,pendingDeleteId=null,customFields=[];
 let scannerCallbackTarget=null;
-let html5QrcodeInstance=null; // holds the live Html5Qrcode instance
+let html5QrcodeInstance=null; // fallback: html5-qrcode instance
+let scanStream=null;           // primary: MediaStream from getUserMedia
+let scanFrameId=null;          // primary: rAF handle
+let barcodeDetector=null;      // primary: native BarcodeDetector
 let scanHandled=false;         // guard against duplicate decode callbacks
 
 const $=id=>document.getElementById(id);
@@ -1009,75 +1015,101 @@ function openScanner(target) {
   $('scannerPlaceholderText').textContent = 'Starting camera…';
   $('scannerStatus').textContent = 'Requesting camera access…';
   $('scannerModal').classList.add('show');
-
-  scanHandled = false; // reset guard for new scan session
-  // Small delay so modal animation completes before camera starts
+  scanHandled = false;
   setTimeout(startScanner, 350);
 }
 
 async function startScanner() {
-  // Check library loaded
-  if (typeof Html5Qrcode === 'undefined' || window._scannerLibFailed) {
-    $('scannerStatus').textContent = 'Scanner library failed to load — check your internet connection.';
-    $('scannerPlaceholderText').textContent = 'Enter barcode manually below ↓';
-    $('scannerPlaceholder').style.display = 'flex';
-    $('scannerOverlayEl').style.display = 'none';
-    return;
+  await stopScanner();
+  $('scannerPlaceholder').style.display = 'none';
+  $('scannerStatus').textContent = 'Starting camera…';
+
+  // ── Primary: native BarcodeDetector (Chrome / Edge built-in) ──────────────
+  if ('BarcodeDetector' in window) {
+    try {
+      const formats = await BarcodeDetector.getSupportedFormats();
+      barcodeDetector = new BarcodeDetector({ formats });
+
+      scanStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+
+      const videoEl = $('scannerVideo');
+      videoEl.srcObject = scanStream;
+      videoEl.style.display = 'block';
+      await videoEl.play();
+
+      $('scannerOverlayEl').style.display = 'flex';
+      $('scannerStatus').textContent = 'Point camera at barcode…';
+
+      // rAF decode loop — runs every frame
+      async function detectFrame() {
+        if (scanHandled || !scanStream) return;
+        try {
+          const results = await barcodeDetector.detect(videoEl);
+          if (results.length > 0 && !scanHandled) {
+            scanHandled = true;
+            onBarcodeScanned(results[0].rawValue);
+            return;
+          }
+        } catch (_) {}
+        scanFrameId = requestAnimationFrame(detectFrame);
+      }
+      scanFrameId = requestAnimationFrame(detectFrame);
+      return; // success — don't fall through to html5-qrcode
+
+    } catch (e) {
+      console.warn('BarcodeDetector failed, trying fallback:', e);
+      await stopScanner(); // clean up partial state
+      if (e.name === 'NotAllowedError') {
+        $('scannerPlaceholder').style.display = 'flex';
+        $('scannerPlaceholderText').textContent = 'Camera permission denied';
+        $('scannerStatus').textContent = 'Allow camera access and try again, or enter manually ↓';
+        return;
+      }
+      // Other error — fall through to html5-qrcode fallback below
+    }
   }
 
-  await stopScanner(); // stop any previous session
-
+  // ── Fallback: html5-qrcode library ────────────────────────────────────────
+  if (typeof Html5Qrcode === 'undefined' || window._scannerLibFailed) {
+    $('scannerPlaceholder').style.display = 'flex';
+    $('scannerPlaceholderText').textContent = 'Scanner not supported in this browser';
+    $('scannerStatus').textContent = 'Use manual entry below ↓';
+    return;
+  }
   try {
-    // Hide placeholder while camera starts
-    $('scannerPlaceholder').style.display = 'none';
-    $('scannerStatus').textContent = 'Starting camera…';
-
     html5QrcodeInstance = new Html5Qrcode('scannerReader');
-
     await html5QrcodeInstance.start(
-      { facingMode: 'environment' }, // prefer rear/environment camera
-      {
-        fps: 10,
-        // NO qrbox — scan the entire camera frame so the user doesn't
-        // have to position the barcode in an exact tiny region
-        disableFlip: false
-      },
+      { facingMode: 'environment' },
+      { fps: 10, disableFlip: false },
       (decodedText) => {
-        // Success callback fires on every matching frame — use guard to fire once
-        if (!scanHandled) {
-          scanHandled = true;
-          onBarcodeScanned(decodedText);
-        }
+        if (!scanHandled) { scanHandled = true; onBarcodeScanned(decodedText); }
       },
-      () => {
-        // Per-frame error (no barcode found) — ignore silently
-      }
+      () => {}
     );
-
-    // Camera is live
     $('scannerOverlayEl').style.display = 'flex';
     $('scannerStatus').textContent = 'Point camera at barcode…';
-
   } catch (e) {
-    console.error('Scanner start error:', e);
+    console.error('html5-qrcode fallback failed:', e);
     $('scannerPlaceholder').style.display = 'flex';
-    $('scannerOverlayEl').style.display = 'none';
+    $('scannerPlaceholderText').textContent = 'Camera unavailable';
+    $('scannerStatus').textContent = `${e.message || e.name || 'Error'} — use manual entry ↓`;
     html5QrcodeInstance = null;
-
-    if (e.name === 'NotAllowedError' || String(e).includes('ermission')) {
-      $('scannerPlaceholderText').textContent = 'Camera permission denied';
-      $('scannerStatus').textContent = 'Please allow camera access and try again, or enter barcode manually ↓';
-    } else if (e.name === 'NotFoundError' || String(e).includes('device')) {
-      $('scannerPlaceholderText').textContent = 'No camera found';
-      $('scannerStatus').textContent = 'Use manual entry below ↓';
-    } else {
-      $('scannerPlaceholderText').textContent = 'Camera unavailable';
-      $('scannerStatus').textContent = `${e.message || e.name || 'Unknown error'} — use manual entry ↓`;
-    }
   }
 }
 
 async function stopScanner() {
+  // Stop native BarcodeDetector scan loop
+  if (scanFrameId) { cancelAnimationFrame(scanFrameId); scanFrameId = null; }
+  barcodeDetector = null;
+  if (scanStream) {
+    scanStream.getTracks().forEach(t => t.stop());
+    scanStream = null;
+  }
+  const videoEl = $('scannerVideo');
+  if (videoEl) { videoEl.srcObject = null; videoEl.style.display = 'none'; }
+  // Stop html5-qrcode fallback
   if (html5QrcodeInstance) {
     try { await html5QrcodeInstance.stop(); } catch (_) {}
     try { html5QrcodeInstance.clear(); } catch (_) {}
@@ -1091,7 +1123,8 @@ function closeScanner() {
   $('scannerOverlayEl').style.display = 'none';
   $('scannerPlaceholder').style.display = 'flex';
   $('scannerPlaceholderText').textContent = 'Starting camera…';
-  // Clear the reader div so html5-qrcode doesn't leave stale DOM
+  $('scanSuccessOverlay').style.display = 'none';
+  // Clear fallback div so html5-qrcode doesn't leave stale DOM
   const rd = $('scannerReader'); if (rd) rd.innerHTML = '';
 }
 
