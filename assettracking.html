@@ -344,10 +344,11 @@ body{
   height: 280px;
   width:100%;
 }
-/* html5-qrcode renders its video into this div */
-#scannerReader{position:absolute;inset:0;width:100%;height:100%;}
-#scannerReader video{width:100%!important;height:100%!important;object-fit:cover!important;display:block;}
-#scannerReader img{display:none!important;}/* hide any internal html5-qrcode images */
+/* Quagga2 renders its own video + canvas into this div */
+#scannerReader{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;}
+#scannerReader video{width:100%!important;height:100%!important;object-fit:cover!important;display:block;position:absolute;top:0;left:0;}
+#scannerReader canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+#scannerReader canvas.drawingBuffer{opacity:0!important;}/* hide Quagga debug canvas */
 .scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;}
 .scanner-frame{
   width:70%;
@@ -712,8 +713,8 @@ body{
 
 <div id="toast"></div>
 
-<!-- html5-qrcode: reliable barcode + QR scanner library -->
-<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" onerror="window._scannerLibFailed=true"></script>
+<!-- Quagga2: 1D barcode scanner (Code128, Code39, EAN, UPC, etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js" onerror="window._scannerLibFailed=true"></script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -735,11 +736,10 @@ let assets = [];
 let searchQ='',filterType='',filterStatus='',viewMode='grid';
 let editingId=null,pendingDeleteId=null,customFields=[];
 let scannerCallbackTarget=null;
-let html5QrcodeInstance=null; // fallback: html5-qrcode instance
-let scanStream=null;           // primary: MediaStream from getUserMedia
-let scanFrameId=null;          // primary: rAF handle
-let barcodeDetector=null;      // primary: native BarcodeDetector
-let scanHandled=false;         // guard against duplicate decode callbacks
+let quaggaRunning=false;       // true while Quagga2 is active
+let bdFrameId=null;            // rAF handle for parallel BarcodeDetector loop
+let scanStream=null;           // kept so stopScanner can kill tracks if needed
+let scanHandled=false;         // guard: only fire onBarcodeScanned once per session
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1024,97 +1024,116 @@ async function startScanner() {
   $('scannerPlaceholder').style.display = 'none';
   $('scannerStatus').textContent = 'Starting camera…';
 
-  // ── Primary: native BarcodeDetector (Chrome / Edge built-in) ──────────────
-  if ('BarcodeDetector' in window) {
-    try {
-      const formats = await BarcodeDetector.getSupportedFormats();
-      barcodeDetector = new BarcodeDetector({ formats });
-
-      scanStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
-
-      const videoEl = $('scannerVideo');
-      videoEl.srcObject = scanStream;
-      videoEl.style.display = 'block';
-      await videoEl.play();
-
-      $('scannerOverlayEl').style.display = 'flex';
-      $('scannerStatus').textContent = 'Point camera at barcode…';
-
-      // rAF decode loop — runs every frame
-      async function detectFrame() {
-        if (scanHandled || !scanStream) return;
-        try {
-          const results = await barcodeDetector.detect(videoEl);
-          if (results.length > 0 && !scanHandled) {
-            scanHandled = true;
-            onBarcodeScanned(results[0].rawValue);
-            return;
-          }
-        } catch (_) {}
-        scanFrameId = requestAnimationFrame(detectFrame);
-      }
-      scanFrameId = requestAnimationFrame(detectFrame);
-      return; // success — don't fall through to html5-qrcode
-
-    } catch (e) {
-      console.warn('BarcodeDetector failed, trying fallback:', e);
-      await stopScanner(); // clean up partial state
-      if (e.name === 'NotAllowedError') {
-        $('scannerPlaceholder').style.display = 'flex';
-        $('scannerPlaceholderText').textContent = 'Camera permission denied';
-        $('scannerStatus').textContent = 'Allow camera access and try again, or enter manually ↓';
-        return;
-      }
-      // Other error — fall through to html5-qrcode fallback below
-    }
-  }
-
-  // ── Fallback: html5-qrcode library ────────────────────────────────────────
-  if (typeof Html5Qrcode === 'undefined' || window._scannerLibFailed) {
+  if (typeof Quagga === 'undefined' || window._scannerLibFailed) {
     $('scannerPlaceholder').style.display = 'flex';
-    $('scannerPlaceholderText').textContent = 'Scanner not supported in this browser';
-    $('scannerStatus').textContent = 'Use manual entry below ↓';
+    $('scannerPlaceholderText').textContent = 'Scanner library not loaded';
+    $('scannerStatus').textContent = 'Check internet connection, or enter barcode manually ↓';
     return;
   }
-  try {
-    html5QrcodeInstance = new Html5Qrcode('scannerReader');
-    await html5QrcodeInstance.start(
-      { facingMode: 'environment' },
-      { fps: 10, disableFlip: false },
-      (decodedText) => {
-        if (!scanHandled) { scanHandled = true; onBarcodeScanned(decodedText); }
+
+  await new Promise((resolve) => {
+    Quagga.init({
+      inputStream: {
+        type: 'LiveStream',
+        target: $('scannerReader'),
+        constraints: {
+          facingMode: { ideal: 'environment' },
+          width:  { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        area: { top: '0%', right: '0%', left: '0%', bottom: '0%' } // scan full frame
       },
-      () => {}
-    );
-    $('scannerOverlayEl').style.display = 'flex';
-    $('scannerStatus').textContent = 'Point camera at barcode…';
-  } catch (e) {
-    console.error('html5-qrcode fallback failed:', e);
-    $('scannerPlaceholder').style.display = 'flex';
-    $('scannerPlaceholderText').textContent = 'Camera unavailable';
-    $('scannerStatus').textContent = `${e.message || e.name || 'Error'} — use manual entry ↓`;
-    html5QrcodeInstance = null;
-  }
+      locator:    { patchSize: 'medium', halfSample: true },
+      numOfWorkers: 2,
+      frequency:  10, // attempts per second
+      decoder: {
+        readers: [
+          'code_128_reader',
+          'ean_reader',
+          'ean_8_reader',
+          'code_39_reader',
+          'codabar_reader',
+          'upc_reader',
+          'upc_e_reader',
+          'code_93_reader'
+        ]
+      },
+      locate: true
+    }, (err) => {
+      if (err) {
+        console.error('Quagga init error:', err);
+        $('scannerPlaceholder').style.display = 'flex';
+        const msg = String(err?.message || err || '');
+        if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('allowed')) {
+          $('scannerPlaceholderText').textContent = 'Camera permission denied';
+          $('scannerStatus').textContent = 'Allow camera access and try again, or enter manually ↓';
+        } else if (msg.toLowerCase().includes('found') || msg.toLowerCase().includes('device')) {
+          $('scannerPlaceholderText').textContent = 'No camera found';
+          $('scannerStatus').textContent = 'Use manual entry below ↓';
+        } else {
+          $('scannerPlaceholderText').textContent = 'Camera unavailable';
+          $('scannerStatus').textContent = `${msg || 'Error'} — use manual entry ↓`;
+        }
+      } else {
+        Quagga.start();
+        quaggaRunning = true;
+
+        // Callback fires when Quagga detects a 1D barcode
+        Quagga.onDetected((result) => {
+          const code = result?.codeResult?.code;
+          if (code && code.trim() && !scanHandled) {
+            scanHandled = true;
+            onBarcodeScanned(code.trim());
+          }
+        });
+
+        $('scannerOverlayEl').style.display = 'flex';
+        $('scannerStatus').textContent = 'Point camera at barcode… hold steady';
+
+        // ── Also run BarcodeDetector in parallel for QR code support ──
+        if ('BarcodeDetector' in window) {
+          (async () => {
+            try {
+              const formats = await BarcodeDetector.getSupportedFormats();
+              const bd = new BarcodeDetector({ formats });
+              async function bdLoop() {
+                if (scanHandled || !quaggaRunning) return;
+                const videoEl = $('scannerReader')?.querySelector('video');
+                if (videoEl && videoEl.readyState >= 2) {
+                  try {
+                    const results = await bd.detect(videoEl);
+                    if (results.length > 0 && !scanHandled) {
+                      scanHandled = true;
+                      onBarcodeScanned(results[0].rawValue);
+                      return;
+                    }
+                  } catch (_) {}
+                }
+                bdFrameId = requestAnimationFrame(bdLoop);
+              }
+              bdFrameId = requestAnimationFrame(bdLoop);
+            } catch (_) {}
+          })();
+        }
+      }
+      resolve();
+    });
+  });
 }
 
 async function stopScanner() {
-  // Stop native BarcodeDetector scan loop
-  if (scanFrameId) { cancelAnimationFrame(scanFrameId); scanFrameId = null; }
-  barcodeDetector = null;
-  if (scanStream) {
-    scanStream.getTracks().forEach(t => t.stop());
-    scanStream = null;
+  // Stop BarcodeDetector parallel loop
+  if (bdFrameId) { cancelAnimationFrame(bdFrameId); bdFrameId = null; }
+  // Stop Quagga2
+  if (quaggaRunning) {
+    try { Quagga.offDetected(); } catch (_) {}
+    try { Quagga.stop(); } catch (_) {}
+    quaggaRunning = false;
   }
+  // Belt-and-braces: kill any lingering camera tracks
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   const videoEl = $('scannerVideo');
   if (videoEl) { videoEl.srcObject = null; videoEl.style.display = 'none'; }
-  // Stop html5-qrcode fallback
-  if (html5QrcodeInstance) {
-    try { await html5QrcodeInstance.stop(); } catch (_) {}
-    try { html5QrcodeInstance.clear(); } catch (_) {}
-    html5QrcodeInstance = null;
-  }
 }
 
 function closeScanner() {
@@ -1124,7 +1143,7 @@ function closeScanner() {
   $('scannerPlaceholder').style.display = 'flex';
   $('scannerPlaceholderText').textContent = 'Starting camera…';
   $('scanSuccessOverlay').style.display = 'none';
-  // Clear fallback div so html5-qrcode doesn't leave stale DOM
+  // Clear Quagga's DOM from the reader div
   const rd = $('scannerReader'); if (rd) rd.innerHTML = '';
 }
 
