@@ -341,11 +341,14 @@ body{
   overflow:hidden;
   position:relative;
   margin-bottom:14px;
-  height: 260px;
+  height: 280px;
   width:100%;
 }
-#scannerVideo{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;}
-.scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+/* html5-qrcode renders its video into this div */
+#scannerReader{position:absolute;inset:0;width:100%;height:100%;}
+#scannerReader video{width:100%!important;height:100%!important;object-fit:cover!important;display:block;}
+#scannerReader img{display:none!important;}/* hide any internal html5-qrcode images */
+.scanner-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;}
 .scanner-frame{
   width:70%;
   max-width:260px;
@@ -362,10 +365,10 @@ body{
 .scanner-corner-br{position:absolute;bottom:-2px;left:-2px;width:18px;height:18px;border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);}
 .scanner-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scan 2s linear infinite;}
 @keyframes scan{0%{top:10%;}100%{top:90%;}}
-.scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:13px;gap:8px;background:#000;border-radius:12px;z-index:2;}
+.scanner-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:13px;gap:8px;background:#111;border-radius:12px;z-index:5;}
 .scanner-placeholder-icon{font-size:36px;opacity:.5;}
 .manual-barcode-input{display:flex;gap:8px;align-items:center;}
-.scan-success{position:absolute;inset:0;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:12px;z-index:3;}
+.scan-success{position:absolute;inset:0;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:12px;z-index:6;}
 
 .detail-section{margin-bottom:18px;}
 .detail-section-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border2);}
@@ -637,17 +640,17 @@ body{
     <div class="modal-body-scroll">
       <div class="modal-body">
         <div class="scanner-area" id="scannerArea">
-          <div class="scanner-placeholder" id="scannerPlaceholder">
-            <span class="scanner-placeholder-icon">📷</span>
-            <span id="scannerPlaceholderText">Starting camera…</span>
-          </div>
-          <video id="scannerVideo" autoplay muted playsinline></video>
+          <div id="scannerReader"></div>
           <div class="scanner-overlay" id="scannerOverlayEl" style="display:none;">
             <div class="scanner-frame">
               <div class="scanner-corner-tl"></div>
               <div class="scanner-corner-br"></div>
               <div class="scanner-line"></div>
             </div>
+          </div>
+          <div class="scanner-placeholder" id="scannerPlaceholder">
+            <span class="scanner-placeholder-icon">📷</span>
+            <span id="scannerPlaceholderText">Starting camera…</span>
           </div>
           <div id="scanSuccessOverlay" class="scan-success" style="display:none;">✅</div>
         </div>
@@ -706,8 +709,8 @@ body{
 
 <div id="toast"></div>
 
-<!-- ZXing barcode library (CDN with onerror fallback) -->
-<script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.4/umd/index.min.js" onerror="window._zxingFailed=true"></script>
+<!-- html5-qrcode: reliable barcode + QR scanner library -->
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" onerror="window._scannerLibFailed=true"></script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -729,7 +732,7 @@ let assets = [];
 let searchQ='',filterType='',filterStatus='',viewMode='grid';
 let editingId=null,pendingDeleteId=null,customFields=[];
 let scannerCallbackTarget=null;
-let activeZxingReader=null; // holds the live BrowserMultiFormatReader instance
+let html5QrcodeInstance=null; // holds the live Html5Qrcode instance
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1000,110 +1003,91 @@ function openScanner(target) {
   scannerCallbackTarget = target;
   $('manualBarcodeInput').value = '';
   $('scanSuccessOverlay').style.display = 'none';
+  $('scannerOverlayEl').style.display = 'none';
   $('scannerPlaceholder').style.display = 'flex';
   $('scannerPlaceholderText').textContent = 'Starting camera…';
-  $('scannerVideo').style.display = 'none';
-  $('scannerOverlayEl').style.display = 'none';
   $('scannerStatus').textContent = 'Requesting camera access…';
   $('scannerModal').classList.add('show');
 
   // Small delay so modal animation completes before camera starts
-  setTimeout(startScanner, 300);
+  setTimeout(startScanner, 350);
 }
 
 async function startScanner() {
-  // Ensure the library has loaded — check both the global and the error flag
-  if (typeof ZXingBrowser === 'undefined' || window._zxingFailed) {
-    $('scannerStatus').textContent = 'Scanner library failed to load. Use manual entry below ↓';
-    $('scannerPlaceholderText').textContent = 'Enter barcode manually';
-    $('scannerVideo').style.display = 'none';
-    $('scannerOverlayEl').style.display = 'none';
+  // Check library loaded
+  if (typeof Html5Qrcode === 'undefined' || window._scannerLibFailed) {
+    $('scannerStatus').textContent = 'Scanner library failed to load — check your internet connection.';
+    $('scannerPlaceholderText').textContent = 'Enter barcode manually below ↓';
     $('scannerPlaceholder').style.display = 'flex';
+    $('scannerOverlayEl').style.display = 'none';
     return;
   }
 
+  await stopScanner(); // stop any previous session
+
   try {
-    // Stop any existing reader first
-    await stopScanner();
-
-    const videoEl = $('scannerVideo');
-    const reader = new ZXingBrowser.BrowserMultiFormatReader();
-    activeZxingReader = reader;
-
-    // List cameras and prefer the rear-facing one
-    let deviceId = undefined; // undefined = ZXing picks the default
-    try {
-      const devices = await ZXingBrowser.BrowserMultiFormatReader.listVideoInputDevices();
-      if (devices && devices.length > 0) {
-        // Prefer a camera whose label contains 'back' or 'rear' (mobile rear camera)
-        const rear = devices.find(d =>
-          /back|rear|environment/i.test(d.label)
-        );
-        deviceId = rear ? rear.deviceId : devices[devices.length - 1].deviceId;
-      }
-    } catch (_) {
-      // listVideoInputDevices may fail on some browsers — fall back to default
-    }
-
-    // Show video element and overlay
-    videoEl.style.display = 'block';
+    // Hide placeholder while camera starts
     $('scannerPlaceholder').style.display = 'none';
-    $('scannerOverlayEl').style.display = 'flex';
-    $('scannerStatus').textContent = 'Point camera at barcode or QR code…';
+    $('scannerStatus').textContent = 'Starting camera…';
 
-    // decodeFromVideoDevice streams the camera into videoEl and calls the
-    // callback each time a barcode is found (or on error).
-    reader.decodeFromVideoDevice(deviceId, videoEl, (result, err) => {
-      if (result) {
-        onBarcodeScanned(result.getText());
+    html5QrcodeInstance = new Html5Qrcode('scannerReader');
+
+    await html5QrcodeInstance.start(
+      { facingMode: 'environment' }, // prefer rear camera
+      {
+        fps: 15,
+        qrbox: { width: 250, height: 100 }, // wide box suits 1-D barcodes
+        aspectRatio: 1.5,
+        disableFlip: false
+      },
+      (decodedText) => {
+        // Success callback — called once per detected barcode
+        onBarcodeScanned(decodedText);
+      },
+      () => {
+        // Error callback fires on every frame with no barcode — ignore silently
       }
-      // err is thrown on every frame where no barcode is found — ignore
-      // NotFoundException; only surface real errors
-      if (err && !(err.name === 'NotFoundException')) {
-        console.warn('ZXing decode error:', err);
-      }
-    });
+    );
+
+    // Camera is live
+    $('scannerOverlayEl').style.display = 'flex';
+    $('scannerStatus').textContent = 'Point camera at barcode…';
 
   } catch (e) {
     console.error('Scanner start error:', e);
-    $('scannerVideo').style.display = 'none';
-    $('scannerOverlayEl').style.display = 'none';
     $('scannerPlaceholder').style.display = 'flex';
+    $('scannerOverlayEl').style.display = 'none';
+    html5QrcodeInstance = null;
 
-    if (e.name === 'NotAllowedError' || e.message?.includes('Permission')) {
-      $('scannerPlaceholderText').textContent = 'Camera permission denied.';
-      $('scannerStatus').textContent = 'Use manual entry below ↓';
-    } else if (e.name === 'NotFoundError') {
-      $('scannerPlaceholderText').textContent = 'No camera found.';
+    if (e.name === 'NotAllowedError' || String(e).includes('ermission')) {
+      $('scannerPlaceholderText').textContent = 'Camera permission denied';
+      $('scannerStatus').textContent = 'Please allow camera access and try again, or enter barcode manually ↓';
+    } else if (e.name === 'NotFoundError' || String(e).includes('device')) {
+      $('scannerPlaceholderText').textContent = 'No camera found';
       $('scannerStatus').textContent = 'Use manual entry below ↓';
     } else {
-      $('scannerPlaceholderText').textContent = 'Camera unavailable.';
-      $('scannerStatus').textContent = `Error: ${e.message || e.name}. Use manual entry ↓`;
+      $('scannerPlaceholderText').textContent = 'Camera unavailable';
+      $('scannerStatus').textContent = `${e.message || e.name || 'Unknown error'} — use manual entry ↓`;
     }
   }
 }
 
 async function stopScanner() {
-  if (activeZxingReader) {
-    try {
-      activeZxingReader.reset(); // stops stream + decode loop
-    } catch (_) {}
-    activeZxingReader = null;
-  }
-  // Belt-and-braces: also stop any tracks on the video element directly
-  const videoEl = $('scannerVideo');
-  if (videoEl && videoEl.srcObject) {
-    videoEl.srcObject.getTracks().forEach(t => t.stop());
-    videoEl.srcObject = null;
+  if (html5QrcodeInstance) {
+    try { await html5QrcodeInstance.stop(); } catch (_) {}
+    try { html5QrcodeInstance.clear(); } catch (_) {}
+    html5QrcodeInstance = null;
   }
 }
 
 function closeScanner() {
   stopScanner();
   $('scannerModal').classList.remove('show');
-  $('scannerVideo').style.display = 'none';
   $('scannerOverlayEl').style.display = 'none';
   $('scannerPlaceholder').style.display = 'flex';
+  $('scannerPlaceholderText').textContent = 'Starting camera…';
+  // Clear the reader div so html5-qrcode doesn't leave stale DOM
+  const rd = $('scannerReader'); if (rd) rd.innerHTML = '';
 }
 
 function onBarcodeScanned(code) {
