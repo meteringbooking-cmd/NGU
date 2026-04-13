@@ -87,7 +87,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .yp-bar-actual{background:linear-gradient(90deg,var(--green),#34d399);}
 .yp-bar-actual.warn{background:linear-gradient(90deg,#d97706,var(--amber));}
 .yp-bar-actual.over{background:linear-gradient(90deg,#dc2626,var(--red));}
-.yp-val{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text);width:36px;text-align:right;flex-shrink:0;}
+.yp-val{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text);width:42px;text-align:right;flex-shrink:0;}
 .main{position:relative;z-index:1;padding:20px 24px;max-width:1600px;margin:0 auto;}
 .summary-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
 .sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;transition:border-color .15s,transform .15s;}
@@ -116,7 +116,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .emp-name{font-weight:500;font-size:13px;}
 .emp-id{font-size:9.5px;color:var(--faint);font-family:var(--mono);letter-spacing:.02em;margin-top:1px;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;display:inline-block;cursor:default;}
 [data-theme="light"] .emp-id{color:var(--muted);}
-/* Non-engineer checkbox */
 .non-eng-row{display:flex;align-items:center;gap:5px;margin-top:4px;cursor:pointer;}
 .non-eng-row input[type=checkbox]{width:12px;height:12px;accent-color:var(--amber);cursor:pointer;flex-shrink:0;}
 .non-eng-row-label{font-size:9.5px;color:var(--muted);font-family:var(--mono);cursor:pointer;transition:color .12s;}
@@ -653,7 +652,6 @@ async function saveAllowance(sid,val){
   catch(e){console.error(e);toast('Error saving allowance',true);}
 }
 
-// ── Save non-engineer flag to Firebase ────────────────────────────────────
 async function saveNonEngineer(sid,isNonEng){
   try{await setDoc(doc(db,'Establishment Report',sid),{nonEngineer:isNonEng},{merge:true});}
   catch(e){console.error(e);toast('Error saving non-engineer flag',true);}
@@ -815,7 +813,6 @@ function renderRow(emp,i,isArchived=false){
 
   const fmtAD=d=>d?new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
 
-  // Non-engineer checkbox HTML
   const nonEngHtml = !isArchived
     ? `<label class="non-eng-row" title="Mark as non-engineer — excluded from engineer holiday progress bar">
         <input type="checkbox" id="non-eng-${emp.id}" ${isNonEng?'checked':''}>
@@ -913,7 +910,6 @@ function bindRowEvents(emp,isArchived){
     const ab=document.getElementById(`archive-btn-${emp.id}`);
     if(ab)ab.addEventListener('click',()=>openArchive(emp));
 
-    // Non-engineer checkbox
     const neCb=document.getElementById(`non-eng-${emp.id}`);
     if(neCb){
       neCb.addEventListener('change',(e)=>{
@@ -958,7 +954,11 @@ function updateProgress(sid,stats,allowance){
     <div class="hol-fraction">${stats.holTotal} used · ${rem>=0?rem+' left':Math.abs(rem)+' over'}</div>`;
 }
 
-// ── Year Progress — engineers only, actual up to today ────────────────────
+// ── Year Progress — engineers only ────────────────────────────────────────
+// Expected: what % of total allowance *should* have been taken by today,
+//           based on how far through the year we are (workdays elapsed / total workdays).
+// Actual:   what % of total allowance has actually been taken up to today.
+// Both expressed as a percentage of total engineer allowance, shown to 1dp.
 function renderYearProgress(fil){
   const wrap=$('yearProgressWrap');
   if(!wrap)return;
@@ -972,20 +972,28 @@ function renderYearProgress(fil){
 
   const today=new Date();
   const todayStr=today.toISOString().slice(0,10);
+
+  // The year runs Apr 1 aprilYear → Mar 31 aprilYear+1
+  const yearStartStr=`${aprilYear}-04-01`;
+
   const allYearDates=getAllDatesInRange(aprilYear);
   const allWorkdays=allYearDates.filter(d=>isWorkday(d));
-  const workedToToday=allWorkdays.filter(d=>d<=todayStr);
   const totalWorkdays=allWorkdays.length;
 
-  // Expected: proportional to workdays elapsed, scaled per engineer's allowance
+  // Workdays from Apr 1 up to and including today (capped at year start/end)
+  const workedToToday=allWorkdays.filter(d=>d>=yearStartStr && d<=todayStr);
+
+  // ── Expected: proportional share of each engineer's allowance earned so far
+  // = (workdays elapsed in year / total workdays in year) × individual allowance, summed
   let totalExpected=0;
   engineers.forEach(emp=>{
     const a=allowances[emp.id]??25;
-    totalExpected+=(a/totalWorkdays)*workedToToday.length;
+    totalExpected+=(workedToToday.length/totalWorkdays)*a;
   });
-  const expectedPct=Math.min(100,Math.round((totalExpected/totalAllowance)*100));
+  // As % of total allowance — 1dp
+  const expectedPct=Math.min(100,parseFloat(((totalExpected/totalAllowance)*100).toFixed(1)));
 
-  // Actual: holidays booked up to today only
+  // ── Actual: holidays (full + half) taken from Apr 1 up to today only
   let actualUsed=0;
   engineers.forEach(emp=>{
     const entries=allEntries[emp.id]||{};
@@ -995,17 +1003,23 @@ function renderYearProgress(fil){
       else if(s==='Half day Holiday')actualUsed+=0.5;
     });
   });
-  const actualPct=Math.min(100,Math.round((actualUsed/totalAllowance)*100));
+  // As % of total allowance — 1dp
+  const actualPct=Math.min(100,parseFloat(((actualUsed/totalAllowance)*100).toFixed(1)));
 
-  const isOver=actualPct>expectedPct+5;
-  const isUnder=actualPct<expectedPct-5;
+  // Colour the actual bar: green if roughly on track, amber if under, red if over
+  const diff=actualPct-expectedPct;
+  const isOver=diff>5;
+  const isUnder=diff<-5;
 
   $('ypExpBar').style.width=expectedPct+'%';
   $('ypActBar').style.width=actualPct+'%';
-  $('ypActBar').className='yp-bar yp-bar-actual'+(isOver?' over':isUnder?'':' warn');
-  $('ypExpVal').textContent=expectedPct+'%';
-  $('ypActVal').textContent=actualPct+'%';
-  $('ypExpLabel').title=`~${Math.round(totalExpected)}d expected by today (${workedToToday.length} of ${totalWorkdays} workdays elapsed)`;
+  $('ypActBar').className='yp-bar yp-bar-actual'+(isOver?' over':isUnder?' warn':'');
+
+  // Show 1dp percentages
+  $('ypExpVal').textContent=expectedPct.toFixed(1)+'%';
+  $('ypActVal').textContent=actualPct.toFixed(1)+'%';
+
+  $('ypExpLabel').title=`~${totalExpected.toFixed(1)}d expected by today (${workedToToday.length} of ${totalWorkdays} workdays elapsed)`;
   $('ypActLabel').title=`${actualUsed}d booked by today of ${totalAllowance}d total engineer allowance`;
 
   const ypTitle=$('ypTitle');
