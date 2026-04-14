@@ -65,7 +65,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .theme-btn{width:36px;height:36px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;font-size:16px;transition:all .15s;color:var(--muted);}
 .theme-btn:hover{border-color:var(--accent);}
 .toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border2);background:var(--bg2);position:relative;z-index:1;gap:12px;flex-wrap:wrap;}
-.toolbar-left{display:flex;align-items:center;gap:10px;}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .search-wrap{position:relative;}
 .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
 .staff-search{font-family:var(--sans);font-size:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 12px 7px 30px;outline:none;width:180px;transition:border-color .15s;}
@@ -77,8 +77,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .toolbar-right{display:flex;align-items:center;gap:8px;}
 .count-badge{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:4px 10px;}
 .count-badge span{color:var(--accent);font-weight:600;}
-.year-progress-wrap{display:flex;flex-direction:column;gap:4px;padding:7px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;min-width:290px;}
+.year-progress-wrap{display:flex;flex-direction:column;gap:4px;padding:7px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;min-width:320px;}
 .yp-title{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;}
+.yp-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px;}
+.yp-date-controls{display:flex;align-items:center;gap:5px;}
+.yp-date-label{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.yp-date-input{font-family:var(--mono);font-size:10px;background:var(--bg4);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:2px 6px;outline:none;cursor:pointer;transition:border-color .15s;}
+.yp-date-input:focus{border-color:var(--accent);}
+.yp-today-btn{font-family:var(--mono);font-size:9px;font-weight:600;background:var(--bg4);border:1px solid var(--border);border-radius:5px;color:var(--muted);padding:2px 7px;cursor:pointer;letter-spacing:.04em;transition:all .12s;}
+.yp-today-btn:hover{border-color:var(--accent);color:var(--text);}
 .yp-row{display:flex;align-items:center;gap:8px;}
 .yp-label{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:46px;flex-shrink:0;}
 .yp-bar-outer{flex:1;height:7px;background:var(--faint);border-radius:99px;overflow:hidden;}
@@ -265,7 +272,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
       <button class="yr-btn" id="nextYear">›</button>
     </div>
     <div class="year-progress-wrap" id="yearProgressWrap">
-      <div class="yp-title" id="ypTitle">Engineers · Holiday Progress to Today</div>
+      <div class="yp-header">
+        <div class="yp-title" id="ypTitle">Engineers · Holiday Progress to Today</div>
+        <div class="yp-date-controls">
+          <span class="yp-date-label">Up to</span>
+          <input type="date" class="yp-date-input" id="ypDatePicker">
+          <button class="yp-today-btn" id="ypTodayBtn">Today</button>
+        </div>
+      </div>
       <div class="yp-row">
         <span class="yp-label" id="ypExpLabel">Expected</span>
         <div class="yp-bar-outer"><div class="yp-bar yp-bar-expected" id="ypExpBar"></div></div>
@@ -563,6 +577,15 @@ let archivedOpen=false;
 
 const $=id=>document.getElementById(id);
 
+// Initialise date picker to today
+const todayISO = new Date().toISOString().slice(0,10);
+$('ypDatePicker').value = todayISO;
+$('ypDatePicker').addEventListener('input', () => render());
+$('ypTodayBtn').addEventListener('click', () => {
+  $('ypDatePicker').value = new Date().toISOString().slice(0,10);
+  render();
+});
+
 $('prevYear').onclick=()=>{aprilYear--;updateYearLabel();loadAll();};
 $('nextYear').onclick=()=>{aprilYear++;updateYearLabel();loadAll();};
 $('staffSearch').oninput=e=>{searchQ=e.target.value.trim().toLowerCase();render();};
@@ -615,7 +638,6 @@ async function loadAll(){
     showLoad(true,'Fetching all attendance data…');
     const snap=await getDocs(collection(db,'Establishment Report'));
     staff=[];archived=[];allEntries={};allowances={};nonEngineers=new Set();
-    let entryCount=0;
     snap.forEach(d=>{
       const data=d.data();
       if(data._type==='staff'){
@@ -635,7 +657,6 @@ async function loadAll(){
         if(!sid||!dt)return;
         if(!allEntries[sid])allEntries[sid]={};
         allEntries[sid][dt]={status:data.entryData?.status||data.status||'In',hours:data.entryData?.hours||data.hours||0};
-        entryCount++;
       }
     });
     staff.sort((a,b)=>a.name.localeCompare(b.name));
@@ -954,59 +975,53 @@ function updateProgress(sid,stats,allowance){
     <div class="hol-fraction">${stats.holTotal} used · ${rem>=0?rem+' left':Math.abs(rem)+' over'}</div>`;
 }
 
-// ── Year Progress — engineers only ────────────────────────────────────────
-// Expected: what % of total allowance *should* have been taken by today,
-//           based on how far through the year we are (workdays elapsed / total workdays).
-// Actual:   what % of total allowance has actually been taken up to today.
-// Both expressed as a percentage of total engineer allowance, shown to 1dp.
 function renderYearProgress(fil){
   const wrap=$('yearProgressWrap');
   if(!wrap)return;
 
-  // Engineers only (exclude non-engineers)
   const engineers=fil.filter(emp=>!nonEngineers.has(emp.id));
   const totalAllowance=engineers.reduce((sum,emp)=>sum+(allowances[emp.id]??25),0);
 
   if(!engineers.length||!totalAllowance){wrap.style.display='none';return;}
   wrap.style.display='flex';
 
-  const today=new Date();
-  const todayStr=today.toISOString().slice(0,10);
+  // Use picker value, falling back to today
+  const pickerEl=$('ypDatePicker');
+  const selectedDate=pickerEl?.value||new Date().toISOString().slice(0,10);
+  const todayStr=new Date().toISOString().slice(0,10);
 
-  // The year runs Apr 1 aprilYear → Mar 31 aprilYear+1
   const yearStartStr=`${aprilYear}-04-01`;
+  const yearEndStr=`${aprilYear+1}-03-31`;
+
+  // Cap selected date to the year range
+  const cappedDate=selectedDate<yearStartStr?yearStartStr:selectedDate>yearEndStr?yearEndStr:selectedDate;
 
   const allYearDates=getAllDatesInRange(aprilYear);
   const allWorkdays=allYearDates.filter(d=>isWorkday(d));
   const totalWorkdays=allWorkdays.length;
 
-  // Workdays from Apr 1 up to and including today (capped at year start/end)
-  const workedToToday=allWorkdays.filter(d=>d>=yearStartStr && d<=todayStr);
+  const workedToDate=allWorkdays.filter(d=>d>=yearStartStr && d<=cappedDate);
 
-  // ── Expected: proportional share of each engineer's allowance earned so far
-  // = (workdays elapsed in year / total workdays in year) × individual allowance, summed
+  // Expected: proportional share of each engineer's allowance earned so far
   let totalExpected=0;
   engineers.forEach(emp=>{
     const a=allowances[emp.id]??25;
-    totalExpected+=(workedToToday.length/totalWorkdays)*a;
+    totalExpected+=(workedToDate.length/totalWorkdays)*a;
   });
-  // As % of total allowance — 1dp
   const expectedPct=Math.min(100,parseFloat(((totalExpected/totalAllowance)*100).toFixed(1)));
 
-  // ── Actual: holidays (full + half) taken from Apr 1 up to today only
+  // Actual: holidays taken up to the selected date only
   let actualUsed=0;
   engineers.forEach(emp=>{
     const entries=allEntries[emp.id]||{};
-    workedToToday.forEach(d=>{
+    workedToDate.forEach(d=>{
       const s=getStatus(entries[d]);
       if(s==='Holiday')actualUsed++;
       else if(s==='Half day Holiday')actualUsed+=0.5;
     });
   });
-  // As % of total allowance — 1dp
   const actualPct=Math.min(100,parseFloat(((actualUsed/totalAllowance)*100).toFixed(1)));
 
-  // Colour the actual bar: green if roughly on track, amber if under, red if over
   const diff=actualPct-expectedPct;
   const isOver=diff>5;
   const isUnder=diff<-5;
@@ -1014,16 +1029,15 @@ function renderYearProgress(fil){
   $('ypExpBar').style.width=expectedPct+'%';
   $('ypActBar').style.width=actualPct+'%';
   $('ypActBar').className='yp-bar yp-bar-actual'+(isOver?' over':isUnder?' warn':'');
-
-  // Show 1dp percentages
   $('ypExpVal').textContent=expectedPct.toFixed(1)+'%';
   $('ypActVal').textContent=actualPct.toFixed(1)+'%';
 
-  $('ypExpLabel').title=`~${totalExpected.toFixed(1)}d expected by today (${workedToToday.length} of ${totalWorkdays} workdays elapsed)`;
-  $('ypActLabel').title=`${actualUsed}d booked by today of ${totalAllowance}d total engineer allowance`;
+  $('ypExpLabel').title=`~${totalExpected.toFixed(1)}d expected by ${cappedDate} (${workedToDate.length} of ${totalWorkdays} workdays elapsed)`;
+  $('ypActLabel').title=`${actualUsed}d booked by ${cappedDate} of ${totalAllowance}d total engineer allowance`;
 
+  const isToday=selectedDate===todayStr;
   const ypTitle=$('ypTitle');
-  if(ypTitle)ypTitle.textContent=`Engineers (${engineers.length}) · Holiday Progress to Today`;
+  if(ypTitle)ypTitle.textContent=`Engineers (${engineers.length}) · Progress to ${isToday?'Today':new Date(cappedDate+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}`;
 }
 
 function renderSummary(fil){
