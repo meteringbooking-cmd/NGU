@@ -308,7 +308,18 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const HOURLY_RATE = 19.95192307692308;
+const DEFAULT_HOURLY_RATE = 19.95192307692308;
+
+// Per-person hourly rate overrides (keyed by lowercase full name)
+const HOURLY_RATE_OVERRIDES = {
+  'george chapman':  21.94711538461538,
+  'lukasz holysz':   21.94711538461538,
+};
+
+function getHourlyRate(staffName) {
+  if (!staffName) return DEFAULT_HOURLY_RATE;
+  return HOURLY_RATE_OVERRIDES[staffName.trim().toLowerCase()] ?? DEFAULT_HOURLY_RATE;
+}
 
 const BANK_HOLIDAYS = new Set([
   '2024-01-01','2024-03-29','2024-04-01','2024-05-06','2024-05-27','2024-08-26','2024-12-25','2024-12-26',
@@ -334,7 +345,7 @@ const isWD  = (y,m,d) => { const k=dk(y,m,d); return !isWkd(y,m,d)&&!isBH(k); };
 const days  = (y,m) => new Date(y,m,0).getDate();
 const dname = (y,m,d) => new Date(y,m-1,d).toLocaleDateString('en-GB',{weekday:'short'});
 const gbp   = n => `£${n.toFixed(2)}`;
-const ded   = h => (h||0)*HOURLY_RATE;
+const ded   = (h, staffName) => (h||0) * getHourlyRate(staffName);
 
 function nameSlug(name) {
   return name.trim().toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
@@ -349,12 +360,14 @@ function getE(sid, dt) {
 function staffTotal(sid) {
   if (nonEngineers.has(sid)) return 0;
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
+  const emp = staff.find(s => s.id === sid);
+  const staffName = emp ? emp.name : '';
   let t = 0;
   Object.keys(entries[sid]||{}).forEach(dt => {
     if (!dt.startsWith(pfx)) return;
     const e = getE(sid, dt);
     const opt = STATUSES.find(s => s.code === e.status);
-    if (opt?.deducts && e.hours > 0) t += ded(e.hours);
+    if (opt?.deducts && e.hours > 0) t += ded(e.hours, staffName);
   });
   return t;
 }
@@ -635,12 +648,15 @@ function onCell(e) {
   const cell = e.currentTarget, dt = cell.dataset.date, sid = cell.dataset.staff;
   const isNonEng = cell.dataset.noneng === '1';
   const cur = getE(sid, dt);
-  openPopup(sid, dt, cur.status, cur.hours||0, cell, isNonEng);
+  const emp = staff.find(s => s.id === sid);
+  const staffName = emp ? emp.name : '';
+  openPopup(sid, dt, cur.status, cur.hours||0, cell, isNonEng, staffName);
 }
 
-function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
+function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng, staffName) {
   const selOpt = STATUSES.find(o => o.code===selStatus) || STATUSES[0];
   const [,,day] = dt.split('-');
+  const rate = getHourlyRate(staffName);
   let html = `<div class="popup-header">Day ${parseInt(day)} · ${dt}</div>`;
   STATUSES.forEach(opt => {
     const ac = opt.code===selStatus ? 'active' : '';
@@ -652,14 +668,14 @@ function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
   });
 
   if (selOpt.deducts && !isNonEng) {
-    const d = ded(selHours);
+    const d = selHours * rate;
     html += `<div class="popup-hours-row">
       <span class="popup-hours-label">Hours absent:</span>
       <input class="popup-hours-input" id="pHours" type="number" value="${selHours||''}" min="0" max="24" step="0.5" placeholder="0">
       <span class="popup-hours-calc" id="pCalc">${selHours>0?'−'+gbp(d):''}</span>
     </div>`;
   } else if (selOpt.deducts && isNonEng) {
-    const d = ded(selHours);
+    const d = selHours * rate;
     html += `<div class="popup-hours-row">
       <span class="popup-hours-label">Hours absent:</span>
       <input class="popup-hours-input" id="pHours" type="number" value="${selHours||''}" min="0" max="24" step="0.5" placeholder="0">
@@ -684,7 +700,7 @@ function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
     ev.stopPropagation();
     cStatus = o.dataset.code;
     if (!STATUSES.find(s => s.code===cStatus)?.deducts) cHours = 0;
-    openPopup(sid, dt, cStatus, cHours, anchor, isNonEng);
+    openPopup(sid, dt, cStatus, cHours, anchor, isNonEng, staffName);
   }));
 
   const hi = $('pHours'), pc = $('pCalc');
@@ -693,9 +709,9 @@ function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
       cHours = parseFloat(hi.value)||0;
       if (pc) {
         if (isNonEng) {
-          pc.textContent = cHours > 0 ? gbp(ded(cHours)) + ' (no ded.)' : '';
+          pc.textContent = cHours > 0 ? gbp(cHours * rate) + ' (no ded.)' : '';
         } else {
-          pc.textContent = cHours > 0 ? '−' + gbp(ded(cHours)) : '';
+          pc.textContent = cHours > 0 ? '−' + gbp(cHours * rate) : '';
         }
       }
     });
@@ -738,37 +754,41 @@ function doExport() {
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   const generated = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
 
-  const NAVY     = "003366";
-  const NAVY_MID = "004080";
-  const AMBER_MID= "92400E";
-  const WHITE    = "FFFFFF";
-  const GOLD_LT  = "FFF8E7";
-  const GRAY_LT  = "FAFAFA";
-  const AMBER_LT = "FFFBEB";
-  const RED_FG   = "C0392B";
-  const WKND_BG  = "F0F0F0";
+  // ── Bold, high-contrast colour palette for Excel ──────────────────────
+  const NAVY        = "002147";
+  const NAVY_HDR    = "003580";
+  const WHITE       = "FFFFFF";
+  const WKND_BG     = "D0D8E4";   // mid blue-grey for weekends
+  const WKND_FG     = "7A8FA8";
 
+  // Status fill / text — vivid, clearly distinct
   const S_STYLE = {
-    'In':               ['E8F5E9','1B5E20'],
-    'Holiday':          ['E3F2FD','0D47A1'],
-    'Half day Holiday': ['F3E5F5','4A148C'],
-    'Sick':             ['FFEBEE','B71C1C'],
-    'AAUP':             ['FFF8E1','E65100'],
-    'AAP':              ['E1F5FE','01579B'],
-    'Training':         ['E8F5E9','1B5E20'],
-    'BH':               ['E3F2FD','0D47A1'],
+    'In':               { bg:'1A7A3C', fg:WHITE   },   // deep green
+    'Holiday':          { bg:'1565C0', fg:WHITE   },   // strong blue
+    'Half day Holiday': { bg:'6A1B9A', fg:WHITE   },   // deep purple
+    'Sick':             { bg:'C62828', fg:WHITE   },   // bold red
+    'AAUP':             { bg:'E65100', fg:WHITE   },   // vivid orange
+    'AAP':              { bg:'00838F', fg:WHITE   },   // teal
+    'Training':         { bg:'2E7D32', fg:'CCFFCC'},   // forest green / light text
+    'BH':               { bg:'283593', fg:'BDD5FF'},   // navy blue / light text
   };
 
+  const NON_ENG_BG  = "FFF3CD";
+  const NON_ENG_FG  = "7B4500";
+  const GOLD_DED    = "FFF0B3";   // deduction highlight row
+  const RED_FG      = "B71C1C";
+  const TOTAL_BG    = "001530";
+  const TOTAL_FG    = "FFD700";   // gold total text
+
   const font = (sz=9, bold=false, color='222222', italic=false) =>
-    ({ name:'Arial', sz, bold, color, italic });
+    ({ name:'Calibri', sz, bold, color, italic });
   const fill = (fgColor) => ({ patternType:'solid', fgColor:{rgb:fgColor} });
-  const border = (style='thin', color='CCCCCC') => {
+  const border = (style='thin', color='AAAAAA') => {
     const s = { style, color:{rgb:color} };
     return { top:s, bottom:s, left:s, right:s };
   };
   const thick_border = () => {
     const th = { style:'medium', color:{rgb:NAVY} };
-    const tn = { style:'thin',   color:{rgb:'CCCCCC'} };
     return { top:th, bottom:th, left:th, right:th };
   };
   const A = (h='center', v='center', wrap=false) => ({ horizontal:h, vertical:v, wrapText:wrap });
@@ -777,22 +797,33 @@ function doExport() {
   const blank = (fgColor) => sc('', 's', { fill:fill(fgColor), border:border('thin', fgColor) });
 
   const titleStyle = { font:font(13,true,WHITE), fill:fill(NAVY), alignment:A('center'), border:border('medium',NAVY) };
-  const subStyle   = { font:font(8,false,'AAAAAA',true), fill:fill('001F3F'), alignment:A('center') };
-  const hdrStyle   = (align='center') => ({ font:font(9,true,WHITE), fill:fill(NAVY_MID), alignment:A(align), border:border('thin',WHITE) });
-  const totalStyle = (align='center') => ({ font:font(9,true,WHITE), fill:fill(NAVY), alignment:A(align), border:thick_border() });
-  const nameStyle  = (rowBg, hasDed, isNonEng) => ({
-    font:  font(9, hasDed, '222222'),
-    fill:  fill(isNonEng ? AMBER_LT : hasDed ? GOLD_LT : rowBg),
+  const subStyle   = { font:font(8,false,'BBCCDD',true), fill:fill('001030'), alignment:A('center') };
+
+  const hdrStyle = (align='center') => ({
+    font: font(9, true, WHITE),
+    fill: fill(NAVY_HDR),
+    alignment: A(align),
+    border: border('medium', WHITE),
+  });
+  const totalStyle = (align='center') => ({
+    font: font(10, true, TOTAL_FG),
+    fill: fill(TOTAL_BG),
+    alignment: A(align),
+    border: thick_border(),
+  });
+  const nameStyle = (rowBg, hasDed, isNonEng) => ({
+    font:  font(9, hasDed, '111111'),
+    fill:  fill(isNonEng ? NON_ENG_BG : hasDed ? GOLD_DED : rowBg),
     alignment: A('left','center'),
     border: border(),
   });
   const dedStyle = (hasDed, isNonEng) => ({
-    font:  font(9, hasDed, isNonEng ? AMBER_MID : hasDed ? RED_FG : 'BBBBBB'),
-    fill:  fill(isNonEng ? AMBER_LT : hasDed ? GOLD_LT : WHITE),
+    font:  font(9, hasDed, isNonEng ? NON_ENG_FG : hasDed ? RED_FG : '999999'),
+    fill:  fill(isNonEng ? NON_ENG_BG : hasDed ? GOLD_DED : WHITE),
     alignment: A('right'),
     border: border(),
   });
-  const bodyStyle = (bg='FFFFFF', align='center', bold=false, color='555555') => ({
+  const bodyStyle = (bg='FFFFFF', align='center', bold=false, color='333333') => ({
     font:  font(9, bold, color),
     fill:  fill(bg),
     alignment: A(align),
@@ -833,9 +864,9 @@ function doExport() {
   const rows1 = [];
   rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID (${viewLabel})`, 's', titleStyle),
     ...Array(1 + dayCols.length).fill(blank(NAVY)) ]);
-  rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Hourly Rate: £${HOURLY_RATE.toFixed(2)}  |  ⚙ = Non-engineer (no deduction)`, 's', subStyle),
-    ...Array(1 + dayCols.length).fill(blank('001F3F')) ]);
-  rows1.push([ blank('FFFFFF'), ...Array(1 + dayCols.length).fill(blank('FFFFFF')) ]);
+  rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(2)}/hr  |  ⚙ = Non-engineer (exempt)`, 's', subStyle),
+    ...Array(1 + dayCols.length).fill(blank('001030')) ]);
+  rows1.push([ blank('EEEEEE'), ...Array(1 + dayCols.length).fill(blank('EEEEEE')) ]);
 
   const hdr3 = [
     sc('Staff Member', 's', hdrStyle('left')),
@@ -843,32 +874,36 @@ function doExport() {
   ];
   dayCols.forEach(col => {
     if (col.w) {
-      hdr3.push(sc('', 's', { font:font(8,false,'AAAAAA'), fill:fill(WKND_BG), alignment:A(), border:border('thin','EEEEEE') }));
+      hdr3.push(sc('', 's', { font:font(8,false,WKND_FG), fill:fill(WKND_BG), alignment:A(), border:border('thin','BBBBBB') }));
     } else if (col.b) {
-      hdr3.push(sc(col.d, 'n', { font:font(8,true,S_STYLE.BH[1]), fill:fill(S_STYLE.BH[0]), alignment:A(), border:border('thin',WHITE) }));
+      hdr3.push(sc(col.d, 'n', { font:font(8,true,S_STYLE.BH.fg), fill:fill(S_STYLE.BH.bg), alignment:A(), border:border('thin',WHITE) }));
     } else {
-      hdr3.push(sc(col.d, 'n', { font:font(8,true,WHITE), fill:fill(NAVY), alignment:A(), border:border('thin',WHITE) }));
+      hdr3.push(sc(col.d, 'n', { font:font(8,true,WHITE), fill:fill(NAVY_HDR), alignment:A(), border:border('thin',WHITE) }));
     }
   });
   rows1.push(hdr3);
 
   const hdr4 = [
-    sc('', 's', { fill:fill('002850'), border:border('thin','002850') }),
-    sc('', 's', { fill:fill('002850'), border:border('thin','002850') }),
+    sc('', 's', { fill:fill(NAVY), border:border('thin',NAVY) }),
+    sc('', 's', { fill:fill(NAVY), border:border('thin',NAVY) }),
   ];
   dayCols.forEach(col => {
     if (col.w) {
-      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,'AAAAAA'), fill:fill(WKND_BG), alignment:A(), border:border('thin','EEEEEE') }));
+      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,WKND_FG), fill:fill(WKND_BG), alignment:A(), border:border('thin','BBBBBB') }));
     } else if (col.b) {
-      hdr4.push(sc('BH', 's', { font:font(6,true,S_STYLE.BH[1]), fill:fill(S_STYLE.BH[0]), alignment:A(), border:border('thin',WHITE) }));
+      hdr4.push(sc('BH', 's', { font:font(6,true,S_STYLE.BH.fg), fill:fill(S_STYLE.BH.bg), alignment:A(), border:border('thin',WHITE) }));
     } else {
-      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,'88AACC'), fill:fill('002850'), alignment:A(), border:border('thin','002850') }));
+      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,'99BBDD'), fill:fill(NAVY), alignment:A(), border:border('thin',NAVY) }));
     }
   });
   rows1.push(hdr4);
 
+  // alternating row shading
+  const ROW_A = 'F5F7FA';
+  const ROW_B = 'E8EEF5';
+
   fil.forEach((s, ri) => {
-    const rowBg  = ri % 2 === 0 ? WHITE : GRAY_LT;
+    const rowBg  = ri % 2 === 0 ? ROW_A : ROW_B;
     const total  = staffTotal(s.id);
     const isNonEng = nonEngineers.has(s.id);
     const hasDed = total > 0;
@@ -883,19 +918,24 @@ function doExport() {
     ];
 
     dayCols.forEach(col => {
-      if (col.w) { dataRow.push(blank(WKND_BG)); return; }
+      if (col.w) {
+        dataRow.push(sc('', 's', { fill:fill(WKND_BG), border:border('thin','BBBBBB') }));
+        return;
+      }
       if (col.b) {
-        dataRow.push(sc('BH', 's', { font:font(8,true,S_STYLE.BH[1]), fill:fill(S_STYLE.BH[0]), alignment:A(), border:border() }));
+        dataRow.push(sc('BH', 's', { font:font(8,true,S_STYLE.BH.fg), fill:fill(S_STYLE.BH.bg), alignment:A(), border:border() }));
         return;
       }
       const e = getE(s.id, col.k);
       const st = e.status || 'In';
-      const [bg, fg] = S_STYLE[st] || ['FFFFFF','000000'];
+      const { bg, fg } = S_STYLE[st] || { bg:'FFFFFF', fg:'000000' };
       const abbr = STATUS_ABBR[st] || st.substring(0,2);
+      const rate = getHourlyRate(s.name);
       const label = (STATUSES.find(o=>o.code===st)?.deducts && e.hours > 0 && !isNonEng)
         ? `${abbr} ${e.hours}h`
         : abbr;
-      dataRow.push(sc(label, 's', { font:font(8,true,fg), fill:fill(isNonEng ? AMBER_LT : bg), alignment:A(), border:border() }));
+      // Non-engineers: keep their status colour but overlay amber tint in name only; use normal colour in cells
+      dataRow.push(sc(label, 's', { font:font(8,true,isNonEng ? fg : fg), fill:fill(isNonEng ? bg : bg), alignment:A(), border:border('thin','FFFFFF') }));
     });
     rows1.push(dataRow);
   });
@@ -904,12 +944,13 @@ function doExport() {
   rows1.push([
     sc('TOTAL DEDUCTIONS (engineers only)', 's', totalStyle('left')),
     nc(grand, '"£"#,##0.00', totalStyle('right')),
-    ...dayCols.map(() => blank(NAVY)),
+    ...dayCols.map(() => blank(TOTAL_BG)),
   ]);
-  rows1.push([ sc('† Bank Holiday  ⚙ Non-engineer (no pay deduction applied)', 's', { font:font(8,false,'888888'), fill:fill(WHITE), alignment:A('left') }),
-    ...Array(1+dayCols.length).fill(blank(WHITE)) ]);
+  rows1.push([ sc('† Bank Holiday  ⚙ Non-engineer (no pay deduction applied)', 's',
+    { font:font(8,false,'777777'), fill:fill('EEEEEE'), alignment:A('left') }),
+    ...Array(1+dayCols.length).fill(blank('EEEEEE')) ]);
 
-  const ws1 = buildWS(rows1, [24, 14, ...dayCols.map(() => 4.2)]);
+  const ws1 = buildWS(rows1, [24, 14, ...dayCols.map(() => 4.5)]);
 
   // ── Sheet 2: Deduction Summary ─────────────────────────────────────────
   const staffStats = fil.map(s => {
@@ -923,57 +964,72 @@ function doExport() {
         if (opt?.deducts && e.hours > 0) { hrs += e.hours; ev++; }
       });
     }
-    return { name:s.name, isNonEng, ev, hrs, total:staffTotal(s.id) };
+    return { name:s.name, isNonEng, ev, hrs, total:staffTotal(s.id), rate:getHourlyRate(s.name) };
   }).sort((a,b) => b.total - a.total);
 
   const rows2 = [];
-  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
-  rows2.push([ sc(`Period: ${period}  |  Hourly Rate: £${HOURLY_RATE.toFixed(8)}  |  Deductable: Sick, AAUP (engineers only)`, 's', subStyle),
-    blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
-  rows2.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
+  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
+  rows2.push([ sc(`Period: ${period}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(8)}/hr  |  * = custom rate`, 's', subStyle),
+    blank('001030'), blank('001030'), blank('001030'), blank('001030'), blank('001030') ]);
+  rows2.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
   rows2.push([
     sc('Staff Member',    's', hdrStyle('left')),
     sc('Type',           's', hdrStyle()),
-    sc('Absence Events',  's', hdrStyle()),
-    sc('Hours Absent',    's', hdrStyle()),
-    sc('Deduction (£)',   's', hdrStyle('right')),
+    sc('Hourly Rate',    's', hdrStyle()),
+    sc('Absence Events', 's', hdrStyle()),
+    sc('Hours Absent',   's', hdrStyle()),
+    sc('Deduction (£)',  's', hdrStyle('right')),
   ]);
 
   staffStats.forEach((s, ri) => {
-    const rowBg  = ri % 2 === 0 ? WHITE : GRAY_LT;
+    const rowBg  = ri % 2 === 0 ? ROW_A : ROW_B;
     const hasDed = s.total > 0;
+    const hasCustomRate = Math.abs(s.rate - DEFAULT_HOURLY_RATE) > 0.0001;
     rows2.push([
       sc(s.name, 's', nameStyle(rowBg, hasDed, s.isNonEng)),
-      sc(s.isNonEng ? '⚙ Non-eng' : 'Engineer', 's', { font:font(8, false, s.isNonEng ? AMBER_MID : '555555'), fill:fill(s.isNonEng ? AMBER_LT : rowBg), alignment:A(), border:border() }),
-      s.ev > 0  ? nc(s.ev,   '0;-0;"-"',       bodyStyle(s.isNonEng ? AMBER_LT : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? AMBER_LT : rowBg)),
-      s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"', bodyStyle(s.isNonEng ? AMBER_LT : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? AMBER_LT : rowBg)),
+      sc(s.isNonEng ? '⚙ Non-eng' : 'Engineer', 's', {
+        font: font(8, false, s.isNonEng ? NON_ENG_FG : '445566'),
+        fill: fill(s.isNonEng ? NON_ENG_BG : rowBg),
+        alignment: A(), border: border(),
+      }),
+      sc((hasCustomRate ? '* ' : '') + `£${s.rate.toFixed(2)}`, 's', {
+        font: font(8, hasCustomRate, hasCustomRate ? '7B4500' : '445566'),
+        fill: fill(hasCustomRate ? NON_ENG_BG : rowBg),
+        alignment: A('right'), border: border(),
+      }),
+      s.ev > 0  ? nc(s.ev,   '0;-0;"-"',       bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
+      s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
       s.isNonEng
-        ? sc('Exempt', 's', { font:font(9, false, AMBER_MID, true), fill:fill(AMBER_LT), alignment:A('right'), border:border() })
+        ? sc('Exempt', 's', { font:font(9,false,NON_ENG_FG,true), fill:fill(NON_ENG_BG), alignment:A('right'), border:border() })
         : hasDed
-          ? nc(s.total, '"£"#,##0.00', { ...bodyStyle(GOLD_LT,'right',true,RED_FG) })
-          : sc('—', 's', bodyStyle(rowBg,'right',false,'BBBBBB')),
+          ? nc(s.total, '"£"#,##0.00', { font:font(9,true,RED_FG), fill:fill(GOLD_DED), alignment:A('right'), border:border('medium','CC0000') })
+          : sc('—', 's', bodyStyle(rowBg,'right',false,'AAAAAA')),
     ]);
   });
 
   const totHrs = staffStats.reduce((a,s)=>a+s.hrs, 0);
   const totDed = staffStats.reduce((a,s)=>a+s.total, 0);
   rows2.push([
-    sc('TOTAL',  's', totalStyle('left')),
-    sc('',       's', { font:font(9,false,WHITE), fill:fill(NAVY), alignment:A(), border:thick_border() }),
+    sc('TOTAL', 's', totalStyle('left')),
+    sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
+    sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
     nc(staffStats.reduce((a,s)=>a+s.ev,0), '0', totalStyle()),
     nc(totHrs,   '0.00',        totalStyle()),
     nc(totDed,   '"£"#,##0.00', totalStyle('right')),
   ]);
+  rows2.push([ sc('* Custom hourly rate applied for this employee', 's',
+    { font:font(8,false,'777777',true), fill:fill('EEEEEE'), alignment:A('left') }),
+    blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
 
-  const ws2 = buildWS(rows2, [26, 12, 16, 16, 16]);
+  const ws2 = buildWS(rows2, [26, 12, 14, 16, 16, 16]);
 
   // ── Sheet 3: Deduction Events ──────────────────────────────────────────
   const rows3 = [];
   rows3.push([ sc('DEDUCTION EVENTS — DETAILED LOG', 's', titleStyle),
     blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
   rows3.push([ sc(`Period: ${period}  |  Engineers only — non-engineers are exempt from deductions`, 's', subStyle),
-    blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F'), blank('001F3F') ]);
-  rows3.push([ blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
+    blank('001030'), blank('001030'), blank('001030'), blank('001030'), blank('001030') ]);
+  rows3.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
   rows3.push([
     sc('Staff Member', 's', hdrStyle('left')),
     sc('Date',         's', hdrStyle()),
@@ -983,12 +1039,8 @@ function doExport() {
     sc('Deduction (£)','s', hdrStyle('right')),
   ]);
 
-  const STATUS_CHIP = {
-    'Sick': ['FFEBEE','B71C1C'],
-    'AAUP': ['FFF8E1','E65100'],
-  };
-
   let hasEvents = false;
+  let altRow = false;
   fil.filter(s => !nonEngineers.has(s.id)).forEach(s => {
     Object.keys(entries[s.id]||{}).filter(dt=>dt.startsWith(pfx)).sort().forEach(dt => {
       const e = getE(s.id, dt);
@@ -997,16 +1049,19 @@ function doExport() {
       hasEvents = true;
       const [y,m,d] = dt.split('-');
       const dayStr  = new Date(+y,+m-1,+d).toLocaleDateString('en-GB',{weekday:'long'});
-      const [sbg, sfg] = STATUS_CHIP[e.status] || [WHITE,'000000'];
-      const dedAmt = ded(e.hours);
+      const { bg: sbg, fg: sfg } = S_STYLE[e.status] || { bg:WHITE, fg:'000000' };
+      const rate = getHourlyRate(s.name);
+      const dedAmt = e.hours * rate;
+      const rowBg = altRow ? ROW_B : ROW_A;
+      altRow = !altRow;
 
       rows3.push([
-        sc(s.name,   's', bodyStyle(WHITE,'left',true,'222222')),
-        sc(`${d}/${m}/${y}`, 's', bodyStyle(WHITE,'center',false,'555555')),
-        sc(dayStr,   's', bodyStyle(WHITE,'center',false,'555555')),
-        sc(e.status, 's', { font:font(9,true,sfg), fill:fill(sbg), alignment:A(), border:border() }),
-        nc(e.hours,  '0.00',         bodyStyle(WHITE,'center',false,'555555')),
-        nc(dedAmt,   '"£"#,##0.00',  { font:font(9,true,RED_FG), fill:fill(GOLD_LT), alignment:A('right'), border:border() }),
+        sc(s.name,   's', bodyStyle(rowBg,'left',true,'111111')),
+        sc(`${d}/${m}/${y}`, 's', bodyStyle(rowBg,'center',false,'444444')),
+        sc(dayStr,   's', bodyStyle(rowBg,'center',false,'444444')),
+        sc(e.status, 's', { font:font(9,true,sfg), fill:fill(sbg), alignment:A(), border:border('thin','FFFFFF') }),
+        nc(e.hours,  '0.00',         bodyStyle(rowBg,'center',false,'444444')),
+        nc(dedAmt,   '"£"#,##0.00',  { font:font(9,true,RED_FG), fill:fill(GOLD_DED), alignment:A('right'), border:border('medium','CC0000') }),
       ]);
     });
   });
@@ -1018,7 +1073,7 @@ function doExport() {
   } else {
     const allDed = rows3.slice(4).reduce((a,r) => a + (r[5]?.v || 0), 0);
     const allHrs = rows3.slice(4).reduce((a,r) => a + (r[4]?.v || 0), 0);
-    rows3.push([ blank(NAVY), blank(NAVY), blank(NAVY),
+    rows3.push([ blank(TOTAL_BG), blank(TOTAL_BG), blank(TOTAL_BG),
       sc('TOTAL', 's', totalStyle()),
       nc(allHrs,  '0.00',        totalStyle()),
       nc(allDed,  '"£"#,##0.00', totalStyle('right')),
