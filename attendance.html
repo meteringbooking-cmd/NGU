@@ -14,14 +14,8 @@
   --border:#2a3f5f; --border2:#1e3050;
   --text:#E8EDF2; --muted:#7a8fa8; --faint:#3a5070;
   --surface:rgba(10,22,40,0.96);
-  --cell-in:#0d2a1a;    --cell-in-t:#4ade80;
-  --cell-hol:#1a1a2e;   --cell-hol-t:#818cf8;
-  --cell-hdh:#1f1030;   --cell-hdh-t:#c084fc;
-  --cell-sick:#2a1010;  --cell-sick-t:#f87171;
-  --cell-aaup:#2a1f00;  --cell-aaup-t:#fbbf24;
-  --cell-aap:#0d1f2a;   --cell-aap-t:#38bdf8;
-  --cell-train:#1a1a10; --cell-train-t:#a3e635;
-  --cell-wknd:#0d1525; --shadow:0 16px 40px rgba(0,0,0,0.5);
+  --cell-wknd:#0d1525;
+  --shadow:0 16px 40px rgba(0,0,0,0.5);
   --non-eng-stripe:rgba(245,158,11,0.04);
 }
 [data-theme="light"] {
@@ -29,20 +23,24 @@
   --border:#c8d6e5; --border2:#dde6f0;
   --text:#1a2942; --muted:#5a7090; --faint:#a0b8cc;
   --surface:rgba(255,255,255,0.97);
-  --cell-in:#dcfce7;    --cell-in-t:#15803d;
-  --cell-hol:#ede9fe;   --cell-hol-t:#5b21b6;
-  --cell-hdh:#f3e8ff;   --cell-hdh-t:#7e22ce;
-  --cell-sick:#fee2e2;  --cell-sick-t:#b91c1c;
-  --cell-aaup:#fef3c7;  --cell-aaup-t:#92400e;
-  --cell-aap:#dbeafe;   --cell-aap-t:#1d4ed8;
-  --cell-train:#ecfccb; --cell-train-t:#3f6212;
-  --cell-wknd:#e8eef5; --shadow:0 8px 24px rgba(0,0,0,0.12);
+  --cell-wknd:#e8eef5;
+  --shadow:0 8px 24px rgba(0,0,0,0.12);
   --non-eng-stripe:rgba(245,158,11,0.05);
 }
 :root {
   --accent:#00A3E0; --accent2:#005EB8;
   --green:#10B981; --amber:#F59E0B; --red:#EF4444;
   --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+
+  /* Scheme B — bold solid fills, white text */
+  --cell-in-bg:#16a34a;       --cell-in-t:#ffffff;
+  --cell-hol-bg:#2563eb;      --cell-hol-t:#ffffff;
+  --cell-hdh-bg:#7c3aed;      --cell-hdh-t:#ffffff;
+  --cell-sick-bg:#dc2626;     --cell-sick-t:#ffffff;
+  --cell-aaup-bg:#d97706;     --cell-aaup-t:#ffffff;
+  --cell-aap-bg:#0891b2;      --cell-aap-t:#ffffff;
+  --cell-train-bg:#65a30d;    --cell-train-t:#ffffff;
+  --cell-bh-bg:#4f46e5;       --cell-bh-t:#ffffff;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
@@ -124,16 +122,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 /* Non-engineer row tinting */
 tr.row-non-eng td{background-color:var(--non-eng-stripe);}
 tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in srgb, var(--bg2) 90%, var(--amber) 10%);}
+
+/* ── Scheme B chip styles ── */
 .cell-chip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;transition:transform .1s;}
 .cell-day:hover .cell-chip{transform:scale(1.12);}
-.s-In{background:var(--cell-in);color:var(--cell-in-t);}
-.s-Holiday{background:var(--cell-hol);color:var(--cell-hol-t);}
-.s-Half{background:var(--cell-hdh);color:var(--cell-hdh-t);}
-.s-Sick{background:var(--cell-sick);color:var(--cell-sick-t);}
-.s-AAUP{background:var(--cell-aaup);color:var(--cell-aaup-t);}
-.s-AAP{background:var(--cell-aap);color:var(--cell-aap-t);}
-.s-Training{background:var(--cell-train);color:var(--cell-train-t);}
-.s-BH{background:var(--cell-hol);color:var(--cell-hol-t);}
+.s-In      { background:var(--cell-in-bg);   color:var(--cell-in-t); }
+.s-Holiday { background:var(--cell-hol-bg);  color:var(--cell-hol-t); }
+.s-Half    { background:var(--cell-hdh-bg);  color:var(--cell-hdh-t); }
+.s-Sick    { background:var(--cell-sick-bg); color:var(--cell-sick-t); }
+.s-AAUP   { background:var(--cell-aaup-bg); color:var(--cell-aaup-t); }
+.s-AAP     { background:var(--cell-aap-bg);  color:var(--cell-aap-t); }
+.s-Training{ background:var(--cell-train-bg);color:var(--cell-train-t); }
+.s-BH      { background:var(--cell-bh-bg);   color:var(--cell-bh-t); }
+
 .totals-row td{background:var(--bg3);border-top:2px solid var(--border);height:34px;font-family:var(--mono);font-size:10px;text-align:center;vertical-align:middle;color:var(--muted);position:sticky;bottom:0;z-index:10;}
 .totals-row td.col-staff{z-index:21;text-align:left;padding:0 12px;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
 .totals-row td.col-ded{z-index:20;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--red);text-align:right;padding:0 10px;}
@@ -345,9 +346,8 @@ function getE(sid, dt) {
   return { status: r.status || 'In', hours: parseFloat(r.hours) || 0 };
 }
 
-// Deduction only applies if the employee IS an engineer (not non-engineer)
 function staffTotal(sid) {
-  if (nonEngineers.has(sid)) return 0; // Non-engineers are never deducted
+  if (nonEngineers.has(sid)) return 0;
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   let t = 0;
   Object.keys(entries[sid]||{}).forEach(dt => {
@@ -363,7 +363,6 @@ function staffTotal(sid) {
 const now = new Date();
 let vy = now.getFullYear(), vm = now.getMonth() + 1;
 let staff = [], entries = {}, nonEngineers = new Set(), searchQ = '';
-// engFilter: 'all' | 'engineers'
 let engFilter = localStorage.getItem('er_engFilter') || 'all';
 
 // ── DOM ────────────────────────────────────────────────────────────────────
@@ -385,7 +384,6 @@ $('exportConfirm').onclick = doExport;
 $('exportModal').onclick = e => { if (e.target === $('exportModal')) closeExport(); };
 document.addEventListener('click', e => { if (!popup.contains(e.target)) popup.style.display = 'none'; });
 
-// Engineer toggle
 $('toggleAll').onclick = () => { engFilter = 'all'; localStorage.setItem('er_engFilter','all'); updateEngToggleUI(); render(); };
 $('toggleEng').onclick = () => { engFilter = 'engineers'; localStorage.setItem('er_engFilter','engineers'); updateEngToggleUI(); render(); };
 
@@ -419,7 +417,6 @@ async function loadAll() {
 
     snap.forEach(d => {
       const data = d.data();
-      // Load active staff (not archived)
       if (data._type === 'staff') {
         staff.push({ id: d.id, name: data.name });
         entries[d.id] = {};
@@ -545,11 +542,9 @@ function goToday() {
 // ── Render ─────────────────────────────────────────────────────────────────
 function getFilteredStaff() {
   let fil = staff;
-  // Apply engineer filter
   if (engFilter === 'engineers') {
     fil = fil.filter(s => !nonEngineers.has(s.id));
   }
-  // Apply search
   if (searchQ) {
     fil = fil.filter(s => s.name.toLowerCase().includes(searchQ));
   }
@@ -563,7 +558,6 @@ function render() {
   if (!fil.length) { table.style.display='none'; empty.style.display='flex'; return; }
   empty.style.display='none'; table.style.display='table';
 
-  // Grand total only counts engineers
   const grandTotal = fil.reduce((s, m) => s + staffTotal(m.id), 0);
 
   // Header
@@ -585,7 +579,7 @@ function render() {
   let bh = '';
   fil.forEach(s => {
     const ini = s.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-    const dt = staffTotal(s.id); // 0 for non-engineers
+    const dt = staffTotal(s.id);
     const isNonEng = nonEngineers.has(s.id);
     const rowClass = isNonEng ? ' row-non-eng' : '';
     const avatarClass = isNonEng ? ' non-eng' : '';
@@ -624,7 +618,7 @@ function render() {
   for (let d = 1; d <= nd; d++) {
     const k = dk(vy,vm,d), w = isWkd(vy,vm,d), b = isBH(k);
     if (w) { fh += `<td></td>`; continue; }
-    if (b) { fh += `<td style="color:var(--cell-hol-t);font-size:9px">BH</td>`; continue; }
+    if (b) { fh += `<td style="color:var(--cell-bh-bg);font-size:9px">BH</td>`; continue; }
     const ic = fil.filter(s => getE(s.id,k).status==='In').length;
     const pct = fil.length ? Math.round(ic/fil.length*100) : 0;
     fh += `<td style="color:${pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)'};font-size:10px">${ic}</td>`;
@@ -657,7 +651,6 @@ function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
     </div>`;
   });
 
-  // Show hours input only for engineers with deductable statuses
   if (selOpt.deducts && !isNonEng) {
     const d = ded(selHours);
     html += `<div class="popup-hours-row">
@@ -666,7 +659,6 @@ function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng) {
       <span class="popup-hours-calc" id="pCalc">${selHours>0?'−'+gbp(d):''}</span>
     </div>`;
   } else if (selOpt.deducts && isNonEng) {
-    // Non-engineer: show hours input for record-keeping, but note no deduction
     const d = ded(selHours);
     html += `<div class="popup-hours-row">
       <span class="popup-hours-label">Hours absent:</span>
@@ -726,7 +718,7 @@ function openExport() {
   const nd = days(vy, vm);
   let wd = 0; for (let d=1;d<=nd;d++) if(isWD(vy,vm,d)) wd++;
   const fil = getFilteredStaff();
-  const grand = fil.reduce((s,m) => s+staffTotal(m.id), 0); // non-engineers contribute 0
+  const grand = fil.reduce((s,m) => s+staffTotal(m.id), 0);
   const period = new Date(vy, vm-1, 1).toLocaleDateString('en-GB', {month:'short',year:'numeric'});
   $('xStaff').textContent=fil.length; $('xDays').textContent=wd;
   $('xTotal').textContent=gbp(grand); $('xPeriod').textContent=period;
