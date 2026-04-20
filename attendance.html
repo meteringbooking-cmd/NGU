@@ -796,12 +796,12 @@ function doExport() {
   const nc = (value, z, style) => ({ v:value, t:'n', z, s:style });
   const blank = (fgColor) => sc('', 's', { fill:fill(fgColor), border:border('thin', fgColor) });
 
-  const titleStyle = { font:font(13,true,WHITE), fill:fill(NAVY), alignment:A('center'), border:border('medium',NAVY) };
-  const subStyle   = { font:font(8,false,'BBCCDD',true), fill:fill('001030'), alignment:A('center') };
+  const titleStyle = { font:font(13,true,'001030'), fill:fill('60C4FF'), alignment:A('center'), border:border('medium','3399CC') };
+  const subStyle   = { font:font(8,false,'DDEEFF',true), fill:fill('1A4A7A'), alignment:A('center') };
 
   const hdrStyle = (align='center') => ({
     font: font(9, true, WHITE),
-    fill: fill(NAVY_HDR),
+    fill: fill('2563EB'),
     alignment: A(align),
     border: border('medium', WHITE),
   });
@@ -863,9 +863,9 @@ function doExport() {
   const viewLabel = engFilter === 'engineers' ? 'ENGINEERS ONLY' : 'ALL STAFF';
   const rows1 = [];
   rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID (${viewLabel})`, 's', titleStyle),
-    ...Array(1 + dayCols.length).fill(blank(NAVY)) ]);
+    ...Array(1 + dayCols.length).fill(blank('60C4FF')) ]);
   rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(2)}/hr  |  ⚙ = Non-engineer (exempt)`, 's', subStyle),
-    ...Array(1 + dayCols.length).fill(blank('001030')) ]);
+    ...Array(1 + dayCols.length).fill(blank('1A4A7A')) ]);
   rows1.push([ blank('EEEEEE'), ...Array(1 + dayCols.length).fill(blank('EEEEEE')) ]);
 
   const hdr3 = [
@@ -878,14 +878,14 @@ function doExport() {
     } else if (col.b) {
       hdr3.push(sc(col.d, 'n', { font:font(8,true,S_STYLE.BH.fg), fill:fill(S_STYLE.BH.bg), alignment:A(), border:border('thin',WHITE) }));
     } else {
-      hdr3.push(sc(col.d, 'n', { font:font(8,true,WHITE), fill:fill(NAVY_HDR), alignment:A(), border:border('thin',WHITE) }));
+      hdr3.push(sc(col.d, 'n', { font:font(8,true,WHITE), fill:fill('2563EB'), alignment:A(), border:border('thin',WHITE) }));
     }
   });
   rows1.push(hdr3);
 
   const hdr4 = [
-    sc('', 's', { fill:fill(NAVY), border:border('thin',NAVY) }),
-    sc('', 's', { fill:fill(NAVY), border:border('thin',NAVY) }),
+    sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
+    sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
   ];
   dayCols.forEach(col => {
     if (col.w) {
@@ -893,7 +893,7 @@ function doExport() {
     } else if (col.b) {
       hdr4.push(sc('BH', 's', { font:font(6,true,S_STYLE.BH.fg), fill:fill(S_STYLE.BH.bg), alignment:A(), border:border('thin',WHITE) }));
     } else {
-      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,false,'99BBDD'), fill:fill(NAVY), alignment:A(), border:border('thin',NAVY) }));
+      hdr4.push(sc(col.name.toUpperCase(), 's', { font:font(6,true,'BFDBFE'), fill:fill('1D4ED8'), alignment:A(), border:border('thin','3B82F6') }));
     }
   });
   rows1.push(hdr4);
@@ -968,9 +968,9 @@ function doExport() {
   }).sort((a,b) => b.total - a.total);
 
   const rows2 = [];
-  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
+  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF') ]);
   rows2.push([ sc(`Period: ${period}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(8)}/hr  |  * = custom rate`, 's', subStyle),
-    blank('001030'), blank('001030'), blank('001030'), blank('001030'), blank('001030') ]);
+    blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A') ]);
   rows2.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
   rows2.push([
     sc('Staff Member',    's', hdrStyle('left')),
@@ -1026,9 +1026,9 @@ function doExport() {
   // ── Sheet 3: Deduction Events ──────────────────────────────────────────
   const rows3 = [];
   rows3.push([ sc('DEDUCTION EVENTS — DETAILED LOG', 's', titleStyle),
-    blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY), blank(NAVY) ]);
+    blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF') ]);
   rows3.push([ sc(`Period: ${period}  |  Engineers only — non-engineers are exempt from deductions`, 's', subStyle),
-    blank('001030'), blank('001030'), blank('001030'), blank('001030'), blank('001030') ]);
+    blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A') ]);
   rows3.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
   rows3.push([
     sc('Staff Member', 's', hdrStyle('left')),
