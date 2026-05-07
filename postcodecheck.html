@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
+<script>window.L_DISABLE_3D = true;</script>
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -471,7 +473,7 @@ const postcodeMap = {
   WF:"Wakefield", WN:"Wigan", WR:"Worcester", WS:"Walsall", WV:"Wolverhampton", YO:"York", ZE:"Shetland"
 };
 
-// Internal Coordinate Dictionary for rendering exact locations without external files!
+// Internal Coordinate Dictionary
 const postcodeCoords = {"AB":[57.15,-2.15],"AL":[51.75,-0.33],"B":[52.48,-1.9],"BA":[51.38,-2.36],"BB":[53.75,-2.48],"BD":[53.79,-1.75],"BH":[50.72,-1.88],"BL":[53.58,-2.43],"BN":[50.82,-0.14],"BR":[51.4,0.02],"BS":[51.45,-2.58],"BT":[54.6,-5.93],"CA":[54.89,-2.93],"CB":[52.2,0.12],"CF":[51.48,-3.18],"CH":[53.19,-2.89],"CM":[51.73,0.47],"CO":[51.89,0.9],"CR":[51.37,-0.1],"CT":[51.28,1.08],"CV":[52.41,-1.51],"CW":[53.1,-2.44],"DA":[51.44,0.15],"DD":[56.46,-2.97],"DE":[52.92,-1.48],"DG":[55.07,-3.6],"DH":[54.78,-1.57],"DL":[54.53,-1.55],"DN":[53.52,-1.13],"DT":[50.71,-2.44],"DY":[52.51,-2.08],"E":[51.52,-0.04],"EC":[51.51,-0.09],"EH":[55.95,-3.19],"EN":[51.65,-0.08],"EX":[50.72,-3.53],"FK":[56.12,-3.94],"FY":[53.82,-3.05],"G":[55.86,-4.25],"GL":[51.87,-2.25],"GU":[51.24,-0.57],"GY":[49.46,-2.58],"HA":[51.58,-0.34],"HD":[53.65,-1.78],"HG":[53.99,-1.54],"HP":[51.75,-0.76],"HR":[52.06,-2.71],"HS":[58.21,-6.38],"HU":[53.74,-0.33],"HX":[53.72,-1.86],"IG":[51.57,0.08],"IM":[54.24,-4.55],"IP":[52.06,1.15],"IV":[57.48,-4.22],"JE":[49.21,-2.13],"KA":[55.61,-4.5],"KT":[51.41,-0.3],"KW":[58.44,-3.09],"KY":[56.11,-3.17],"L":[53.41,-2.99],"LA":[54.05,-2.8],"LD":[52.24,-3.38],"LE":[52.63,-1.13],"LL":[53.07,-3.8],"LN":[53.23,-0.54],"LS":[53.8,-1.55],"LU":[51.88,-0.42],"M":[53.48,-2.24],"ME":[51.38,0.52],"MK":[52.04,-0.76],"ML":[55.78,-3.98],"N":[51.58,-0.12],"NE":[54.97,-1.62],"NG":[52.95,-1.15],"NN":[52.24,-0.9],"NP":[51.59,-3.0],"NR":[52.63,1.3],"NW":[51.55,-0.21],"OL":[53.54,-2.12],"OX":[51.75,-1.26],"PA":[55.85,-4.42],"PE":[52.57,-0.25],"PH":[56.4,-3.43],"PL":[50.37,-4.14],"PO":[50.8,-1.08],"PR":[53.76,-2.7],"RG":[51.46,-0.97],"RH":[51.24,-0.18],"RM":[51.58,0.18],"S":[53.38,-1.47],"SA":[51.62,-3.94],"SE":[51.45,-0.08],"SG":[51.9,-0.2],"SK":[53.41,-2.16],"SL":[51.51,-0.59],"SM":[51.36,-0.19],"SN":[51.56,-1.78],"SO":[50.9,-1.4],"SP":[51.07,-1.8],"SR":[54.9,-1.38],"SS":[51.54,0.71],"ST":[53.02,-2.18],"SW":[51.45,-0.15],"SY":[52.71,-2.75],"TA":[51.02,-3.1],"TD":[55.62,-2.8],"TF":[52.68,-2.45],"TN":[51.13,0.26],"TQ":[50.46,-3.53],"TR":[50.26,-5.05],"TS":[54.57,-1.23],"TW":[51.44,-0.33],"UB":[51.54,-0.48],"W":[51.51,-0.2],"WA":[53.39,-2.59],"WC":[51.51,-0.12],"WD":[51.66,-0.4],"WF":[53.68,-1.5],"WN":[53.55,-2.63],"WR":[52.19,-2.22],"WS":[52.59,-1.98],"WV":[52.59,-2.13],"YO":[53.96,-1.08],"ZE":[60.15,-1.15]};
 
 let _results = [];
@@ -479,21 +481,14 @@ let _sortedCounts = [];
 let ukMap;
 let mapLayerGroup;
 
-// --- BULLETPROOF POSTCODE AREA MATCHER ---
 function getCounty(postcode) {
   const clean = postcode.trim().toUpperCase().replace(/\s+/g, '');
   if (!clean) return null;
-  
-  // Strictly extracts the first 1 or 2 letters of the string
   const match = clean.match(/^([A-Z]{1,2})/);
   const areaCode = match ? match[1] : '';
-
-  // If the extracted letters exist in our Master Map, it is a valid match
   if (areaCode && postcodeMap[areaCode]) {
     return { area: areaCode, name: postcodeMap[areaCode] };
   }
-  
-  // If no valid map entry exists (e.g. QZ, SI), it gets filed precisely as Unknown
   return { area: areaCode || clean, name: "Unknown" };
 }
 
@@ -501,11 +496,26 @@ function parsePostcodes(text) {
   return text.split(/[\n,;\t]+/).map(p => p.trim()).filter(p => p.length > 0);
 }
 
+// FIX 1: Robust download logic to prevent modern browsers from silently aborting the save.
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
+  if (navigator.msSaveBlob) { // IE/Edge Fallback
+    navigator.msSaveBlob(blob, filename);
+    return;
+  }
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  const a = document.createElement('a'); 
+  a.style.display = 'none';
+  a.href = url; 
+  a.download = filename;
+  document.body.appendChild(a); 
+  a.click(); 
+  
+  // Adding a delay before revoking prevents Chrome/Safari from killing the download mid-flight
+  setTimeout(() => {
+    document.body.removeChild(a); 
+    URL.revokeObjectURL(url);
+  }, 250);
 }
 
 function flashBtn(btn) {
@@ -514,7 +524,7 @@ function flashBtn(btn) {
 }
 
 function exportCSV() {
-  if (!_results.length) return;
+  if (!_results.length) { alert("Please run a postcode check first!"); return; }
   const rows = [['Postcode', 'Area Code', 'Region Name']];
   _results.forEach(r => rows.push([r.postcode, r.area || '', r.name || 'Unknown']));
   const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
@@ -523,7 +533,7 @@ function exportCSV() {
 }
 
 function exportSummaryCSV() {
-  if (!_sortedCounts.length) return;
+  if (!_sortedCounts.length) { alert("Please run a postcode check first!"); return; }
   const rows = [['Area Code', 'Region Name', 'Count', 'Percentage']];
   const total = _results.length;
   _sortedCounts.forEach(([area, count]) => {
@@ -536,7 +546,7 @@ function exportSummaryCSV() {
 }
 
 function exportTXT() {
-  if (!_results.length) return;
+  if (!_results.length) { alert("Please run a postcode check first!"); return; }
   const lines = _results.map(r => `${r.postcode.padEnd(12)}${(r.area || '').padEnd(6)}${r.name || 'Unknown'}`);
   const header = `${'POSTCODE'.padEnd(12)}${'AREA'.padEnd(6)}REGION NAME`;
   const txt = [header, '─'.repeat(60), ...lines].join('\n');
@@ -544,12 +554,11 @@ function exportTXT() {
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
-// --- SCALED BUBBLE HEATMAP LOGIC ---
+// Map Logic
 function generateHeatmap(areaCounts, maxCount) {
   const mapCard = document.getElementById('mapCard');
   mapCard.style.display = 'block';
 
-  // Initialize Map Framework
   if (!ukMap) {
     ukMap = L.map('map').setView([54.0, -2.5], 6);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -559,11 +568,9 @@ function generateHeatmap(areaCounts, maxCount) {
     }).addTo(ukMap);
   }
 
-  // Clear previous bubbles
   if (mapLayerGroup) ukMap.removeLayer(mapLayerGroup);
   mapLayerGroup = L.layerGroup().addTo(ukMap);
 
-  // Recalculate size to clear grey-box bug
   setTimeout(() => { ukMap.invalidateSize(); }, 50);
   setTimeout(() => { ukMap.invalidateSize(); }, 300);
 
@@ -574,14 +581,10 @@ function generateHeatmap(areaCounts, maxCount) {
            intensity > 0.2 ? '#1e7a8c' : '#1e4fa8';
   }
 
-  // Plot each Area as a scalable colored bubble
   for (const [area, count] of Object.entries(areaCounts)) {
-    // Crucially skip 'Unknown' so we don't try to plot ghost data
     if (area !== 'Unknown' && postcodeCoords[area]) {
       const coords = postcodeCoords[area];
       const intensity = count / maxCount;
-      
-      // Radius scales dynamically from 8px up to 35px based on frequency
       const radius = 8 + (intensity * 27); 
       const color = getColor(count);
 
@@ -594,8 +597,7 @@ function generateHeatmap(areaCounts, maxCount) {
       })
       .bindTooltip(`
         <div style="text-align:center; padding: 4px;">
-          <strong style="font-size:1.1em; color:#1c1a17;">${area}</strong>
-          <br>
+          <strong style="font-size:1.1em; color:#1c1a17;">${area}</strong><br>
           <span style="font-size:0.85em; color:#7a7268; text-transform:uppercase;">${postcodeMap[area] || ''}</span>
           <div style="margin-top:6px; font-weight:bold; color:#2d7a4f;">${count} Postcodes</div>
         </div>
@@ -605,14 +607,17 @@ function generateHeatmap(areaCounts, maxCount) {
   }
 }
 
+// FIX 2: Better PDF export logic 
 function exportPDF() {
+  if (!_results.length) { alert("Please run a postcode check first!"); return; }
+  
   const btn = document.getElementById('exportPdfBtn');
   const originalHtml = btn.innerHTML;
   btn.innerHTML = 'Generating PDF...';
   
   document.getElementById('mapLegend').style.display = 'none';
-
   const element = document.getElementById('mapCard');
+  
   const opt = {
     margin:       0.2,
     filename:     'uk-postcode-map.pdf',
@@ -625,6 +630,10 @@ function exportPDF() {
     btn.innerHTML = originalHtml;
     document.getElementById('mapLegend').style.display = 'block';
     flashBtn(btn);
+  }).catch(err => {
+    console.error("PDF Generation Error", err);
+    alert("PDF generation failed. Try running this file in a regular browser tab.");
+    btn.innerHTML = originalHtml;
   });
 }
 
@@ -653,20 +662,16 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   const postcodes = parsePostcodes(text);
   if (!postcodes.length) return;
 
-  // Run the matching
   _results = postcodes.map(pc => ({ postcode: pc, ...getCounty(pc) }));
 
-  // Group by Area Code (e.g., SW, B, EH)
   const counts = {};
   _results.forEach(r => { 
-    // Ensure r.area is explicitly mapped, fallback to Unknown
     const k = r.name === "Unknown" ? "Unknown" : (r.area || "Unknown"); 
     counts[k] = (counts[k] || 0) + 1; 
   });
   
   _sortedCounts = Object.entries(counts).sort((a,b) => b[1] - a[1]);
   
-  // Calculate maxCount IGNORING the Unknown column so heat colors scale properly
   const knownCounts = _sortedCounts.filter(([a]) => a !== 'Unknown');
   const maxCount = knownCounts[0]?.[1] || 1; 
 
@@ -677,14 +682,12 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   const colorMap = {};
   knownCounts.forEach(([area], i) => { colorMap[area] = i % 10; });
 
-  // Update Summary List
   const barsEl = document.getElementById('summaryBars');
   barsEl.innerHTML = '';
   _sortedCounts.forEach(([area, count], idx) => {
-    // If it's unknown, don't break the bar limit 
     const isUnk = area === 'Unknown';
     let pct = (count / maxCount * 100).toFixed(1);
-    if (isUnk && count > maxCount) pct = 100; // Cap visual bar at 100%
+    if (isUnk && count > maxCount) pct = 100; 
 
     const ci = colorMap[area] !== undefined ? colorMap[area] : null;
     const regionText = isUnk ? "Unknown Data" : postcodeMap[area];
@@ -719,15 +722,12 @@ document.getElementById('checkBtn').addEventListener('click', () => {
     document.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
   }));
 
-  // Render Map 
   generateHeatmap(counts, maxCount);
 
-  // Update Table List
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
   _results.forEach(r => {
     const isUnk = r.name === 'Unknown';
-    // If it's unknown, default to null styling instead of breaking
     const ci = colorMap[isUnk ? 'Unknown' : r.area] !== undefined ? colorMap[r.area] : null;
     
     const tr = document.createElement('tr');
