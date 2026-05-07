@@ -305,6 +305,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
 .legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .legend-item:last-child { margin-bottom: 0; }
 .legend-color { width: 12px; height: 12px; border-radius: 3px; }
+.map-error { position: absolute; inset: 0; background: var(--off); display: grid; place-items: center; padding: 20px; text-align: center; color: #b53a3a; font-size: 0.8rem; z-index: 2000; }
 
 /* Colors */
 .c0{background:#2d7a4f}.c1{background:#1e4fa8}.c2{background:#7a3ba8}
@@ -403,7 +404,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
       </button>
     </div>
     <div id="map" style="height: 500px; width: 100%; z-index: 1; position: relative;">
-      <div class="map-legend">
+      <div class="map-legend" id="mapLegend">
         <div class="legend-item"><div class="legend-color" style="background:#1c1a17"></div>Highest Density</div>
         <div class="legend-item"><div class="legend-color" style="background:#2d7a4f"></div>High Density</div>
         <div class="legend-item"><div class="legend-color" style="background:#1e7a8c"></div>Medium Density</div>
@@ -541,9 +542,28 @@ function exportTXT() {
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
-// ---- UPDATED MAP LOGIC ---- //
+// --- ROBUST GEOJSON FETCHING & MAP LOGIC ---
 
-function generateHeatmap(countyCounts, maxCount) {
+async function fetchGeoJSON() {
+  // Array of highly reliable public UK county GeoJSON sources. 
+  // If one 404s, it immediately falls back to the next one.
+  const geojsonUrls = [
+    'https://raw.githubusercontent.com/glynnbird/ukcountiesgeojson/master/ukcounties.geojson', // Primary
+    'https://raw.githubusercontent.com/radoi90/households-size-in-UK/master/data/geojson/counties.geojson' // Secondary Fallback
+  ];
+
+  for (let url of geojsonUrls) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) return await response.json();
+    } catch (e) {
+      console.warn(`Failed to load GeoJSON from ${url}, trying next...`);
+    }
+  }
+  throw new Error("All map data sources failed to load.");
+}
+
+async function generateHeatmap(countyCounts, maxCount) {
   const mapCard = document.getElementById('mapCard');
   mapCard.style.display = 'block';
 
@@ -551,7 +571,6 @@ function generateHeatmap(countyCounts, maxCount) {
   if (!ukMap) {
     ukMap = L.map('map').setView([54.5, -3.2], 5);
     
-    // Using a highly reliable OpenStreetMap base layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
@@ -559,6 +578,9 @@ function generateHeatmap(countyCounts, maxCount) {
   } else {
     // If running again, clear previous colored shapes
     if (geojsonLayer) ukMap.removeLayer(geojsonLayer);
+    // Remove any previous error messages
+    const existingError = document.querySelector('.map-error');
+    if (existingError) existingError.remove();
   }
 
   // Force Leaflet to recalculate the size now that it's visible. 
@@ -575,45 +597,43 @@ function generateHeatmap(countyCounts, maxCount) {
            intensity > 0.2 ? '#1e4fa8' : '#b0aa9e';
   }
 
-  // 2. Fetch the UK boundaries
-  fetch('https://raw.githubusercontent.com/martinjc/UK-GeoJSON/master/json/administrative/eng/county.json')
-    .then(response => {
-      if (!response.ok) throw new Error("Could not load county shapes");
-      return response.json();
-    })
-    .then(data => {
-      geojsonLayer = L.geoJson(data, {
-        style: function (feature) {
-          // Look for multiple possible property names in the file
-          let countyName = feature.properties.C_NM || feature.properties.NAME || feature.properties.name || ""; 
-          let matchedCount = 0;
-          
-          // Case-insensitive matching to ensure counts align properly
-          for (const [key, val] of Object.entries(countyCounts)) {
-            if (key.toLowerCase().includes(countyName.toLowerCase()) || 
-                countyName.toLowerCase().includes(key.toLowerCase())) {
-              matchedCount += val;
-            }
+  try {
+    // 2. Fetch the UK boundaries using the robust fallback function
+    const data = await fetchGeoJSON();
+    
+    geojsonLayer = L.geoJson(data, {
+      style: function (feature) {
+        // Look for multiple possible property names in the file based on the source
+        let countyName = feature.properties.C_NM || feature.properties.NAME_2 || feature.properties.NAME || feature.properties.name || ""; 
+        let matchedCount = 0;
+        
+        // Case-insensitive matching to ensure counts align properly
+        for (const [key, val] of Object.entries(countyCounts)) {
+          if (key.toLowerCase().includes(countyName.toLowerCase()) || 
+              countyName.toLowerCase().includes(key.toLowerCase())) {
+            matchedCount += val;
           }
-          
-          return { 
-            fillColor: getColor(matchedCount), 
-            weight: 1, 
-            color: '#ffffff', 
-            fillOpacity: matchedCount > 0 ? 0.8 : 0.2 
-          };
-        },
-        onEachFeature: function (feature, layer) {
-          let countyName = feature.properties.C_NM || feature.properties.NAME || "Unknown";
-          layer.bindTooltip(countyName);
         }
-      }).addTo(ukMap);
-    })
-    .catch(err => {
-      console.error("Map rendering error:", err);
-      // Fallback message if the external GeoJSON file gets blocked by a firewall/CORS
-      document.getElementById('map').innerHTML = `<div style="padding: 30px; text-align: center; color: #b53a3a;">Failed to load map boundaries. Please check your internet connection or browser console.</div>`;
-    });
+        
+        return { 
+          fillColor: getColor(matchedCount), 
+          weight: 1, 
+          color: '#ffffff', 
+          fillOpacity: matchedCount > 0 ? 0.8 : 0.2 
+        };
+      },
+      onEachFeature: function (feature, layer) {
+        let countyName = feature.properties.C_NM || feature.properties.NAME_2 || feature.properties.NAME || feature.properties.name || "Unknown";
+        layer.bindTooltip(countyName);
+      }
+    }).addTo(ukMap);
+    
+  } catch (err) {
+    console.error("Map rendering error:", err);
+    document.getElementById('map').insertAdjacentHTML('beforeend', 
+      `<div class="map-error">Unable to load the UK Map boundaries due to a network or server issue.<br>Try refreshing the page or checking your internet connection.</div>`
+    );
+  }
 }
 
 function exportPDF() {
@@ -621,6 +641,9 @@ function exportPDF() {
   const originalHtml = btn.innerHTML;
   btn.innerHTML = 'Generating PDF...';
   
+  // Temporarily hide the legend so it doesn't float awkwardly in the PDF
+  document.getElementById('mapLegend').style.display = 'none';
+
   // We export the Map Card container
   const element = document.getElementById('mapCard');
   
@@ -628,12 +651,13 @@ function exportPDF() {
     margin:       0.2,
     filename:     'uk-postcode-map.pdf',
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false }, // useCORS allows external map tiles to render
+    html2canvas:  { scale: 2, useCORS: true, logging: false }, 
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
   };
 
   html2pdf().set(opt).from(element).save().then(() => {
     btn.innerHTML = originalHtml;
+    document.getElementById('mapLegend').style.display = 'block'; // Restore legend
     flashBtn(btn);
   });
 }
@@ -658,10 +682,15 @@ dropZone.addEventListener('drop', e => {
   const r = new FileReader(); r.onload = ev => document.getElementById('pasteInput').value = ev.target.result; r.readAsText(file);
 });
 
-document.getElementById('checkBtn').addEventListener('click', () => {
+document.getElementById('checkBtn').addEventListener('click', async () => {
   const text = document.getElementById('pasteInput').value;
   const postcodes = parsePostcodes(text);
   if (!postcodes.length) return;
+
+  // Change button text while loading map
+  const checkBtn = document.getElementById('checkBtn');
+  const checkBtnHtml = checkBtn.innerHTML;
+  checkBtn.innerHTML = "Processing & Loading Map...";
 
   _results = postcodes.map(pc => ({ postcode: pc, ...getCounty(pc) }));
 
@@ -676,9 +705,6 @@ document.getElementById('checkBtn').addEventListener('click', () => {
 
   const colorMap = {};
   _sortedCounts.filter(([c])=>c!=='Unknown').forEach(([county],i)=>{ colorMap[county]=i%10; });
-
-  // Generate Map
-  generateHeatmap(counts, maxCount);
 
   // Summary bars
   const barsEl = document.getElementById('summaryBars');
@@ -716,6 +742,12 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     document.querySelectorAll('.bar-fill').forEach(el=>{ el.style.width = el.dataset.pct+'%'; });
   }));
+
+  // Generate Map (Wait for it to load)
+  await generateHeatmap(counts, maxCount);
+
+  // Restore button text
+  checkBtn.innerHTML = checkBtnHtml;
 
   // Table
   const tbody = document.getElementById('tableBody');
