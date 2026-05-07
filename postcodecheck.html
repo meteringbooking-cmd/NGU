@@ -10,8 +10,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="https://unpkg.com/topojson-client@3"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
@@ -341,7 +339,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
   </div>
   <div class="header-text">
     <h1>Postcode Checker</h1>
-    <p>Upload postcodes · map distribution</p>
+    <p>Upload postcodes · map area distribution</p>
   </div>
 </header>
 
@@ -381,7 +379,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
     <div class="card-header">
       <div class="card-header-left">
         <div class="step-badge">2</div>
-        <span class="card-label">County breakdown</span>
+        <span class="card-label">Postcode Area breakdown</span>
       </div>
     </div>
     <div class="summary-grid" id="summaryBars"></div>
@@ -392,7 +390,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
     <div class="card-header">
       <div class="card-header-left">
         <div class="step-badge">M</div>
-        <span class="card-label">UK Distribution Heatmap</span>
+        <span class="card-label">UK Distribution Bubble Map</span>
       </div>
       <button class="export-btn pdf" id="exportPdfBtn" title="Download Map as PDF">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -411,7 +409,6 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
         <div class="legend-item"><div class="legend-color" style="background:#2d7a4f"></div>High Density</div>
         <div class="legend-item"><div class="legend-color" style="background:#1e7a8c"></div>Medium Density</div>
         <div class="legend-item"><div class="legend-color" style="background:#1e4fa8"></div>Low Density</div>
-        <div class="legend-item"><div class="legend-color" style="background:#e8e5df; border: 1px solid #ccc;"></div>Zero Match</div>
       </div>
     </div>
   </div>
@@ -429,7 +426,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
           <tr>
             <th>Postcode</th>
             <th>Area Code</th>
-            <th>County / Region</th>
+            <th>Region Name</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -439,7 +436,7 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
       <div class="table-footer-text" id="tableFooterText"></div>
       <div class="export-group">
         <button class="export-btn" id="exportCsvBtn" title="Export full results as CSV">CSV</button>
-        <button class="export-btn" id="exportSummaryBtn" title="Export county summary as CSV">Summary CSV</button>
+        <button class="export-btn" id="exportSummaryBtn" title="Export area summary as CSV">Summary CSV</button>
         <button class="export-btn" id="exportTxtBtn" title="Export postcodes as plain text">TXT</button>
       </div>
     </div>
@@ -448,54 +445,48 @@ td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
 </main>
 
 <script>
+// Master list of all 124 UK Postcode Areas
 const postcodeMap = {
-  AB:"Aberdeenshire", AL:"Hertfordshire", B:"West Midlands", BA:"Somerset",
-  BB:"Lancashire", BD:"West Yorkshire", BH:"Dorset", BL:"Greater Manchester", BN:"East Sussex",
-  BR:"Greater London", BS:"Somerset", BT:"Northern Ireland", CA:"Cumbria",
-  CB:"Cambridgeshire", CF:"Cardiff", CH:"Cheshire", CM:"Essex", CO:"Essex",
-  CR:"Greater London", CT:"Kent", CV:"Warwickshire", CW:"Cheshire",
-  DA:"Kent", DD:"Angus", DE:"Derbyshire", DG:"Dumfries and Galloway",
-  DH:"County Durham", DL:"North Yorkshire", DN:"Lincolnshire",
-  DT:"Dorset", DY:"Worcestershire", E:"Greater London", EC:"Greater London",
-  EH:"Edinburgh", EN:"Hertfordshire", EX:"Devon",
-  FK:"Stirling", FY:"Lancashire", G:"Glasgow", GL:"Gloucestershire",
-  GU:"Surrey", GY:"Guernsey", HA:"Greater London", HD:"West Yorkshire",
-  HG:"North Yorkshire", HP:"Buckinghamshire", HR:"Herefordshire",
-  HS:"Western Isles", HU:"East Yorkshire", HX:"West Yorkshire", IG:"Essex",
-  IM:"Isle of Man", IP:"Suffolk", IV:"Highland", JE:"Jersey", KA:"Ayrshire",
-  KT:"Surrey", KW:"Highland", KY:"Fife", L:"Merseyside",
-  LA:"Lancashire", LD:"Powys", LE:"Leicestershire", LL:"Gwynedd",
-  LN:"Lincolnshire", LS:"West Yorkshire", LU:"Bedfordshire", M:"Greater Manchester",
-  ME:"Kent", MK:"Buckinghamshire", ML:"Lanarkshire", N:"Greater London",
-  NE:"Tyne and Wear", NG:"Nottinghamshire", NN:"Northamptonshire",
-  NP:"Newport", NR:"Norfolk", NW:"Greater London", OL:"Greater Manchester",
-  OX:"Oxfordshire", PA:"Renfrewshire", PE:"Cambridgeshire",
-  PH:"Perthshire", PL:"Cornwall", PO:"Hampshire",
-  PR:"Lancashire", RG:"Berkshire", RH:"West Sussex", RM:"Essex",
-  S:"South Yorkshire", SA:"Swansea", SE:"Greater London", SG:"Hertfordshire",
-  SK:"Cheshire", SL:"Berkshire",
-  SM:"Surrey", SN:"Wiltshire", SO:"Hampshire", SP:"Wiltshire",
-  SR:"Tyne and Wear", SS:"Essex", ST:"Staffordshire", SW:"Greater London",
-  SY:"Shropshire", TA:"Somerset", TD:"Scottish Borders", TF:"Shropshire",
-  TN:"Kent", TQ:"Devon", TR:"Cornwall", TS:"Cleveland",
-  TW:"Surrey", UB:"Greater London", W:"Greater London",
-  WA:"Cheshire", WC:"Greater London", WD:"Hertfordshire",
-  WF:"West Yorkshire", WN:"Greater Manchester", WR:"Worcestershire", WS:"West Midlands",
-  WV:"West Midlands", YO:"North Yorkshire", ZE:"Shetland"
+  AB:"Aberdeen", AL:"St Albans", B:"Birmingham", BA:"Bath", BB:"Blackburn", BD:"Bradford",
+  BH:"Bournemouth", BL:"Bolton", BN:"Brighton", BR:"Bromley", BS:"Bristol", BT:"Northern Ireland",
+  CA:"Carlisle", CB:"Cambridge", CF:"Cardiff", CH:"Chester", CM:"Chelmsford", CO:"Colchester",
+  CR:"Croydon", CT:"Canterbury", CV:"Coventry", CW:"Crewe", DA:"Dartford", DD:"Dundee",
+  DE:"Derby", DG:"Dumfries", DH:"Durham", DL:"Darlington", DN:"Doncaster", DT:"Dorchester",
+  DY:"Dudley", E:"East London", EC:"East Central London", EH:"Edinburgh", EN:"Enfield",
+  EX:"Exeter", FK:"Falkirk", FY:"Blackpool", G:"Glasgow", GL:"Gloucester", GU:"Guildford",
+  GY:"Guernsey", HA:"Harrow", HD:"Huddersfield", HG:"Harrogate", HP:"Hemel Hempstead",
+  HR:"Hereford", HS:"Outer Hebrides", HU:"Hull", HX:"Halifax", IG:"Ilford", IM:"Isle of Man",
+  IP:"Ipswich", IV:"Inverness", JE:"Jersey", KA:"Kilmarnock", KT:"Kingston upon Thames",
+  KW:"Kirkwall", KY:"Kirkcaldy", L:"Liverpool", LA:"Lancaster", LD:"Llandrindod Wells",
+  LE:"Leicester", LL:"Llandudno", LN:"Lincoln", LS:"Leeds", LU:"Luton", M:"Manchester",
+  ME:"Medway", MK:"Milton Keynes", ML:"Motherwell", N:"North London", NE:"Newcastle",
+  NG:"Nottingham", NN:"Northampton", NP:"Newport", NR:"Norwich", NW:"North West London",
+  OL:"Oldham", OX:"Oxford", PA:"Paisley", PE:"Peterborough", PH:"Perth", PL:"Plymouth",
+  PO:"Portsmouth", PR:"Preston", RG:"Reading", RH:"Redhill", RM:"Romford", S:"Sheffield",
+  SA:"Swansea", SE:"South East London", SG:"Stevenage", SK:"Stockport", SL:"Slough",
+  SM:"Sutton", SN:"Swindon", SO:"Southampton", SP:"Salisbury", SR:"Sunderland", SS:"Southend",
+  ST:"Stoke-on-Trent", SW:"South West London", SY:"Shrewsbury", TA:"Taunton", TD:"Galashiels",
+  TF:"Telford", TN:"Tonbridge", TQ:"Torquay", TR:"Truro", TS:"Cleveland", TW:"Twickenham",
+  UB:"Southall", W:"West London", WA:"Warrington", WC:"West Central London", WD:"Watford",
+  WF:"Wakefield", WN:"Wigan", WR:"Worcester", WS:"Walsall", WV:"Wolverhampton", YO:"York", ZE:"Shetland"
 };
+
+// Internal Coordinate Dictionary for rendering exact locations without external files!
+const postcodeCoords = {"AB":[57.15,-2.15],"AL":[51.75,-0.33],"B":[52.48,-1.9],"BA":[51.38,-2.36],"BB":[53.75,-2.48],"BD":[53.79,-1.75],"BH":[50.72,-1.88],"BL":[53.58,-2.43],"BN":[50.82,-0.14],"BR":[51.4,0.02],"BS":[51.45,-2.58],"BT":[54.6,-5.93],"CA":[54.89,-2.93],"CB":[52.2,0.12],"CF":[51.48,-3.18],"CH":[53.19,-2.89],"CM":[51.73,0.47],"CO":[51.89,0.9],"CR":[51.37,-0.1],"CT":[51.28,1.08],"CV":[52.41,-1.51],"CW":[53.1,-2.44],"DA":[51.44,0.15],"DD":[56.46,-2.97],"DE":[52.92,-1.48],"DG":[55.07,-3.6],"DH":[54.78,-1.57],"DL":[54.53,-1.55],"DN":[53.52,-1.13],"DT":[50.71,-2.44],"DY":[52.51,-2.08],"E":[51.52,-0.04],"EC":[51.51,-0.09],"EH":[55.95,-3.19],"EN":[51.65,-0.08],"EX":[50.72,-3.53],"FK":[56.12,-3.94],"FY":[53.82,-3.05],"G":[55.86,-4.25],"GL":[51.87,-2.25],"GU":[51.24,-0.57],"GY":[49.46,-2.58],"HA":[51.58,-0.34],"HD":[53.65,-1.78],"HG":[53.99,-1.54],"HP":[51.75,-0.76],"HR":[52.06,-2.71],"HS":[58.21,-6.38],"HU":[53.74,-0.33],"HX":[53.72,-1.86],"IG":[51.57,0.08],"IM":[54.24,-4.55],"IP":[52.06,1.15],"IV":[57.48,-4.22],"JE":[49.21,-2.13],"KA":[55.61,-4.5],"KT":[51.41,-0.3],"KW":[58.44,-3.09],"KY":[56.11,-3.17],"L":[53.41,-2.99],"LA":[54.05,-2.8],"LD":[52.24,-3.38],"LE":[52.63,-1.13],"LL":[53.07,-3.8],"LN":[53.23,-0.54],"LS":[53.8,-1.55],"LU":[51.88,-0.42],"M":[53.48,-2.24],"ME":[51.38,0.52],"MK":[52.04,-0.76],"ML":[55.78,-3.98],"N":[51.58,-0.12],"NE":[54.97,-1.62],"NG":[52.95,-1.15],"NN":[52.24,-0.9],"NP":[51.59,-3.0],"NR":[52.63,1.3],"NW":[51.55,-0.21],"OL":[53.54,-2.12],"OX":[51.75,-1.26],"PA":[55.85,-4.42],"PE":[52.57,-0.25],"PH":[56.4,-3.43],"PL":[50.37,-4.14],"PO":[50.8,-1.08],"PR":[53.76,-2.7],"RG":[51.46,-0.97],"RH":[51.24,-0.18],"RM":[51.58,0.18],"S":[53.38,-1.47],"SA":[51.62,-3.94],"SE":[51.45,-0.08],"SG":[51.9,-0.2],"SK":[53.41,-2.16],"SL":[51.51,-0.59],"SM":[51.36,-0.19],"SN":[51.56,-1.78],"SO":[50.9,-1.4],"SP":[51.07,-1.8],"SR":[54.9,-1.38],"SS":[51.54,0.71],"ST":[53.02,-2.18],"SW":[51.45,-0.15],"SY":[52.71,-2.75],"TA":[51.02,-3.1],"TD":[55.62,-2.8],"TF":[52.68,-2.45],"TN":[51.13,0.26],"TQ":[50.46,-3.53],"TR":[50.26,-5.05],"TS":[54.57,-1.23],"TW":[51.44,-0.33],"UB":[51.54,-0.48],"W":[51.51,-0.2],"WA":[53.39,-2.59],"WC":[51.51,-0.12],"WD":[51.66,-0.4],"WF":[53.68,-1.5],"WN":[53.55,-2.63],"WR":[52.19,-2.22],"WS":[52.59,-1.98],"WV":[52.59,-2.13],"YO":[53.96,-1.08],"ZE":[60.15,-1.15]};
 
 let _results = [];
 let _sortedCounts = [];
 let ukMap;
-let geojsonLayer;
+let mapLayerGroup;
 
+// Matches the postcode to its Area (e.g. SW, M, B)
 function getCounty(postcode) {
   const clean = postcode.trim().toUpperCase().replace(/\s+/g,'');
   if (!clean) return null;
   const prefix2 = clean.match(/^([A-Z]{1,2})/)?.[1] || '';
-  if (prefix2.length === 2 && postcodeMap[prefix2]) return { county: postcodeMap[prefix2], area: prefix2 };
-  if (prefix2.length >= 1 && postcodeMap[prefix2[0]]) return { county: postcodeMap[prefix2[0]], area: prefix2[0] };
-  return { county: "Unknown", area: prefix2 || clean };
+  if (prefix2.length === 2 && postcodeMap[prefix2]) return { area: prefix2, name: postcodeMap[prefix2] };
+  if (prefix2.length >= 1 && postcodeMap[prefix2[0]]) return { area: prefix2[0], name: postcodeMap[prefix2[0]] };
+  return { area: prefix2 || clean, name: "Unknown" };
 }
 
 function parsePostcodes(text) {
@@ -516,8 +507,8 @@ function flashBtn(btn) {
 
 function exportCSV() {
   if (!_results.length) return;
-  const rows = [['Postcode', 'Area Code', 'County / Region']];
-  _results.forEach(r => rows.push([r.postcode, r.area || '', r.county || 'Unknown']));
+  const rows = [['Postcode', 'Area Code', 'Region Name']];
+  _results.forEach(r => rows.push([r.postcode, r.area || '', r.name || 'Unknown']));
   const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
   downloadFile(csv, 'postcode-results.csv', 'text/csv;charset=utf-8;');
   flashBtn(document.getElementById('exportCsvBtn'));
@@ -525,10 +516,11 @@ function exportCSV() {
 
 function exportSummaryCSV() {
   if (!_sortedCounts.length) return;
-  const rows = [['County / Region', 'Count', 'Percentage']];
+  const rows = [['Area Code', 'Region Name', 'Count', 'Percentage']];
   const total = _results.length;
-  _sortedCounts.forEach(([county, count]) => {
-    rows.push([county, count, ((count / total) * 100).toFixed(1) + '%']);
+  _sortedCounts.forEach(([area, count]) => {
+    const regionName = area !== "Unknown" ? postcodeMap[area] : "Unknown";
+    rows.push([area, regionName, count, ((count / total) * 100).toFixed(1) + '%']);
   });
   const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
   downloadFile(csv, 'postcode-summary.csv', 'text/csv;charset=utf-8;');
@@ -537,108 +529,71 @@ function exportSummaryCSV() {
 
 function exportTXT() {
   if (!_results.length) return;
-  const lines = _results.map(r => `${r.postcode.padEnd(12)}${(r.area || '').padEnd(6)}${r.county || 'Unknown'}`);
-  const header = `${'POSTCODE'.padEnd(12)}${'AREA'.padEnd(6)}COUNTY / REGION`;
+  const lines = _results.map(r => `${r.postcode.padEnd(12)}${(r.area || '').padEnd(6)}${r.name || 'Unknown'}`);
+  const header = `${'POSTCODE'.padEnd(12)}${'AREA'.padEnd(6)}REGION NAME`;
   const txt = [header, '─'.repeat(60), ...lines].join('\n');
   downloadFile(txt, 'postcode-results.txt', 'text/plain;charset=utf-8;');
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
-// --- BULLETPROOF MAP FETCHING ---
+// --- NEW SCALED BUBBLE HEATMAP LOGIC ---
 
-async function fetchGeoJSON() {
-  // We now use TopoJSON Enterprise CDNs first because they never 404.
-  // We fall back to GitHub 'main' branch URLs if needed.
-  const mapUrls = [
-    // 1. Widely used Deldersveld TopoJSON (Extremely reliable)
-    'https://raw.githubusercontent.com/deldersveld/topojson/master/countries/united-kingdom/uk-counties.json',
-    // 2. Highcharts Enterprise CDN Map (Never goes down)
-    'https://code.highcharts.com/mapdata/countries/gb/gb-all.topo.json',
-    // 3. GitHub repos updated to the correct 'main' branch path
-    'https://raw.githubusercontent.com/glynnbird/ukcountiesgeojson/main/ukcounties.geojson',
-    'https://raw.githubusercontent.com/radoi90/households-size-in-UK/main/data/geojson/counties.geojson'
-  ];
-
-  for (let url of mapUrls) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Convert TopoJSON to GeoJSON so Leaflet can read it
-        if (data.type === "Topology") {
-          const objectKey = Object.keys(data.objects)[0];
-          return topojson.feature(data, data.objects[objectKey]);
-        }
-        
-        // Or return standard GeoJSON
-        return data;
-      }
-    } catch (e) {
-      console.warn(`Failed to load from ${url}, trying next...`);
-    }
-  }
-  throw new Error("All map data sources failed to load.");
-}
-
-async function generateHeatmap(countyCounts, maxCount) {
+function generateHeatmap(areaCounts, maxCount) {
   const mapCard = document.getElementById('mapCard');
   mapCard.style.display = 'block';
 
-  // Initialize map
+  // Initialize Map Framework
   if (!ukMap) {
-    ukMap = L.map('map').setView([54.5, -3.2], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap',
+    ukMap = L.map('map').setView([54.0, -2.5], 6);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
       maxZoom: 19
     }).addTo(ukMap);
-  } else {
-    if (geojsonLayer) ukMap.removeLayer(geojsonLayer);
-    const existingError = document.querySelector('.map-error');
-    if (existingError) existingError.remove();
   }
 
+  // Clear previous bubbles
+  if (mapLayerGroup) ukMap.removeLayer(mapLayerGroup);
+  mapLayerGroup = L.layerGroup().addTo(ukMap);
+
+  // Recalculate size to clear grey-box bug
   setTimeout(() => { ukMap.invalidateSize(); }, 50);
   setTimeout(() => { ukMap.invalidateSize(); }, 300);
 
   function getColor(count) {
-    if (!count) return '#e8e5df'; 
     const intensity = count / maxCount;
     return intensity > 0.8 ? '#1c1a17' :
-           intensity > 0.6 ? '#2d7a4f' :
-           intensity > 0.4 ? '#1e7a8c' :
-           intensity > 0.2 ? '#1e4fa8' : '#b0aa9e';
+           intensity > 0.5 ? '#2d7a4f' :
+           intensity > 0.2 ? '#1e7a8c' : '#1e4fa8';
   }
 
-  try {
-    const data = await fetchGeoJSON();
-    
-    geojsonLayer = L.geoJson(data, {
-      style: function (feature) {
-        // Robust property checking to support multiple different JSON sources
-        let countyName = feature.properties.name || feature.properties.NAME || feature.properties.C_NM || feature.properties.NAME_2 || ""; 
-        let matchedCount = 0;
-        
-        for (const [key, val] of Object.entries(countyCounts)) {
-          if (key.toLowerCase().includes(countyName.toLowerCase()) || 
-              countyName.toLowerCase().includes(key.toLowerCase())) {
-            matchedCount += val;
-          }
-        }
-        
-        return { fillColor: getColor(matchedCount), weight: 1, color: '#ffffff', fillOpacity: matchedCount > 0 ? 0.8 : 0.2 };
-      },
-      onEachFeature: function (feature, layer) {
-        let countyName = feature.properties.name || feature.properties.NAME || feature.properties.C_NM || feature.properties.NAME_2 || "Unknown";
-        layer.bindTooltip(countyName);
-      }
-    }).addTo(ukMap);
-    
-  } catch (err) {
-    console.error("Map rendering error:", err);
-    document.getElementById('map').insertAdjacentHTML('beforeend', 
-      `<div class="map-error">Unable to load the UK Map boundaries due to a network or server issue.<br>Try refreshing the page or checking your internet connection.</div>`
-    );
+  // Plot each Area as a scalable colored bubble
+  for (const [area, count] of Object.entries(areaCounts)) {
+    if (postcodeCoords[area]) {
+      const coords = postcodeCoords[area];
+      const intensity = count / maxCount;
+      
+      // Radius scales dynamically from 8px up to 35px based on frequency
+      const radius = 8 + (intensity * 27); 
+      const color = getColor(count);
+
+      L.circleMarker(coords, {
+        radius: radius,
+        fillColor: color,
+        color: '#ffffff',
+        weight: 1.5,
+        fillOpacity: 0.85
+      })
+      .bindTooltip(`
+        <div style="text-align:center; padding: 4px;">
+          <strong style="font-size:1.1em; color:#1c1a17;">${area}</strong>
+          <br>
+          <span style="font-size:0.85em; color:#7a7268; text-transform:uppercase;">${postcodeMap[area] || ''}</span>
+          <div style="margin-top:6px; font-weight:bold; color:#2d7a4f;">${count} Postcodes</div>
+        </div>
+      `, { direction: 'top', className: 'custom-tooltip' })
+      .addTo(mapLayerGroup);
+    }
   }
 }
 
@@ -685,43 +640,44 @@ dropZone.addEventListener('drop', e => {
   const r = new FileReader(); r.onload = ev => document.getElementById('pasteInput').value = ev.target.result; r.readAsText(file);
 });
 
-document.getElementById('checkBtn').addEventListener('click', async () => {
+document.getElementById('checkBtn').addEventListener('click', () => {
   const text = document.getElementById('pasteInput').value;
   const postcodes = parsePostcodes(text);
   if (!postcodes.length) return;
 
-  const checkBtn = document.getElementById('checkBtn');
-  const checkBtnHtml = checkBtn.innerHTML;
-  checkBtn.innerHTML = "Processing & Loading Map...";
-
+  // Run the matching
   _results = postcodes.map(pc => ({ postcode: pc, ...getCounty(pc) }));
 
+  // Group by Area Code (e.g., SW, B, EH)
   const counts = {};
-  _results.forEach(r => { const k = r.county||"Unknown"; counts[k]=(counts[k]||0)+1; });
-  _sortedCounts = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  _results.forEach(r => { const k = r.area || "Unknown"; counts[k] = (counts[k] || 0) + 1; });
+  _sortedCounts = Object.entries(counts).sort((a,b) => b[1] - a[1]);
   
-  const maxCount = _sortedCounts[0]?.[1]||1;
+  const maxCount = _sortedCounts[0]?.[1] || 1;
   const total = _results.length;
-  const known = _results.filter(r=>r.county!=='Unknown').length;
-  const numCounties = _sortedCounts.filter(([c])=>c!=='Unknown').length;
+  const known = _results.filter(r => r.area !== 'Unknown').length;
+  const numAreas = _sortedCounts.filter(([a]) => a !== 'Unknown').length;
 
   const colorMap = {};
-  _sortedCounts.filter(([c])=>c!=='Unknown').forEach(([county],i)=>{ colorMap[county]=i%10; });
+  _sortedCounts.filter(([a]) => a !== 'Unknown').forEach(([area], i) => { colorMap[area] = i % 10; });
 
+  // Update Summary List
   const barsEl = document.getElementById('summaryBars');
-  barsEl.innerHTML='';
-  _sortedCounts.forEach(([county,count],idx)=>{
-    const pct = (count/maxCount*100).toFixed(1);
-    const ci = colorMap[county]!==undefined ? colorMap[county] : null;
-    const isUnk = county==='Unknown';
+  barsEl.innerHTML = '';
+  _sortedCounts.forEach(([area, count], idx) => {
+    const pct = (count / maxCount * 100).toFixed(1);
+    const ci = colorMap[area] !== undefined ? colorMap[area] : null;
+    const isUnk = area === 'Unknown';
+    const regionText = isUnk ? "Unknown Data" : postcodeMap[area];
+    
     const div = document.createElement('div');
     div.className = 'county-row';
-    div.style.animationDelay = (idx*0.045)+'s';
+    div.style.animationDelay = (idx * 0.045) + 's';
     div.innerHTML = `
       <div class="county-row-left">
         <div class="county-name-row">
           <div class="county-dot ${isUnk?'':'c'+ci}" style="${isUnk?'background:#b53a3a':''}"></div>
-          <span class="county-name-text ${isUnk?'is-unknown':''}">${county}</span>
+          <span class="county-name-text ${isUnk?'is-unknown':''}"><strong>${area}</strong> <span style="color:#7a7268; font-size:0.9em; font-weight:normal;">(${regionText})</span></span>
         </div>
         <div class="bar-track">
           <div class="bar-fill ${isUnk?'':'c'+ci}" style="${isUnk?'background:#b53a3a':''}" data-pct="${pct}"></div>
@@ -734,37 +690,36 @@ document.getElementById('checkBtn').addEventListener('click', async () => {
 
   document.getElementById('statsRow').innerHTML = `
     <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-label">Postcodes</div></div>
-    <div class="stat-box"><div class="stat-num">${numCounties}</div><div class="stat-label">Counties</div></div>
-    <div class="stat-box"><div class="stat-num">${total>0?Math.round(known/total*100):0}%</div><div class="stat-label">Matched</div></div>
+    <div class="stat-box"><div class="stat-num">${numAreas}</div><div class="stat-label">Unique Areas</div></div>
+    <div class="stat-box"><div class="stat-num">${total > 0 ? Math.round(known / total * 100) : 0}%</div><div class="stat-label">Matched</div></div>
   `;
 
   document.getElementById('summary').style.display = 'block';
 
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    document.querySelectorAll('.bar-fill').forEach(el=>{ el.style.width = el.dataset.pct+'%'; });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
   }));
 
-  // Wait for the map boundaries to download and render
-  await generateHeatmap(counts, maxCount);
+  // Render Map 
+  generateHeatmap(counts, maxCount);
 
-  checkBtn.innerHTML = checkBtnHtml;
-
+  // Update Table List
   const tbody = document.getElementById('tableBody');
-  tbody.innerHTML='';
-  _results.forEach(r=>{
-    const ci = colorMap[r.county]!==undefined ? colorMap[r.county] : null;
-    const isUnk = r.county==='Unknown';
+  tbody.innerHTML = '';
+  _results.forEach(r => {
+    const ci = colorMap[r.area] !== undefined ? colorMap[r.area] : null;
+    const isUnk = r.area === 'Unknown';
     const tr = document.createElement('tr');
     if (isUnk) tr.classList.add('unknown-row');
     tr.innerHTML = `
       <td class="td-postcode">${r.postcode}</td>
-      <td><span class="td-badge">${r.area||'—'}</span></td>
-      <td>${isUnk ? '<span class="td-chip pu"><span class="td-chip-dot"></span>Unknown</span>' : `<span class="td-chip p${ci}"><span class="td-chip-dot"></span>${r.county}</span>`}</td>
+      <td><span class="td-badge">${r.area || '—'}</span></td>
+      <td>${isUnk ? '<span class="td-chip pu"><span class="td-chip-dot"></span>Unknown</span>' : `<span class="td-chip p${ci}"><span class="td-chip-dot"></span>${r.name}</span>`}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  document.getElementById('tableFooterText').innerHTML = `Showing <span>${total}</span> postcodes across <span>${numCounties}</span> ${numCounties===1?'county':'counties'}`;
+  document.getElementById('tableFooterText').innerHTML = `Showing <span>${total}</span> postcodes across <span>${numAreas}</span> unique areas`;
   document.getElementById('results').style.display = 'block';
   
   document.getElementById('summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
