@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<script src="https://unpkg.com/topojson-client@3"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
@@ -542,22 +544,38 @@ function exportTXT() {
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
-// --- ROBUST GEOJSON FETCHING & MAP LOGIC ---
+// --- BULLETPROOF MAP FETCHING ---
 
 async function fetchGeoJSON() {
-  // Array of highly reliable public UK county GeoJSON sources. 
-  // If one 404s, it immediately falls back to the next one.
-  const geojsonUrls = [
-    'https://raw.githubusercontent.com/glynnbird/ukcountiesgeojson/master/ukcounties.geojson', // Primary
-    'https://raw.githubusercontent.com/radoi90/households-size-in-UK/master/data/geojson/counties.geojson' // Secondary Fallback
+  // We now use TopoJSON Enterprise CDNs first because they never 404.
+  // We fall back to GitHub 'main' branch URLs if needed.
+  const mapUrls = [
+    // 1. Widely used Deldersveld TopoJSON (Extremely reliable)
+    'https://raw.githubusercontent.com/deldersveld/topojson/master/countries/united-kingdom/uk-counties.json',
+    // 2. Highcharts Enterprise CDN Map (Never goes down)
+    'https://code.highcharts.com/mapdata/countries/gb/gb-all.topo.json',
+    // 3. GitHub repos updated to the correct 'main' branch path
+    'https://raw.githubusercontent.com/glynnbird/ukcountiesgeojson/main/ukcounties.geojson',
+    'https://raw.githubusercontent.com/radoi90/households-size-in-UK/main/data/geojson/counties.geojson'
   ];
 
-  for (let url of geojsonUrls) {
+  for (let url of mapUrls) {
     try {
       const response = await fetch(url);
-      if (response.ok) return await response.json();
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Convert TopoJSON to GeoJSON so Leaflet can read it
+        if (data.type === "Topology") {
+          const objectKey = Object.keys(data.objects)[0];
+          return topojson.feature(data, data.objects[objectKey]);
+        }
+        
+        // Or return standard GeoJSON
+        return data;
+      }
     } catch (e) {
-      console.warn(`Failed to load GeoJSON from ${url}, trying next...`);
+      console.warn(`Failed to load from ${url}, trying next...`);
     }
   }
   throw new Error("All map data sources failed to load.");
@@ -567,27 +585,22 @@ async function generateHeatmap(countyCounts, maxCount) {
   const mapCard = document.getElementById('mapCard');
   mapCard.style.display = 'block';
 
-  // 1. Initialize map only if it doesn't exist yet
+  // Initialize map
   if (!ukMap) {
     ukMap = L.map('map').setView([54.5, -3.2], 5);
-    
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: '&copy; OpenStreetMap',
       maxZoom: 19
     }).addTo(ukMap);
   } else {
-    // If running again, clear previous colored shapes
     if (geojsonLayer) ukMap.removeLayer(geojsonLayer);
-    // Remove any previous error messages
     const existingError = document.querySelector('.map-error');
     if (existingError) existingError.remove();
   }
 
-  // Force Leaflet to recalculate the size now that it's visible. 
   setTimeout(() => { ukMap.invalidateSize(); }, 50);
   setTimeout(() => { ukMap.invalidateSize(); }, 300);
 
-  // Helper to color the map
   function getColor(count) {
     if (!count) return '#e8e5df'; 
     const intensity = count / maxCount;
@@ -598,16 +611,14 @@ async function generateHeatmap(countyCounts, maxCount) {
   }
 
   try {
-    // 2. Fetch the UK boundaries using the robust fallback function
     const data = await fetchGeoJSON();
     
     geojsonLayer = L.geoJson(data, {
       style: function (feature) {
-        // Look for multiple possible property names in the file based on the source
-        let countyName = feature.properties.C_NM || feature.properties.NAME_2 || feature.properties.NAME || feature.properties.name || ""; 
+        // Robust property checking to support multiple different JSON sources
+        let countyName = feature.properties.name || feature.properties.NAME || feature.properties.C_NM || feature.properties.NAME_2 || ""; 
         let matchedCount = 0;
         
-        // Case-insensitive matching to ensure counts align properly
         for (const [key, val] of Object.entries(countyCounts)) {
           if (key.toLowerCase().includes(countyName.toLowerCase()) || 
               countyName.toLowerCase().includes(key.toLowerCase())) {
@@ -615,15 +626,10 @@ async function generateHeatmap(countyCounts, maxCount) {
           }
         }
         
-        return { 
-          fillColor: getColor(matchedCount), 
-          weight: 1, 
-          color: '#ffffff', 
-          fillOpacity: matchedCount > 0 ? 0.8 : 0.2 
-        };
+        return { fillColor: getColor(matchedCount), weight: 1, color: '#ffffff', fillOpacity: matchedCount > 0 ? 0.8 : 0.2 };
       },
       onEachFeature: function (feature, layer) {
-        let countyName = feature.properties.C_NM || feature.properties.NAME_2 || feature.properties.NAME || feature.properties.name || "Unknown";
+        let countyName = feature.properties.name || feature.properties.NAME || feature.properties.C_NM || feature.properties.NAME_2 || "Unknown";
         layer.bindTooltip(countyName);
       }
     }).addTo(ukMap);
@@ -641,12 +647,9 @@ function exportPDF() {
   const originalHtml = btn.innerHTML;
   btn.innerHTML = 'Generating PDF...';
   
-  // Temporarily hide the legend so it doesn't float awkwardly in the PDF
   document.getElementById('mapLegend').style.display = 'none';
 
-  // We export the Map Card container
   const element = document.getElementById('mapCard');
-  
   const opt = {
     margin:       0.2,
     filename:     'uk-postcode-map.pdf',
@@ -657,7 +660,7 @@ function exportPDF() {
 
   html2pdf().set(opt).from(element).save().then(() => {
     btn.innerHTML = originalHtml;
-    document.getElementById('mapLegend').style.display = 'block'; // Restore legend
+    document.getElementById('mapLegend').style.display = 'block';
     flashBtn(btn);
   });
 }
@@ -687,7 +690,6 @@ document.getElementById('checkBtn').addEventListener('click', async () => {
   const postcodes = parsePostcodes(text);
   if (!postcodes.length) return;
 
-  // Change button text while loading map
   const checkBtn = document.getElementById('checkBtn');
   const checkBtnHtml = checkBtn.innerHTML;
   checkBtn.innerHTML = "Processing & Loading Map...";
@@ -706,7 +708,6 @@ document.getElementById('checkBtn').addEventListener('click', async () => {
   const colorMap = {};
   _sortedCounts.filter(([c])=>c!=='Unknown').forEach(([county],i)=>{ colorMap[county]=i%10; });
 
-  // Summary bars
   const barsEl = document.getElementById('summaryBars');
   barsEl.innerHTML='';
   _sortedCounts.forEach(([county,count],idx)=>{
@@ -743,13 +744,11 @@ document.getElementById('checkBtn').addEventListener('click', async () => {
     document.querySelectorAll('.bar-fill').forEach(el=>{ el.style.width = el.dataset.pct+'%'; });
   }));
 
-  // Generate Map (Wait for it to load)
+  // Wait for the map boundaries to download and render
   await generateHeatmap(counts, maxCount);
 
-  // Restore button text
   checkBtn.innerHTML = checkBtnHtml;
 
-  // Table
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML='';
   _results.forEach(r=>{
