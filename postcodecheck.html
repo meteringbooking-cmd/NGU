@@ -541,22 +541,31 @@ function exportTXT() {
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
-// ---- MAP & PDF LOGIC ---- //
+// ---- UPDATED MAP LOGIC ---- //
 
 function generateHeatmap(countyCounts, maxCount) {
-  document.getElementById('mapCard').style.display = 'block';
+  const mapCard = document.getElementById('mapCard');
+  mapCard.style.display = 'block';
 
+  // 1. Initialize map only if it doesn't exist yet
   if (!ukMap) {
     ukMap = L.map('map').setView([54.5, -3.2], 5);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      subdomains: 'abcd',
-      maxZoom: 20
+    
+    // Using a highly reliable OpenStreetMap base layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
     }).addTo(ukMap);
   } else {
+    // If running again, clear previous colored shapes
     if (geojsonLayer) ukMap.removeLayer(geojsonLayer);
   }
 
+  // Force Leaflet to recalculate the size now that it's visible. 
+  setTimeout(() => { ukMap.invalidateSize(); }, 50);
+  setTimeout(() => { ukMap.invalidateSize(); }, 300);
+
+  // Helper to color the map
   function getColor(count) {
     if (!count) return '#e8e5df'; 
     const intensity = count / maxCount;
@@ -566,28 +575,44 @@ function generateHeatmap(countyCounts, maxCount) {
            intensity > 0.2 ? '#1e4fa8' : '#b0aa9e';
   }
 
-  // Load public UK Counties GeoJSON
+  // 2. Fetch the UK boundaries
   fetch('https://raw.githubusercontent.com/martinjc/UK-GeoJSON/master/json/administrative/eng/county.json')
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error("Could not load county shapes");
+      return response.json();
+    })
     .then(data => {
       geojsonLayer = L.geoJson(data, {
         style: function (feature) {
-          let countyName = feature.properties.C_NM; 
+          // Look for multiple possible property names in the file
+          let countyName = feature.properties.C_NM || feature.properties.NAME || feature.properties.name || ""; 
           let matchedCount = 0;
+          
+          // Case-insensitive matching to ensure counts align properly
           for (const [key, val] of Object.entries(countyCounts)) {
-            // Basic matching bridge
-            if (key.includes(countyName) || countyName.includes(key)) {
+            if (key.toLowerCase().includes(countyName.toLowerCase()) || 
+                countyName.toLowerCase().includes(key.toLowerCase())) {
               matchedCount += val;
             }
           }
-          return { fillColor: getColor(matchedCount), weight: 1, color: 'white', fillOpacity: matchedCount > 0 ? 0.75 : 0.2 };
+          
+          return { 
+            fillColor: getColor(matchedCount), 
+            weight: 1, 
+            color: '#ffffff', 
+            fillOpacity: matchedCount > 0 ? 0.8 : 0.2 
+          };
         },
         onEachFeature: function (feature, layer) {
-          layer.bindTooltip(feature.properties.C_NM);
+          let countyName = feature.properties.C_NM || feature.properties.NAME || "Unknown";
+          layer.bindTooltip(countyName);
         }
       }).addTo(ukMap);
-      
-      setTimeout(() => { ukMap.invalidateSize(); }, 200);
+    })
+    .catch(err => {
+      console.error("Map rendering error:", err);
+      // Fallback message if the external GeoJSON file gets blocked by a firewall/CORS
+      document.getElementById('map').innerHTML = `<div style="padding: 30px; text-align: center; color: #b53a3a;">Failed to load map boundaries. Please check your internet connection or browser console.</div>`;
     });
 }
 
