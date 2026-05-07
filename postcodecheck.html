@@ -3,9 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Postcode Checker</title>
+<title>Postcode Checker & Heatmap</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -45,7 +51,7 @@ body {
   gap: 14px;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
   box-shadow: var(--shadow-sm);
 }
 
@@ -95,6 +101,11 @@ body {
 .card-header {
   padding: 16px 20px 13px;
   border-bottom: 1px solid var(--stone);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header-left {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -153,26 +164,14 @@ body {
 .upload-zone:hover .upload-icon-wrap svg,
 .upload-zone.drag-over .upload-icon-wrap svg { color: #2d7a4f; }
 
-.upload-cta {
-  font-size: 0.83rem;
-  color: var(--ink-soft);
-  margin-bottom: 4px;
-}
+.upload-cta { font-size: 0.83rem; color: var(--ink-soft); margin-bottom: 4px; }
 .upload-cta strong { color: var(--ink); font-weight: 500; }
 .upload-hint { font-size: 0.7rem; color: var(--mid); }
 
 /* OR DIVIDER */
-.or-divider {
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 20px 16px;
-}
-.or-divider::before, .or-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--stone);
-}
-.or-divider span {
-  font-size: 0.67rem; letter-spacing: 0.08em;
-  color: var(--mid); text-transform: uppercase;
-}
+.or-divider { display: flex; align-items: center; gap: 12px; padding: 0 20px 16px; }
+.or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: var(--stone); }
+.or-divider span { font-size: 0.67rem; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; }
 
 /* TEXTAREA */
 .paste-zone { padding: 0 20px 20px; }
@@ -191,10 +190,7 @@ textarea {
   transition: border-color 0.18s, box-shadow 0.18s;
   line-height: 1.85;
 }
-textarea:focus {
-  border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(28,26,23,0.06);
-}
+textarea:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(28,26,23,0.06); }
 textarea::placeholder { color: var(--mid); }
 
 /* BUTTON */
@@ -217,16 +213,12 @@ textarea::placeholder { color: var(--mid); }
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   box-shadow: var(--shadow-sm);
 }
-.run-btn:hover {
-  background: #2e2c28;
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
+.run-btn:hover { background: #2e2c28; box-shadow: var(--shadow-md); transform: translateY(-1px); }
 .run-btn:active { transform: translateY(0); }
 .run-btn svg { width: 15px; height: 15px; }
 
-/* SUMMARY */
-#summary { display: none; }
+/* SUMMARY & MAP PANELS */
+#summary, #mapCard, #results { display: none; }
 
 .summary-grid { padding: 18px 20px; display: grid; gap: 8px; }
 
@@ -243,47 +235,78 @@ textarea::placeholder { color: var(--mid); }
   animation: slideUp 0.35s ease both;
 }
 .county-row:hover { border-color: var(--stone); }
-
 .county-row-left { display: grid; gap: 6px; }
-
-.county-name-row {
-  display: flex; align-items: center; gap: 8px;
-}
-.county-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%; flex-shrink: 0;
-}
-.county-name-text {
-  font-size: 0.81rem;
-  color: var(--ink);
-}
+.county-name-row { display: flex; align-items: center; gap: 8px; }
+.county-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.county-name-text { font-size: 0.81rem; color: var(--ink); }
 .county-name-text.is-unknown { color: #b53a3a; font-style: italic; }
 
-.bar-track {
-  height: 4px;
-  background: var(--stone);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.bar-fill {
-  height: 100%;
-  border-radius: 99px;
-  width: 0%;
-  transition: width 0.95s cubic-bezier(0.16,1,0.3,1);
-}
+.bar-track { height: 4px; background: var(--stone); border-radius: 99px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 99px; width: 0%; transition: width 0.95s cubic-bezier(0.16,1,0.3,1); }
 
 .county-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px; height: 26px;
-  padding: 0 10px;
-  border-radius: 99px;
-  font-size: 0.73rem;
-  font-weight: 500;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; height: 26px; padding: 0 10px;
+  border-radius: 99px; font-size: 0.73rem; font-weight: 500;
 }
 
-/* Color set */
+/* STATS */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  padding: 14px 20px; border-top: 1px solid var(--stone);
+}
+.stat-box { text-align: center; padding: 12px 8px; background: var(--off); border-radius: var(--radius-sm); }
+.stat-num { font-family: 'Instrument Serif', serif; font-size: 1.75rem; line-height: 1; color: var(--ink); }
+.stat-label { font-size: 0.63rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+
+/* RESULTS */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--off); border-bottom: 1px solid var(--stone); }
+th { padding: 10px 18px; text-align: left; font-size: 0.63rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--stone); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--off); }
+td { padding: 10px 18px; font-size: 0.79rem; color: var(--ink-soft); }
+.td-postcode { font-weight: 500; color: var(--ink); letter-spacing: 0.04em; }
+.td-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 500; background: var(--off); color: var(--muted); border: 1px solid var(--stone); }
+.td-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 0.73rem; }
+.td-chip-dot { width: 5px; height: 5px; border-radius: 50%; opacity: 0.7; background: currentColor; flex-shrink: 0; }
+.unknown-row { opacity: 0.65; }
+
+.table-footer { padding: 13px 20px; border-top: 1px solid var(--stone); background: var(--off); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.table-footer-text { font-size: 0.7rem; color: var(--muted); }
+.table-footer-text span { color: var(--ink); font-weight: 500; }
+
+/* EXPORT BUTTONS */
+.export-group { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.export-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--stone); background: var(--white);
+  color: var(--ink-soft); font-family: 'Geist Mono', monospace;
+  font-size: 0.69rem; font-weight: 500; letter-spacing: 0.04em;
+  cursor: pointer; transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s, box-shadow 0.14s;
+}
+.export-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+.export-btn:hover { background: var(--ink); border-color: var(--ink); color: var(--white); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.export-btn:active { transform: translateY(0); }
+.export-btn.flash { background: #2d7a4f; border-color: #2d7a4f; color: var(--white); }
+.export-btn.pdf { border-color: #b53a3a; color: #b53a3a; }
+.export-btn.pdf:hover { background: #b53a3a; color: white; border-color: #b53a3a; }
+
+/* MAP */
+#map { border-bottom-left-radius: var(--radius); border-bottom-right-radius: var(--radius); }
+.map-legend {
+  position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+  background: rgba(255,255,255,0.9); padding: 10px;
+  border-radius: 8px; font-size: 0.7rem; box-shadow: var(--shadow-sm);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.legend-item:last-child { margin-bottom: 0; }
+.legend-color { width: 12px; height: 12px; border-radius: 3px; }
+
+/* Colors */
 .c0{background:#2d7a4f}.c1{background:#1e4fa8}.c2{background:#7a3ba8}
 .c3{background:#c47a1e}.c4{background:#1e7a8c}.c5{background:#5a8c1e}
 .c6{background:#8c4a1e}.c7{background:#5a1e7a}.c8{background:#a85a1e}.c9{background:#1e6ea8}
@@ -295,155 +318,7 @@ textarea::placeholder { color: var(--mid); }
 .p8{background:#fdf1ea;color:#a85a1e}.p9{background:#e8f3fc;color:#1e6ea8}
 .pu{background:#fdf0f0;color:#b53a3a}
 
-/* STATS */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--stone);
-}
-.stat-box {
-  text-align: center;
-  padding: 12px 8px;
-  background: var(--off);
-  border-radius: var(--radius-sm);
-}
-.stat-num {
-  font-family: 'Instrument Serif', serif;
-  font-size: 1.75rem;
-  line-height: 1;
-  color: var(--ink);
-}
-.stat-label {
-  font-size: 0.63rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 4px;
-}
-
-/* RESULTS */
-#results { display: none; }
-.table-wrap { overflow-x: auto; }
-
-table { width: 100%; border-collapse: collapse; }
-thead tr {
-  background: var(--off);
-  border-bottom: 1px solid var(--stone);
-}
-th {
-  padding: 10px 18px;
-  text-align: left;
-  font-size: 0.63rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  white-space: nowrap;
-}
-tbody tr {
-  border-bottom: 1px solid var(--stone);
-  transition: background 0.1s;
-}
-tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: var(--off); }
-td {
-  padding: 10px 18px;
-  font-size: 0.79rem;
-  color: var(--ink-soft);
-}
-.td-postcode {
-  font-weight: 500;
-  color: var(--ink);
-  letter-spacing: 0.04em;
-}
-.td-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 5px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  background: var(--off);
-  color: var(--muted);
-  border: 1px solid var(--stone);
-}
-.td-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 0.73rem;
-}
-.td-chip-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  opacity: 0.7;
-  background: currentColor;
-  flex-shrink: 0;
-}
-.unknown-row { opacity: 0.65; }
-
-.table-footer {
-  padding: 13px 20px;
-  border-top: 1px solid var(--stone);
-  background: var(--off);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.table-footer-text {
-  font-size: 0.7rem;
-  color: var(--muted);
-}
-.table-footer-text span { color: var(--ink); font-weight: 500; }
-
-/* EXPORT BUTTONS */
-.export-group {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-}
-.export-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--stone);
-  background: var(--white);
-  color: var(--ink-soft);
-  font-family: 'Geist Mono', monospace;
-  font-size: 0.69rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.1s, box-shadow 0.14s;
-}
-.export-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
-.export-btn:hover {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--white);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
-}
-.export-btn:active { transform: translateY(0); }
-
-.export-btn.flash {
-  background: #2d7a4f;
-  border-color: #2d7a4f;
-  color: var(--white);
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 580px) {
   .page-header { padding: 16px; }
@@ -463,25 +338,24 @@ td {
   </div>
   <div class="header-text">
     <h1>Postcode Checker</h1>
-    <p>Upload postcodes · see county breakdown</p>
+    <p>Upload postcodes · map distribution</p>
   </div>
 </header>
 
 <main class="main">
 
-  <!-- Input -->
   <div class="card">
     <div class="card-header">
-      <div class="step-badge">1</div>
-      <span class="card-label">Upload or paste your postcodes</span>
+      <div class="card-header-left">
+        <div class="step-badge">1</div>
+        <span class="card-label">Upload or paste your postcodes</span>
+      </div>
     </div>
     <div class="upload-zone" id="dropZone">
       <input type="file" id="fileInput" accept=".txt,.csv">
       <div class="upload-icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
       </div>
       <p class="upload-cta"><strong>Drop a file here</strong> or click to browse</p>
@@ -493,29 +367,58 @@ td {
     </div>
   </div>
 
-  <!-- Run -->
   <button class="run-btn" id="checkBtn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
     </svg>
-    Check Postcodes
+    Check Postcodes & Generate Map
   </button>
 
-  <!-- Summary -->
   <div class="card" id="summary">
     <div class="card-header">
-      <div class="step-badge">2</div>
-      <span class="card-label">County breakdown — ranked by quantity</span>
+      <div class="card-header-left">
+        <div class="step-badge">2</div>
+        <span class="card-label">County breakdown</span>
+      </div>
     </div>
     <div class="summary-grid" id="summaryBars"></div>
     <div class="stats-row" id="statsRow"></div>
   </div>
 
-  <!-- Results -->
+  <div class="card" id="mapCard">
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="step-badge">M</div>
+        <span class="card-label">UK Distribution Heatmap</span>
+      </div>
+      <button class="export-btn pdf" id="exportPdfBtn" title="Download Map as PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Export Map PDF
+      </button>
+    </div>
+    <div id="map" style="height: 500px; width: 100%; z-index: 1; position: relative;">
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-color" style="background:#1c1a17"></div>Highest Density</div>
+        <div class="legend-item"><div class="legend-color" style="background:#2d7a4f"></div>High Density</div>
+        <div class="legend-item"><div class="legend-color" style="background:#1e7a8c"></div>Medium Density</div>
+        <div class="legend-item"><div class="legend-color" style="background:#1e4fa8"></div>Low Density</div>
+        <div class="legend-item"><div class="legend-color" style="background:#e8e5df; border: 1px solid #ccc;"></div>Zero Match</div>
+      </div>
+    </div>
+  </div>
+
   <div class="card" id="results">
     <div class="card-header">
-      <div class="step-badge">3</div>
-      <span class="card-label">Full results</span>
+      <div class="card-header-left">
+        <div class="step-badge">3</div>
+        <span class="card-label">Full results</span>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -532,30 +435,9 @@ td {
     <div class="table-footer">
       <div class="table-footer-text" id="tableFooterText"></div>
       <div class="export-group">
-        <button class="export-btn" id="exportCsvBtn" title="Export full results as CSV">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          CSV
-        </button>
-        <button class="export-btn" id="exportSummaryBtn" title="Export county summary as CSV">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Summary CSV
-        </button>
-        <button class="export-btn" id="exportTxtBtn" title="Export postcodes as plain text">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          TXT
-        </button>
+        <button class="export-btn" id="exportCsvBtn" title="Export full results as CSV">CSV</button>
+        <button class="export-btn" id="exportSummaryBtn" title="Export county summary as CSV">Summary CSV</button>
+        <button class="export-btn" id="exportTxtBtn" title="Export postcodes as plain text">TXT</button>
       </div>
     </div>
   </div>
@@ -564,44 +446,45 @@ td {
 
 <script>
 const postcodeMap = {
-  AB:"Aberdeen City / Aberdeenshire",AL:"Hertfordshire",B:"West Midlands",BA:"Somerset",
-  BB:"Lancashire",BD:"West Yorkshire",BH:"Dorset",BL:"Greater Manchester",BN:"East Sussex",
-  BR:"Greater London",BS:"Bristol / Somerset",BT:"Northern Ireland",CA:"Cumbria",
-  CB:"Cambridgeshire",CF:"Cardiff / South Wales",CH:"Cheshire",CM:"Essex",CO:"Essex",
-  CR:"Greater London / Surrey",CT:"Kent",CV:"West Midlands / Warwickshire",CW:"Cheshire",
-  DA:"Greater London / Kent",DD:"Dundee / Angus",DE:"Derbyshire",DG:"Dumfries & Galloway",
-  DH:"County Durham",DL:"County Durham / North Yorkshire",DN:"South Yorkshire / Lincolnshire",
-  DT:"Dorset",DY:"West Midlands / Worcestershire",E:"Greater London",EC:"Greater London (City)",
-  EH:"Edinburgh / Lothian",EN:"Hertfordshire / Greater London",EX:"Devon",
-  FK:"Stirling / Falkirk",FY:"Lancashire",G:"Glasgow",GL:"Gloucestershire",
-  GU:"Surrey / Hampshire",GY:"Guernsey",HA:"Greater London",HD:"West Yorkshire",
-  HG:"North Yorkshire",HP:"Hertfordshire / Buckinghamshire",HR:"Herefordshire",
-  HS:"Western Isles",HU:"East Yorkshire",HX:"West Yorkshire",IG:"Greater London / Essex",
-  IM:"Isle of Man",IP:"Suffolk",IV:"Inverness-shire / Highland",JE:"Jersey",KA:"Ayrshire",
-  KT:"Surrey",KW:"Caithness / Highland",KY:"Fife / Kinross",L:"Merseyside",
-  LA:"Lancashire / Cumbria",LD:"Powys",LE:"Leicestershire",LL:"North Wales",
-  LN:"Lincolnshire",LS:"West Yorkshire",LU:"Bedfordshire",M:"Greater Manchester",
-  ME:"Kent",MK:"Buckinghamshire / Milton Keynes",ML:"North Lanarkshire",N:"Greater London",
-  NE:"Tyne & Wear / Northumberland",NG:"Nottinghamshire",NN:"Northamptonshire",
-  NP:"Newport / South Wales",NR:"Norfolk",NW:"Greater London",OL:"Greater Manchester",
-  OX:"Oxfordshire",PA:"Renfrewshire / Argyll",PE:"Cambridgeshire / Lincolnshire",
-  PH:"Perthshire / Highland",PL:"Devon / Cornwall",PO:"Hampshire / Isle of Wight",
-  PR:"Lancashire",RG:"Berkshire / Hampshire",RH:"Surrey / West Sussex",RM:"Greater London / Essex",
-  S:"South Yorkshire",SA:"Swansea / West Wales",SE:"Greater London",SG:"Hertfordshire",
-  SK:"Cheshire / Greater Manchester",SL:"Berkshire / Buckinghamshire",
-  SM:"Greater London / Surrey",SN:"Wiltshire",SO:"Hampshire",SP:"Wiltshire / Hampshire",
-  SR:"Tyne & Wear",SS:"Essex",ST:"Staffordshire",SW:"Greater London",
-  SY:"Shropshire / Wales",TA:"Somerset",TD:"Scottish Borders",TF:"Shropshire / Telford",
-  TN:"Kent / East Sussex",TQ:"Devon",TR:"Cornwall",TS:"Teesside / Cleveland",
-  TW:"Greater London / Surrey",UB:"Greater London",W:"Greater London",
-  WA:"Cheshire / Merseyside",WC:"Greater London (City)",WD:"Hertfordshire",
-  WF:"West Yorkshire",WN:"Greater Manchester",WR:"Worcestershire",WS:"West Midlands",
-  WV:"West Midlands",YO:"North Yorkshire",ZE:"Shetland"
+  AB:"Aberdeenshire", AL:"Hertfordshire", B:"West Midlands", BA:"Somerset",
+  BB:"Lancashire", BD:"West Yorkshire", BH:"Dorset", BL:"Greater Manchester", BN:"East Sussex",
+  BR:"Greater London", BS:"Somerset", BT:"Northern Ireland", CA:"Cumbria",
+  CB:"Cambridgeshire", CF:"Cardiff", CH:"Cheshire", CM:"Essex", CO:"Essex",
+  CR:"Greater London", CT:"Kent", CV:"Warwickshire", CW:"Cheshire",
+  DA:"Kent", DD:"Angus", DE:"Derbyshire", DG:"Dumfries and Galloway",
+  DH:"County Durham", DL:"North Yorkshire", DN:"Lincolnshire",
+  DT:"Dorset", DY:"Worcestershire", E:"Greater London", EC:"Greater London",
+  EH:"Edinburgh", EN:"Hertfordshire", EX:"Devon",
+  FK:"Stirling", FY:"Lancashire", G:"Glasgow", GL:"Gloucestershire",
+  GU:"Surrey", GY:"Guernsey", HA:"Greater London", HD:"West Yorkshire",
+  HG:"North Yorkshire", HP:"Buckinghamshire", HR:"Herefordshire",
+  HS:"Western Isles", HU:"East Yorkshire", HX:"West Yorkshire", IG:"Essex",
+  IM:"Isle of Man", IP:"Suffolk", IV:"Highland", JE:"Jersey", KA:"Ayrshire",
+  KT:"Surrey", KW:"Highland", KY:"Fife", L:"Merseyside",
+  LA:"Lancashire", LD:"Powys", LE:"Leicestershire", LL:"Gwynedd",
+  LN:"Lincolnshire", LS:"West Yorkshire", LU:"Bedfordshire", M:"Greater Manchester",
+  ME:"Kent", MK:"Buckinghamshire", ML:"Lanarkshire", N:"Greater London",
+  NE:"Tyne and Wear", NG:"Nottinghamshire", NN:"Northamptonshire",
+  NP:"Newport", NR:"Norfolk", NW:"Greater London", OL:"Greater Manchester",
+  OX:"Oxfordshire", PA:"Renfrewshire", PE:"Cambridgeshire",
+  PH:"Perthshire", PL:"Cornwall", PO:"Hampshire",
+  PR:"Lancashire", RG:"Berkshire", RH:"West Sussex", RM:"Essex",
+  S:"South Yorkshire", SA:"Swansea", SE:"Greater London", SG:"Hertfordshire",
+  SK:"Cheshire", SL:"Berkshire",
+  SM:"Surrey", SN:"Wiltshire", SO:"Hampshire", SP:"Wiltshire",
+  SR:"Tyne and Wear", SS:"Essex", ST:"Staffordshire", SW:"Greater London",
+  SY:"Shropshire", TA:"Somerset", TD:"Scottish Borders", TF:"Shropshire",
+  TN:"Kent", TQ:"Devon", TR:"Cornwall", TS:"Cleveland",
+  TW:"Surrey", UB:"Greater London", W:"Greater London",
+  WA:"Cheshire", WC:"Greater London", WD:"Hertfordshire",
+  WF:"West Yorkshire", WN:"Greater Manchester", WR:"Worcestershire", WS:"West Midlands",
+  WV:"West Midlands", YO:"North Yorkshire", ZE:"Shetland"
 };
 
-// Store results globally for export
 let _results = [];
 let _sortedCounts = [];
+let ukMap;
+let geojsonLayer;
 
 function getCounty(postcode) {
   const clean = postcode.trim().toUpperCase().replace(/\s+/g,'');
@@ -619,13 +502,8 @@ function parsePostcodes(text) {
 function downloadFile(content, filename, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 function flashBtn(btn) {
@@ -658,21 +536,92 @@ function exportTXT() {
   if (!_results.length) return;
   const lines = _results.map(r => `${r.postcode.padEnd(12)}${(r.area || '').padEnd(6)}${r.county || 'Unknown'}`);
   const header = `${'POSTCODE'.padEnd(12)}${'AREA'.padEnd(6)}COUNTY / REGION`;
-  const divider = '─'.repeat(60);
-  const txt = [header, divider, ...lines].join('\n');
+  const txt = [header, '─'.repeat(60), ...lines].join('\n');
   downloadFile(txt, 'postcode-results.txt', 'text/plain;charset=utf-8;');
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
+// ---- MAP & PDF LOGIC ---- //
+
+function generateHeatmap(countyCounts, maxCount) {
+  document.getElementById('mapCard').style.display = 'block';
+
+  if (!ukMap) {
+    ukMap = L.map('map').setView([54.5, -3.2], 5);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(ukMap);
+  } else {
+    if (geojsonLayer) ukMap.removeLayer(geojsonLayer);
+  }
+
+  function getColor(count) {
+    if (!count) return '#e8e5df'; 
+    const intensity = count / maxCount;
+    return intensity > 0.8 ? '#1c1a17' :
+           intensity > 0.6 ? '#2d7a4f' :
+           intensity > 0.4 ? '#1e7a8c' :
+           intensity > 0.2 ? '#1e4fa8' : '#b0aa9e';
+  }
+
+  // Load public UK Counties GeoJSON
+  fetch('https://raw.githubusercontent.com/martinjc/UK-GeoJSON/master/json/administrative/eng/county.json')
+    .then(response => response.json())
+    .then(data => {
+      geojsonLayer = L.geoJson(data, {
+        style: function (feature) {
+          let countyName = feature.properties.C_NM; 
+          let matchedCount = 0;
+          for (const [key, val] of Object.entries(countyCounts)) {
+            // Basic matching bridge
+            if (key.includes(countyName) || countyName.includes(key)) {
+              matchedCount += val;
+            }
+          }
+          return { fillColor: getColor(matchedCount), weight: 1, color: 'white', fillOpacity: matchedCount > 0 ? 0.75 : 0.2 };
+        },
+        onEachFeature: function (feature, layer) {
+          layer.bindTooltip(feature.properties.C_NM);
+        }
+      }).addTo(ukMap);
+      
+      setTimeout(() => { ukMap.invalidateSize(); }, 200);
+    });
+}
+
+function exportPDF() {
+  const btn = document.getElementById('exportPdfBtn');
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = 'Generating PDF...';
+  
+  // We export the Map Card container
+  const element = document.getElementById('mapCard');
+  
+  const opt = {
+    margin:       0.2,
+    filename:     'uk-postcode-map.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false }, // useCORS allows external map tiles to render
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+  };
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    btn.innerHTML = originalHtml;
+    flashBtn(btn);
+  });
+}
+
+// Event Listeners
 document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
 document.getElementById('exportSummaryBtn').addEventListener('click', exportSummaryCSV);
 document.getElementById('exportTxtBtn').addEventListener('click', exportTXT);
+document.getElementById('exportPdfBtn').addEventListener('click', exportPDF);
 
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = ev => document.getElementById('pasteInput').value = ev.target.result;
-  r.readAsText(file);
+  const r = new FileReader(); r.onload = ev => document.getElementById('pasteInput').value = ev.target.result; r.readAsText(file);
 });
 
 const dropZone = document.getElementById('dropZone');
@@ -681,9 +630,7 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-ove
 dropZone.addEventListener('drop', e => {
   e.preventDefault(); dropZone.classList.remove('drag-over');
   const file = e.dataTransfer.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = ev => document.getElementById('pasteInput').value = ev.target.result;
-  r.readAsText(file);
+  const r = new FileReader(); r.onload = ev => document.getElementById('pasteInput').value = ev.target.result; r.readAsText(file);
 });
 
 document.getElementById('checkBtn').addEventListener('click', () => {
@@ -696,6 +643,7 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   const counts = {};
   _results.forEach(r => { const k = r.county||"Unknown"; counts[k]=(counts[k]||0)+1; });
   _sortedCounts = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  
   const maxCount = _sortedCounts[0]?.[1]||1;
   const total = _results.length;
   const known = _results.filter(r=>r.county!=='Unknown').length;
@@ -703,6 +651,9 @@ document.getElementById('checkBtn').addEventListener('click', () => {
 
   const colorMap = {};
   _sortedCounts.filter(([c])=>c!=='Unknown').forEach(([county],i)=>{ colorMap[county]=i%10; });
+
+  // Generate Map
+  generateHeatmap(counts, maxCount);
 
   // Summary bars
   const barsEl = document.getElementById('summaryBars');
@@ -735,8 +686,7 @@ document.getElementById('checkBtn').addEventListener('click', () => {
     <div class="stat-box"><div class="stat-num">${total>0?Math.round(known/total*100):0}%</div><div class="stat-label">Matched</div></div>
   `;
 
-  const summaryEl = document.getElementById('summary');
-  summaryEl.style.display = 'block';
+  document.getElementById('summary').style.display = 'block';
 
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     document.querySelectorAll('.bar-fill').forEach(el=>{ el.style.width = el.dataset.pct+'%'; });
@@ -753,19 +703,15 @@ document.getElementById('checkBtn').addEventListener('click', () => {
     tr.innerHTML = `
       <td class="td-postcode">${r.postcode}</td>
       <td><span class="td-badge">${r.area||'—'}</span></td>
-      <td>${isUnk
-        ? '<span class="td-chip pu"><span class="td-chip-dot"></span>Unknown</span>'
-        : `<span class="td-chip p${ci}"><span class="td-chip-dot"></span>${r.county}</span>`
-      }</td>
+      <td>${isUnk ? '<span class="td-chip pu"><span class="td-chip-dot"></span>Unknown</span>' : `<span class="td-chip p${ci}"><span class="td-chip-dot"></span>${r.county}</span>`}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  document.getElementById('tableFooterText').innerHTML =
-    `Showing <span>${total}</span> postcodes across <span>${numCounties}</span> ${numCounties===1?'county':'counties'}`;
-
+  document.getElementById('tableFooterText').innerHTML = `Showing <span>${total}</span> postcodes across <span>${numCounties}</span> ${numCounties===1?'county':'counties'}`;
   document.getElementById('results').style.display = 'block';
-  summaryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  
+  document.getElementById('summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 </script>
 </body>
