@@ -479,14 +479,22 @@ let _sortedCounts = [];
 let ukMap;
 let mapLayerGroup;
 
-// Matches the postcode to its Area (e.g. SW, M, B)
+// --- BULLETPROOF POSTCODE AREA MATCHER ---
 function getCounty(postcode) {
-  const clean = postcode.trim().toUpperCase().replace(/\s+/g,'');
+  const clean = postcode.trim().toUpperCase().replace(/\s+/g, '');
   if (!clean) return null;
-  const prefix2 = clean.match(/^([A-Z]{1,2})/)?.[1] || '';
-  if (prefix2.length === 2 && postcodeMap[prefix2]) return { area: prefix2, name: postcodeMap[prefix2] };
-  if (prefix2.length >= 1 && postcodeMap[prefix2[0]]) return { area: prefix2[0], name: postcodeMap[prefix2[0]] };
-  return { area: prefix2 || clean, name: "Unknown" };
+  
+  // Strictly extracts the first 1 or 2 letters of the string
+  const match = clean.match(/^([A-Z]{1,2})/);
+  const areaCode = match ? match[1] : '';
+
+  // If the extracted letters exist in our Master Map, it is a valid match
+  if (areaCode && postcodeMap[areaCode]) {
+    return { area: areaCode, name: postcodeMap[areaCode] };
+  }
+  
+  // If no valid map entry exists (e.g. QZ, SI), it gets filed precisely as Unknown
+  return { area: areaCode || clean, name: "Unknown" };
 }
 
 function parsePostcodes(text) {
@@ -536,8 +544,7 @@ function exportTXT() {
   flashBtn(document.getElementById('exportTxtBtn'));
 }
 
-// --- NEW SCALED BUBBLE HEATMAP LOGIC ---
-
+// --- SCALED BUBBLE HEATMAP LOGIC ---
 function generateHeatmap(areaCounts, maxCount) {
   const mapCard = document.getElementById('mapCard');
   mapCard.style.display = 'block';
@@ -569,7 +576,8 @@ function generateHeatmap(areaCounts, maxCount) {
 
   // Plot each Area as a scalable colored bubble
   for (const [area, count] of Object.entries(areaCounts)) {
-    if (postcodeCoords[area]) {
+    // Crucially skip 'Unknown' so we don't try to plot ghost data
+    if (area !== 'Unknown' && postcodeCoords[area]) {
       const coords = postcodeCoords[area];
       const intensity = count / maxCount;
       
@@ -650,24 +658,35 @@ document.getElementById('checkBtn').addEventListener('click', () => {
 
   // Group by Area Code (e.g., SW, B, EH)
   const counts = {};
-  _results.forEach(r => { const k = r.area || "Unknown"; counts[k] = (counts[k] || 0) + 1; });
+  _results.forEach(r => { 
+    // Ensure r.area is explicitly mapped, fallback to Unknown
+    const k = r.name === "Unknown" ? "Unknown" : (r.area || "Unknown"); 
+    counts[k] = (counts[k] || 0) + 1; 
+  });
+  
   _sortedCounts = Object.entries(counts).sort((a,b) => b[1] - a[1]);
   
-  const maxCount = _sortedCounts[0]?.[1] || 1;
+  // Calculate maxCount IGNORING the Unknown column so heat colors scale properly
+  const knownCounts = _sortedCounts.filter(([a]) => a !== 'Unknown');
+  const maxCount = knownCounts[0]?.[1] || 1; 
+
   const total = _results.length;
-  const known = _results.filter(r => r.area !== 'Unknown').length;
-  const numAreas = _sortedCounts.filter(([a]) => a !== 'Unknown').length;
+  const known = _results.filter(r => r.name !== 'Unknown').length;
+  const numAreas = knownCounts.length;
 
   const colorMap = {};
-  _sortedCounts.filter(([a]) => a !== 'Unknown').forEach(([area], i) => { colorMap[area] = i % 10; });
+  knownCounts.forEach(([area], i) => { colorMap[area] = i % 10; });
 
   // Update Summary List
   const barsEl = document.getElementById('summaryBars');
   barsEl.innerHTML = '';
   _sortedCounts.forEach(([area, count], idx) => {
-    const pct = (count / maxCount * 100).toFixed(1);
-    const ci = colorMap[area] !== undefined ? colorMap[area] : null;
+    // If it's unknown, don't break the bar limit 
     const isUnk = area === 'Unknown';
+    let pct = (count / maxCount * 100).toFixed(1);
+    if (isUnk && count > maxCount) pct = 100; // Cap visual bar at 100%
+
+    const ci = colorMap[area] !== undefined ? colorMap[area] : null;
     const regionText = isUnk ? "Unknown Data" : postcodeMap[area];
     
     const div = document.createElement('div');
@@ -707,8 +726,10 @@ document.getElementById('checkBtn').addEventListener('click', () => {
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
   _results.forEach(r => {
-    const ci = colorMap[r.area] !== undefined ? colorMap[r.area] : null;
-    const isUnk = r.area === 'Unknown';
+    const isUnk = r.name === 'Unknown';
+    // If it's unknown, default to null styling instead of breaking
+    const ci = colorMap[isUnk ? 'Unknown' : r.area] !== undefined ? colorMap[r.area] : null;
+    
     const tr = document.createElement('tr');
     if (isUnk) tr.classList.add('unknown-row');
     tr.innerHTML = `
