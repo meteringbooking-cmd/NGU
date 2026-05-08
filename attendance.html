@@ -126,7 +126,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
 /* ── Scheme B chip styles ── */
 .cell-chip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;transition:transform .1s;}
 .cell-day:hover .cell-chip{transform:scale(1.12);}
-.s-In      { background:var(--cell-in-bg);   color:var(--cell-in-t); }
+.s-In       { background:var(--cell-in-bg);   color:var(--cell-in-t); }
 .s-Holiday { background:var(--cell-hol-bg);  color:var(--cell-hol-t); }
 .s-Half    { background:var(--cell-hdh-bg);  color:var(--cell-hdh-t); }
 .s-Sick    { background:var(--cell-sick-bg); color:var(--cell-sick-t); }
@@ -219,6 +219,9 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
       <button class="eng-toggle-btn" id="toggleEng">⚙ Engineers Only</button>
     </div>
 
+    <input type="file" id="fileUpload" accept=".xlsx" style="display:none;">
+    <button class="btn btn-ghost" id="uploadBtn">↑ Upload</button>
+
     <button class="btn btn-export" id="exportBtn">↓ Export</button>
     <button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
   </div>
@@ -288,6 +291,25 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
   </div>
 </div>
 
+<!-- Unmatched Staff Modal -->
+<div class="modal-overlay" id="unmatchedModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>⚠️ Unmatched Employees</h2>
+      <button class="modal-close-btn" id="unmatchedClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">
+        The following names from your uploaded file did not match any active staff in the database. Their absences were ignored.
+      </p>
+      <div class="modal-ded-list" id="unmatchedList" style="max-height:200px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="unmatchedOk">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="save-pill" id="savePill"><div class="save-dot"></div><span id="savePillText">Saving…</span></div>
 <div id="toast"></div>
 
@@ -328,7 +350,7 @@ const BANK_HOLIDAYS = new Set([
 ]);
 
 const STATUSES = [
-  { code:'In',               label:'In',              abbr:'In',  cls:'s-In',       deducts:false },
+  { code:'In',               label:'In',               abbr:'In',  cls:'s-In',       deducts:false },
   { code:'Holiday',          label:'Holiday',          abbr:'H',   cls:'s-Holiday',  deducts:false },
   { code:'Half day Holiday', label:'Half-day Holiday', abbr:'½H',  cls:'s-Half',     deducts:false },
   { code:'Sick',             label:'Sick',             abbr:'S',   cls:'s-Sick',     deducts:true  },
@@ -390,11 +412,18 @@ $('nextMonth').onclick = () => nav(1);
 $('todayBtn').onclick  = goToday;
 $('staffSearch').oninput = e => { searchQ = e.target.value.trim().toLowerCase(); render(); };
 $('themeBtn').onclick  = toggleTheme;
+
+// Export Events
 $('exportBtn').onclick = openExport;
 $('exportClose').onclick = closeExport;
 $('exportCancel').onclick = closeExport;
 $('exportConfirm').onclick = doExport;
 $('exportModal').onclick = e => { if (e.target === $('exportModal')) closeExport(); };
+
+// Unmatched Events
+$('unmatchedClose').onclick = () => $('unmatchedModal').classList.remove('show');
+$('unmatchedOk').onclick = () => $('unmatchedModal').classList.remove('show');
+
 document.addEventListener('click', e => { if (!popup.contains(e.target)) popup.style.display = 'none'; });
 
 $('toggleAll').onclick = () => { engFilter = 'all'; localStorage.setItem('er_engFilter','all'); updateEngToggleUI(); render(); };
@@ -406,6 +435,149 @@ function updateEngToggleUI() {
   $('toggleEng').className = 'eng-toggle-btn' + (!isAll ? ' active' : '');
 }
 updateEngToggleUI();
+
+// ── Excel Upload Parsing ───────────────────────────────────────────────────
+$('uploadBtn').onclick = () => $('fileUpload').click();
+$('fileUpload').onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  showLoad(true, 'Processing Excel file...');
+  const reader = new FileReader();
+  
+  reader.onload = async (evt) => {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      // Ensure cellDates is true so excel dates parse as standard JS Date objects
+      const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      // header: 1 reads as array of arrays, A=0, D=3, E=4, F=5, G=6, H=7
+      const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+      
+      const unmatchedNames = new Set();
+      const savePromises = [];
+      let newEntriesCount = 0;
+
+      // Start from 1 to skip header row
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || !row[0]) continue; 
+
+        const rawName = String(row[0]);
+        const typeAbs = row[3];
+        const fromDate = row[4];
+        const toDate = row[5];
+        const gVal = parseFloat(row[6]) || 0; // Days off
+        const hVal = parseFloat(row[7]) || 0; // Hours off
+
+        if (!fromDate || !toDate || !typeAbs) continue;
+
+        // Parse Name format: "Surname, Firstname" -> "Firstname Surname"
+        let searchName = rawName.trim();
+        if (searchName.includes(',')) {
+          const parts = searchName.split(',');
+          searchName = (parts[1].trim() + ' ' + parts[0].trim());
+        }
+        searchName = searchName.toLowerCase().replace(/\s+/g, ' ');
+
+        // Find Employee
+        const emp = staff.find(s => s.name.toLowerCase().replace(/\s+/g, ' ') === searchName);
+        if (!emp) {
+          unmatchedNames.add(rawName);
+          continue;
+        }
+
+        // Map status code safely
+        let statusCode = 'In';
+        const absLower = String(typeAbs).trim().toLowerCase();
+        if (absLower.includes('holiday') && !absLower.includes('half')) statusCode = 'Holiday';
+        else if (absLower.includes('half')) statusCode = 'Half day Holiday';
+        else if (absLower.includes('sick')) statusCode = 'Sick';
+        else if (absLower.includes('aaup')) statusCode = 'AAUP';
+        else if (absLower.includes('aap')) statusCode = 'AAP';
+        else continue;
+
+        // Process Dates
+        const d1 = new Date(fromDate);
+        const d2 = new Date(toDate);
+        if (isNaN(d1) || isNaN(d2)) continue;
+
+        const workingDaysInRange = [];
+        let currDate = new Date(d1);
+        while (currDate <= d2) {
+          if (isWD(currDate.getFullYear(), currDate.getMonth() + 1, currDate.getDate())) {
+            workingDaysInRange.push(new Date(currDate));
+          }
+          currDate.setDate(currDate.getDate() + 1);
+        }
+
+        if (workingDaysInRange.length === 0) continue;
+
+        // Calculate hours per valid working day
+        let dailyHours = 0;
+        if (gVal > 0) {
+          // Proportion based on 7.5 standard hrs per full day taken
+          dailyHours = (gVal * 7.5) / workingDaysInRange.length; 
+        } else if (gVal === 0 && hVal > 0) {
+          dailyHours = hVal / workingDaysInRange.length;
+        }
+
+        for (const d of workingDaysInRange) {
+          const y = d.getFullYear();
+          const m = d.getMonth() + 1;
+          const day = d.getDate();
+          const dtStr = dk(y, m, day);
+
+          // Duplicate/Overwrite protection: 
+          // If already mapped to something else, disregard the import to avoid data loss
+          const existing = entries[emp.id]?.[dtStr];
+          if (existing && existing.status !== 'In') {
+             continue;
+          }
+
+          // Update local state instantly so consecutive overlapping loops don't collide
+          if (!entries[emp.id]) entries[emp.id] = {};
+          entries[emp.id][dtStr] = { status: statusCode, hours: dailyHours };
+
+          // Push silent save task 
+          savePromises.push(saveE(emp.id, dtStr, statusCode, dailyHours, true));
+          newEntriesCount++;
+        }
+      }
+
+      await Promise.all(savePromises);
+      showLoad(false);
+      
+      if (newEntriesCount > 0) {
+        toast(`Import complete. ${newEntriesCount} absences logged.`);
+        render(); // redraw table
+      } else {
+        toast(`No new valid entries found.`);
+      }
+
+      // Display unmatched staff modal if needed
+      if (unmatchedNames.size > 0) {
+        const uList = Array.from(unmatchedNames).sort();
+        $('unmatchedList').innerHTML = uList.map(name => 
+          `<div class="modal-ded-row"><span class="modal-ded-name">${esc(name)}</span></div>`
+        ).join('');
+        $('unmatchedModal').classList.add('show');
+      }
+
+    } catch(err) {
+      console.error(err);
+      showLoad(false);
+      toast('Error reading Excel file', true);
+    }
+    
+    // reset input to allow uploading the same file again if desired
+    e.target.value = ''; 
+  };
+  
+  reader.readAsArrayBuffer(file);
+};
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 function toggleTheme() {
@@ -507,8 +679,9 @@ async function loadMonth(y, m) {
   showLoad(false);
 }
 
-async function saveE(sid, dt, status, hours) {
-  showPill('saving');
+// Added silent param to prevent 50+ popups during bulk upload
+async function saveE(sid, dt, status, hours, silent = false) {
+  if (!silent) showPill('saving');
   const pfx = dt.substring(0, 7);
   const emp = staff.find(s => s.id === sid);
   const staffName = emp ? emp.name : sid;
@@ -525,11 +698,13 @@ async function saveE(sid, dt, status, hours) {
       entryData: { status, hours: hours || 0 },
       updatedAt: new Date().toISOString(),
     });
-    showPill('saved');
+    if (!silent) showPill('saved');
   } catch (e) {
     console.error(e);
-    showPill('error');
-    toast('Save failed', true);
+    if (!silent) {
+      showPill('error');
+      toast('Save failed', true);
+    }
   }
 }
 
@@ -974,7 +1149,7 @@ function doExport() {
   rows2.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
   rows2.push([
     sc('Staff Member',    's', hdrStyle('left')),
-    sc('Type',           's', hdrStyle()),
+    sc('Type',            's', hdrStyle()),
     sc('Hourly Rate',    's', hdrStyle()),
     sc('Absence Events', 's', hdrStyle()),
     sc('Hours Absent',   's', hdrStyle()),
@@ -997,7 +1172,7 @@ function doExport() {
         fill: fill(hasCustomRate ? NON_ENG_BG : rowBg),
         alignment: A('right'), border: border(),
       }),
-      s.ev > 0  ? nc(s.ev,   '0;-0;"-"',       bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
+      s.ev > 0  ? nc(s.ev,   '0;-0;"-"',        bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
       s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
       s.isNonEng
         ? sc('Exempt', 's', { font:font(9,false,NON_ENG_FG,true), fill:fill(NON_ENG_BG), alignment:A('right'), border:border() })
