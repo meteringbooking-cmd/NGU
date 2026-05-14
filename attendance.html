@@ -41,6 +41,7 @@
   --cell-aap-bg:#0891b2;      --cell-aap-t:#ffffff;
   --cell-train-bg:#65a30d;    --cell-train-t:#ffffff;
   --cell-bh-bg:#4f46e5;       --cell-bh-t:#ffffff;
+  --cell-sch-bg:#475569;      --cell-sch-t:#ffffff;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
@@ -126,7 +127,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
 /* ── Scheme B chip styles ── */
 .cell-chip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;transition:transform .1s;}
 .cell-day:hover .cell-chip{transform:scale(1.12);}
-.s-In       { background:var(--cell-in-bg);   color:var(--cell-in-t); }
+.s-In        { background:var(--cell-in-bg);   color:var(--cell-in-t); }
 .s-Holiday { background:var(--cell-hol-bg);  color:var(--cell-hol-t); }
 .s-Half    { background:var(--cell-hdh-bg);  color:var(--cell-hdh-t); }
 .s-Sick    { background:var(--cell-sick-bg); color:var(--cell-sick-t); }
@@ -134,6 +135,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
 .s-AAP     { background:var(--cell-aap-bg);  color:var(--cell-aap-t); }
 .s-Training{ background:var(--cell-train-bg);color:var(--cell-train-t); }
 .s-BH      { background:var(--cell-bh-bg);   color:var(--cell-bh-t); }
+.s-SchDayOff { background:var(--cell-sch-bg); color:var(--cell-sch-t); }
 
 .totals-row td{background:var(--bg3);border-top:2px solid var(--border);height:34px;font-family:var(--mono);font-size:10px;text-align:center;vertical-align:middle;color:var(--muted);position:sticky;bottom:0;z-index:10;}
 .totals-row td.col-staff{z-index:21;text-align:left;padding:0 12px;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
@@ -231,6 +233,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
   <div class="legend">
     <div class="legend-item"><div class="lchip s-In">In</div>In</div>
     <div class="legend-item"><div class="lchip s-Holiday">H</div>Holiday</div>
+    <div class="legend-item"><div class="lchip s-SchDayOff">SD</div>Sch Day Off</div>
     <div class="legend-item"><div class="lchip s-Half">½H</div>Half-day</div>
     <div class="legend-item"><div class="lchip s-Sick">S</div>Sick</div>
     <div class="legend-item"><div class="lchip s-AAUP">AU</div>AAUP</div>
@@ -350,13 +353,14 @@ const BANK_HOLIDAYS = new Set([
 ]);
 
 const STATUSES = [
-  { code:'In',               label:'In',               abbr:'In',  cls:'s-In',       deducts:false },
-  { code:'Holiday',          label:'Holiday',          abbr:'H',   cls:'s-Holiday',  deducts:false },
-  { code:'Half day Holiday', label:'Half-day Holiday', abbr:'½H',  cls:'s-Half',     deducts:false },
-  { code:'Sick',             label:'Sick',             abbr:'S',   cls:'s-Sick',     deducts:true  },
-  { code:'AAUP',             label:'AAUP (Unpaid)',    abbr:'AU',  cls:'s-AAUP',     deducts:true  },
-  { code:'AAP',              label:'AAP (Paid)',       abbr:'AP',  cls:'s-AAP',      deducts:false },
-  { code:'Training',         label:'Training',         abbr:'Tr',  cls:'s-Training', deducts:false },
+  { code:'In',               label:'In',               abbr:'In',  cls:'s-In',        deducts:false },
+  { code:'Holiday',          label:'Holiday',          abbr:'H',   cls:'s-Holiday',   deducts:false },
+  { code:'Sch Day Off',      label:'Sch Day Off',      abbr:'SD',  cls:'s-SchDayOff', deducts:false },
+  { code:'Half day Holiday', label:'Half-day Holiday', abbr:'½H',  cls:'s-Half',      deducts:false },
+  { code:'Sick',             label:'Sick',             abbr:'S',   cls:'s-Sick',      deducts:true  },
+  { code:'AAUP',             label:'AAUP (Unpaid)',    abbr:'AU',  cls:'s-AAUP',      deducts:true  },
+  { code:'AAP',              label:'AAP (Paid)',       abbr:'AP',  cls:'s-AAP',       deducts:false },
+  { code:'Training',         label:'Training',         abbr:'Tr',  cls:'s-Training',  deducts:false },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -497,6 +501,7 @@ $('fileUpload').onchange = async (e) => {
         else if (absLower.includes('sick')) statusCode = 'Sick';
         else if (absLower.includes('aaup')) statusCode = 'AAUP';
         else if (absLower.includes('aap')) statusCode = 'AAP';
+        else if (absLower.includes('sch day') || absLower.includes('scheduled')) statusCode = 'Sch Day Off';
         else continue;
 
         // Process Dates
@@ -940,6 +945,7 @@ function doExport() {
   const S_STYLE = {
     'In':               { bg:'4ADE80', fg:'14532D' },   // bright mint green / dark text
     'Holiday':          { bg:'1565C0', fg:WHITE    },   // kept — strong blue
+    'Sch Day Off':      { bg:'64748B', fg:WHITE    },   // Slate grey for scheduled day off
     'Half day Holiday': { bg:'D946EF', fg:WHITE    },   // bright fuchsia
     'Sick':             { bg:'FB7185', fg:'7F1D1D' },   // bright coral red / dark text
     'AAUP':             { bg:'E65100', fg:WHITE    },   // kept — vivid orange
@@ -1032,7 +1038,7 @@ function doExport() {
     dayCols.push({d, k, w, b, name: dname(vy,vm,d)});
   }
   const STATUS_ABBR = {
-    'In':'In','Holiday':'H','Half day Holiday':'½H',
+    'In':'In','Holiday':'H','Sch Day Off':'SD','Half day Holiday':'½H',
     'Sick':'S','AAUP':'AU','AAP':'AP','Training':'Tr'
   };
   const viewLabel = engFilter === 'engineers' ? 'ENGINEERS ONLY' : 'ALL STAFF';
