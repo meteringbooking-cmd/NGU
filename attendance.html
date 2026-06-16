@@ -88,14 +88,21 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .grid-outer::-webkit-scrollbar-track{background:var(--bg2);}
 .grid-outer::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
 .report-table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;}
-.col-staff{position:sticky;left:0;z-index:30;background:var(--bg2);min-width:210px;max-width:210px;border-right:2px solid var(--border);}
-.col-ded{position:sticky;left:210px;z-index:30;background:var(--bg2);min-width:100px;max-width:100px;border-right:2px solid var(--border);text-align:right;}
+
+/* Layout for frozen left columns */
+.col-staff{position:sticky;left:0;z-index:30;background:var(--bg2);min-width:210px;max-width:210px;border-right:1px solid var(--border2);}
+.col-clawback{position:sticky;left:210px;z-index:30;background:var(--bg2);min-width:90px;max-width:90px;border-right:1px solid var(--border2);text-align:right;}
+.col-ded{position:sticky;left:300px;z-index:30;background:var(--bg2);min-width:100px;max-width:100px;border-right:2px solid var(--border);text-align:right;}
+
 .report-table thead th{position:sticky;top:0;z-index:20;background:var(--bg3);border-bottom:2px solid var(--border);padding:0;height:54px;}
 .report-table thead th.col-staff{z-index:41;background:var(--bg3);}
+.report-table thead th.col-clawback{z-index:40;background:var(--bg3);}
 .report-table thead th.col-ded{z-index:40;background:var(--bg3);}
 .th-staff-inner{display:flex;flex-direction:column;justify-content:flex-end;padding:7px 12px;height:100%;}
 .th-staff-label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
 .th-staff-count{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--accent);line-height:1;}
+.th-clawback-inner{display:flex;flex-direction:column;justify-content:flex-end;padding:7px 10px;height:100%;align-items:flex-end;}
+.th-clawback-label{font-size:8.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.2;}
 .th-ded-inner{display:flex;flex-direction:column;justify-content:flex-end;padding:7px 10px;height:100%;align-items:flex-end;}
 .th-ded-label{font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
 .th-ded-total{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--red);line-height:1;}
@@ -106,23 +113,33 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .th-day-inner.is-today .th-day-num{color:var(--accent);}
 .th-day-inner.is-wknd{background:var(--cell-wknd);}
 .th-day-inner.is-wknd .th-day-name,.th-day-inner.is-wknd .th-day-num{color:var(--faint);}
-.report-table tbody tr:hover .col-staff,.report-table tbody tr:hover .col-ded{filter:brightness(1.08);}
+
+.report-table tbody tr:hover .col-staff,.report-table tbody tr:hover .col-clawback,.report-table tbody tr:hover .col-ded{filter:brightness(1.08);}
 .report-table tbody tr:hover td.cell-day:not(.cell-wknd){filter:brightness(1.1);}
+
 .td-staff-inner{display:flex;align-items:center;gap:8px;padding:0 12px;height:46px;border-bottom:1px solid var(--border2);}
 .staff-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:grid;place-items:center;font-size:9px;font-weight:600;color:#fff;flex-shrink:0;font-family:var(--mono);}
 .staff-avatar.non-eng{background:linear-gradient(135deg,#92400e,var(--amber));}
 .staff-name-wrap{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .staff-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.td-clawback-inner{display:flex;align-items:center;justify-content:flex-end;padding:0 10px;height:46px;border-bottom:1px solid var(--border2);}
+.clawback-input{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 6px;width:64px;text-align:right;outline:none;transition:border-color .15s;}
+.clawback-input:focus{border-color:var(--amber);}
+.clawback-input::-webkit-outer-spin-button, .clawback-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.clawback-input[type=number] { -moz-appearance: textfield; }
+
 .td-ded-inner{display:flex;align-items:center;justify-content:flex-end;padding:0 10px;height:46px;border-bottom:1px solid var(--border2);}
 .ded-amount{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--red);}
 .ded-zero{color:var(--faint);}
 .ded-exempt{font-family:var(--mono);font-size:9.5px;color:var(--muted);font-style:italic;}
+
 .cell-day{height:46px;min-width:44px;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);padding:0;text-align:center;vertical-align:middle;cursor:pointer;position:relative;}
 .cell-wknd{background:var(--cell-wknd);cursor:default;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);height:46px;min-width:44px;}
 .cell-today-col{background:rgba(0,163,224,.04);}
 /* Non-engineer row tinting */
 tr.row-non-eng td{background-color:var(--non-eng-stripe);}
-tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in srgb, var(--bg2) 90%, var(--amber) 10%);}
+tr.row-non-eng .col-staff,tr.row-non-eng .col-clawback,tr.row-non-eng .col-ded{background-color:color-mix(in srgb, var(--bg2) 90%, var(--amber) 10%);}
 
 /* ── Scheme B chip styles ── */
 .cell-chip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:4px;font-family:var(--mono);font-size:9.5px;font-weight:600;transition:transform .1s;}
@@ -139,6 +156,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
 
 .totals-row td{background:var(--bg3);border-top:2px solid var(--border);height:34px;font-family:var(--mono);font-size:10px;text-align:center;vertical-align:middle;color:var(--muted);position:sticky;bottom:0;z-index:10;}
 .totals-row td.col-staff{z-index:21;text-align:left;padding:0 12px;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+.totals-row td.col-clawback{z-index:20;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--amber);text-align:right;padding:0 10px;border-right:1px solid var(--border2);}
 .totals-row td.col-ded{z-index:20;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--red);text-align:right;padding:0 10px;}
 .cell-popup{position:fixed;z-index:600;background:var(--bg3);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);min-width:200px;overflow:hidden;animation:popIn .14s cubic-bezier(.34,1.56,.64,1);}
 @keyframes popIn{from{opacity:0;transform:scale(.88);}to{opacity:1;transform:scale(1);}}
@@ -215,7 +233,6 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
     </div>
     <button class="btn btn-ghost" id="todayBtn">Today</button>
 
-    <!-- Engineer / All Staff toggle -->
     <div class="eng-toggle-wrap" title="Filter by staff type">
       <button class="eng-toggle-btn active" id="toggleAll">👥 All Staff</button>
       <button class="eng-toggle-btn" id="toggleEng">⚙ Engineers Only</button>
@@ -268,7 +285,6 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
 
 <div class="cell-popup" id="cellPopup" style="display:none;"></div>
 
-<!-- Export Modal -->
 <div class="modal-overlay" id="exportModal">
   <div class="modal">
     <div class="modal-head">
@@ -294,7 +310,6 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-ded{background-color:color-mix(in 
   </div>
 </div>
 
-<!-- Unmatched Staff Modal -->
 <div class="modal-overlay" id="unmatchedModal">
   <div class="modal">
     <div class="modal-head">
@@ -353,14 +368,14 @@ const BANK_HOLIDAYS = new Set([
 ]);
 
 const STATUSES = [
-  { code:'In',               label:'In',               abbr:'In',  cls:'s-In',        deducts:false },
-  { code:'Holiday',          label:'Holiday',          abbr:'H',   cls:'s-Holiday',   deducts:false },
-  { code:'Sch Day Off',      label:'Sch Day Off',      abbr:'SD',  cls:'s-SchDayOff', deducts:false },
-  { code:'Half day Holiday', label:'Half-day Holiday', abbr:'½H',  cls:'s-Half',      deducts:false },
-  { code:'Sick',             label:'Sick',             abbr:'S',   cls:'s-Sick',      deducts:true  },
-  { code:'AAUP',             label:'AAUP (Unpaid)',    abbr:'AU',  cls:'s-AAUP',      deducts:true  },
-  { code:'AAP',              label:'AAP (Paid)',       abbr:'AP',  cls:'s-AAP',       deducts:false },
-  { code:'Training',         label:'Training',         abbr:'Tr',  cls:'s-Training',  deducts:false },
+  { code:'In',               label:'In',               abbr:'In',  cls:'s-In',         deducts:false },
+  { code:'Holiday',          label:'Holiday',          abbr:'H',   cls:'s-Holiday',    deducts:false },
+  { code:'Sch Day Off',      label:'Sch Day Off',      abbr:'SD',  cls:'s-SchDayOff',  deducts:false },
+  { code:'Half day Holiday', label:'Half-day Holiday', abbr:'½H',  cls:'s-Half',       deducts:false },
+  { code:'Sick',             label:'Sick',             abbr:'S',   cls:'s-Sick',       deducts:true  },
+  { code:'AAUP',             label:'AAUP (Unpaid)',    abbr:'AU',  cls:'s-AAUP',       deducts:true  },
+  { code:'AAP',              label:'AAP (Paid)',       abbr:'AP',  cls:'s-AAP',        deducts:false },
+  { code:'Training',         label:'Training',         abbr:'Tr',  cls:'s-Training',   deducts:false },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -401,7 +416,7 @@ function staffTotal(sid) {
 // ── State ──────────────────────────────────────────────────────────────────
 const now = new Date();
 let vy = now.getFullYear(), vm = now.getMonth() + 1;
-let staff = [], entries = {}, nonEngineers = new Set(), searchQ = '';
+let staff = [], entries = {}, clawbacks = {}, nonEngineers = new Set(), searchQ = '';
 let engFilter = localStorage.getItem('er_engFilter') || 'all';
 
 // ── DOM ────────────────────────────────────────────────────────────────────
@@ -452,19 +467,16 @@ $('fileUpload').onchange = async (e) => {
   reader.onload = async (evt) => {
     try {
       const data = new Uint8Array(evt.target.result);
-      // Ensure cellDates is true so excel dates parse as standard JS Date objects
       const workbook = XLSX.read(data, {type: 'array', cellDates: true});
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       
-      // header: 1 reads as array of arrays, A=0, D=3, E=4, F=5, G=6, H=7
       const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
       
       const unmatchedNames = new Set();
       const savePromises = [];
       let newEntriesCount = 0;
 
-      // Start from 1 to skip header row
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row || !row[0]) continue; 
@@ -478,7 +490,6 @@ $('fileUpload').onchange = async (e) => {
 
         if (!fromDate || !toDate || !typeAbs) continue;
 
-        // Parse Name format: "Surname, Firstname" -> "Firstname Surname"
         let searchName = rawName.trim();
         if (searchName.includes(',')) {
           const parts = searchName.split(',');
@@ -486,14 +497,12 @@ $('fileUpload').onchange = async (e) => {
         }
         searchName = searchName.toLowerCase().replace(/\s+/g, ' ');
 
-        // Find Employee
         const emp = staff.find(s => s.name.toLowerCase().replace(/\s+/g, ' ') === searchName);
         if (!emp) {
           unmatchedNames.add(rawName);
           continue;
         }
 
-        // Map status code safely
         let statusCode = 'In';
         const absLower = String(typeAbs).trim().toLowerCase();
         if (absLower.includes('holiday') && !absLower.includes('half')) statusCode = 'Holiday';
@@ -504,7 +513,6 @@ $('fileUpload').onchange = async (e) => {
         else if (absLower.includes('sch day') || absLower.includes('scheduled')) statusCode = 'Sch Day Off';
         else continue;
 
-        // Process Dates
         const d1 = new Date(fromDate);
         const d2 = new Date(toDate);
         if (isNaN(d1) || isNaN(d2)) continue;
@@ -520,10 +528,8 @@ $('fileUpload').onchange = async (e) => {
 
         if (workingDaysInRange.length === 0) continue;
 
-        // Calculate hours per valid working day
         let dailyHours = 0;
         if (gVal > 0) {
-          // Proportion based on 7.5 standard hrs per full day taken
           dailyHours = (gVal * 7.5) / workingDaysInRange.length; 
         } else if (gVal === 0 && hVal > 0) {
           dailyHours = hVal / workingDaysInRange.length;
@@ -535,18 +541,14 @@ $('fileUpload').onchange = async (e) => {
           const day = d.getDate();
           const dtStr = dk(y, m, day);
 
-          // Duplicate/Overwrite protection: 
-          // If already mapped to something else, disregard the import to avoid data loss
           const existing = entries[emp.id]?.[dtStr];
           if (existing && existing.status !== 'In') {
              continue;
           }
 
-          // Update local state instantly so consecutive overlapping loops don't collide
           if (!entries[emp.id]) entries[emp.id] = {};
           entries[emp.id][dtStr] = { status: statusCode, hours: dailyHours };
 
-          // Push silent save task 
           savePromises.push(saveE(emp.id, dtStr, statusCode, dailyHours, true));
           newEntriesCount++;
         }
@@ -557,12 +559,11 @@ $('fileUpload').onchange = async (e) => {
       
       if (newEntriesCount > 0) {
         toast(`Import complete. ${newEntriesCount} absences logged.`);
-        render(); // redraw table
+        render(); 
       } else {
         toast(`No new valid entries found.`);
       }
 
-      // Display unmatched staff modal if needed
       if (unmatchedNames.size > 0) {
         const uList = Array.from(unmatchedNames).sort();
         $('unmatchedList').innerHTML = uList.map(name => 
@@ -577,7 +578,6 @@ $('fileUpload').onchange = async (e) => {
       toast('Error reading Excel file', true);
     }
     
-    // reset input to allow uploading the same file again if desired
     e.target.value = ''; 
   };
   
@@ -639,12 +639,13 @@ async function loadAll() {
 
     console.log(`✓ Loaded ${staff.length} staff · ${nonEngineers.size} non-engineers`);
     toast(`Loaded ${staff.length} staff (${nonEngineers.size} non-engineer${nonEngineers.size!==1?'s':''})`);
+    
+    // Once staff is ready, load the dynamic monthly data for clawbacks as well
+    await loadMonth(vy, vm);
   } catch (e) {
     console.error(e);
     toast('Error loading data', true);
   }
-  showLoad(false);
-  render();
 }
 
 async function loadMonth(y, m) {
@@ -653,14 +654,15 @@ async function loadMonth(y, m) {
 
   const nameToId = {};
   staff.forEach(s => { nameToId[s.name.toLowerCase()] = s.id; });
+  clawbacks = {};
 
   try {
-    const q = query(
+    const qEntries = query(
       collection(db, 'Establishment Report'),
       where('_type', '==', 'entry'),
       where('month', '==', pfx)
     );
-    const snap = await getDocs(q);
+    const snap = await getDocs(qEntries);
     snap.forEach(d => {
       const data = d.data();
       const dt = data.date;
@@ -678,13 +680,26 @@ async function loadMonth(y, m) {
       const rawHours  = parseFloat(data.entryData?.hours ?? data.hours ?? 0) || 0;
       entries[sid][dt] = { status: rawStatus, hours: rawHours };
     });
+
+    // Also fetch Clawbacks for this month
+    const qClawbacks = query(
+      collection(db, 'Establishment Report'),
+      where('_type', '==', 'clawback'),
+      where('month', '==', pfx)
+    );
+    const cSnap = await getDocs(qClawbacks);
+    cSnap.forEach(d => {
+      const data = d.data();
+      if (data.staffId) clawbacks[data.staffId] = data.amount || 0;
+    });
+
   } catch (e) {
     console.error('loadMonth error:', e);
   }
   showLoad(false);
+  render();
 }
 
-// Added silent param to prevent 50+ popups during bulk upload
 async function saveE(sid, dt, status, hours, silent = false) {
   if (!silent) showPill('saving');
   const pfx = dt.substring(0, 7);
@@ -713,20 +728,41 @@ async function saveE(sid, dt, status, hours, silent = false) {
   }
 }
 
+async function saveClawback(sid, amount) {
+  showPill('saving');
+  const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
+  const emp = staff.find(s => s.id === sid);
+  const docId = `clawback_${nameSlug(emp ? emp.name : sid)}_${pfx}`;
+  
+  try {
+    await setDoc(doc(db, 'Establishment Report', docId), {
+      _type:     'clawback',
+      staffId:   sid,
+      month:     pfx,
+      amount:    amount,
+      updatedAt: new Date().toISOString()
+    });
+    showPill('saved');
+  } catch (e) {
+    console.error(e);
+    showPill('error');
+    toast('Failed to save clawback', true);
+  }
+}
+
 // ── Navigation ─────────────────────────────────────────────────────────────
 function nav(d) {
   vm += d;
   if (vm > 12) { vm = 1; vy++; }
   if (vm < 1)  { vm = 12; vy--; }
   staff.forEach(s => { entries[s.id] = {}; });
-  loadMonth(vy, vm).then(() => render());
+  loadMonth(vy, vm);
 }
 
 function goToday() {
   const n = new Date(); vy = n.getFullYear(); vm = n.getMonth() + 1;
   staff.forEach(s => { entries[s.id] = {}; });
   loadMonth(vy, vm).then(() => {
-    render();
     setTimeout(() => document.querySelector('.th-day-inner.is-today')
       ?.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' }), 120);
   });
@@ -752,6 +788,7 @@ function render() {
   empty.style.display='none'; table.style.display='table';
 
   const grandTotal = fil.reduce((s, m) => s + staffTotal(m.id), 0);
+  const grandClawback = fil.reduce((s, m) => s + (clawbacks[m.id] || 0), 0);
 
   // Header
   let hh = `<tr>
@@ -759,7 +796,12 @@ function render() {
       <div class="th-staff-label">${engFilter==='engineers' ? '⚙ Engineers' : 'All Staff'}</div>
       <div class="th-staff-count">${fil.length}</div>
     </div></th>
-    <th class="col-ded"><div class="th-ded-inner"><div class="th-ded-label">Deduction</div><div class="th-ded-total">${gbp(grandTotal)}</div></div></th>`;
+    <th class="col-clawback"><div class="th-clawback-inner">
+      <div class="th-clawback-label">Clawback<br>Prev Month</div>
+    </div></th>
+    <th class="col-ded"><div class="th-ded-inner">
+      <div class="th-ded-label">Deduction</div><div class="th-ded-total">${gbp(grandTotal)}</div>
+    </div></th>`;
   for (let d = 1; d <= nd; d++) {
     const k = dk(vy, vm, d), w = isWkd(vy, vm, d), b = isBH(k), t = k === todayStr;
     const cls = (w||b) ? 'is-wknd' : t ? 'is-today' : '';
@@ -773,6 +815,7 @@ function render() {
   fil.forEach(s => {
     const ini = s.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
     const dt = staffTotal(s.id);
+    const cb = clawbacks[s.id] || '';
     const isNonEng = nonEngineers.has(s.id);
     const rowClass = isNonEng ? ' row-non-eng' : '';
     const avatarClass = isNonEng ? ' non-eng' : '';
@@ -784,6 +827,12 @@ function render() {
           <span class="staff-name" title="${esc(s.name)}">${esc(s.name)}</span>
           ${isNonEng ? `<span class="non-eng-pill">⚙ non-eng</span>` : ''}
         </div>
+      </div></td>
+      <td class="col-clawback"><div class="td-clawback-inner">
+        ${isNonEng 
+          ? `<span class="ded-exempt">—</span>`
+          : `<input type="number" class="clawback-input" data-staff="${s.id}" value="${cb}" placeholder="0.00" step="0.01">`
+        }
       </div></td>
       <td class="col-ded"><div class="td-ded-inner">
         ${isNonEng
@@ -807,7 +856,11 @@ function render() {
   tbody.innerHTML = bh;
 
   // Footer
-  let fh = `<tr class="totals-row"><td class="col-staff">Daily Summary</td><td class="col-ded">${grandTotal>0?'−'+gbp(grandTotal):'—'}</td>`;
+  let fh = `
+    <tr class="totals-row">
+      <td class="col-staff">Daily Summary</td>
+      <td class="col-clawback" id="footerClawback">${grandClawback>0 ? gbp(grandClawback) : '—'}</td>
+      <td class="col-ded">${grandTotal>0?'−'+gbp(grandTotal):'—'}</td>`;
   for (let d = 1; d <= nd; d++) {
     const k = dk(vy,vm,d), w = isWkd(vy,vm,d), b = isBH(k);
     if (w) { fh += `<td></td>`; continue; }
@@ -819,7 +872,23 @@ function render() {
   fh += '</tr>';
   tfoot.innerHTML = fh;
 
+  // Bind Events
   tbody.querySelectorAll('.cell-day[data-bh="0"]').forEach(c => c.addEventListener('click', onCell));
+  
+  tbody.querySelectorAll('.clawback-input').forEach(inp => {
+    inp.addEventListener('change', async (e) => {
+      const sid = e.target.dataset.staff;
+      const val = parseFloat(e.target.value) || 0;
+      clawbacks[sid] = val;
+      
+      // Update footer immediately without triggering a full re-render (preserves input focus state)
+      const newClawbackTotal = getFilteredStaff().reduce((sum, m) => sum + (clawbacks[m.id] || 0), 0);
+      const tfClawback = $('footerClawback');
+      if (tfClawback) tfClawback.textContent = newClawbackTotal > 0 ? gbp(newClawbackTotal) : '—';
+      
+      await saveClawback(sid, val);
+    });
+  });
 }
 
 // ── Cell popup ─────────────────────────────────────────────────────────────
@@ -870,7 +939,7 @@ function openPopup(sid, dt, selStatus, selHours, anchor, isNonEng, staffName) {
   const r = anchor.getBoundingClientRect(), ph = popup.scrollHeight+60, vw = window.innerWidth, vh = window.innerHeight;
   let top = r.bottom+4, left = r.left;
   if (top+ph>vh) top = r.top-ph-4;
-  if (left+210>vw) left = vw-216;
+  if (left+300>vw) left = vw-306; // Adjusted for extra frozen columns width
   if (left<4) left = 4;
   popup.style.top = `${top}px`; popup.style.left = `${left}px`;
 
@@ -934,32 +1003,29 @@ function doExport() {
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   const generated = new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
 
-  // ── Bold, high-contrast colour palette for Excel ──────────────────────
   const NAVY        = "002147";
-  const NAVY_HDR    = "003580";
   const WHITE       = "FFFFFF";
-  const WKND_BG     = "EDF2F7";   // light blue-grey for weekends
+  const WKND_BG     = "EDF2F7";
   const WKND_FG     = "94A3B8";
 
-  // Status fill / text — bright & clearly distinct (Holiday + AAUP kept as-is)
   const S_STYLE = {
-    'In':               { bg:'4ADE80', fg:'14532D' },   // bright mint green / dark text
-    'Holiday':          { bg:'1565C0', fg:WHITE    },   // kept — strong blue
-    'Sch Day Off':      { bg:'64748B', fg:WHITE    },   // Slate grey for scheduled day off
-    'Half day Holiday': { bg:'D946EF', fg:WHITE    },   // bright fuchsia
-    'Sick':             { bg:'FB7185', fg:'7F1D1D' },   // bright coral red / dark text
-    'AAUP':             { bg:'E65100', fg:WHITE    },   // kept — vivid orange
-    'AAP':              { bg:'22D3EE', fg:'164E63' },   // bright cyan / dark text
-    'Training':         { bg:'A3E635', fg:'365314' },   // bright lime / dark text
-    'BH':               { bg:'818CF8', fg:WHITE    },   // bright indigo
+    'In':               { bg:'4ADE80', fg:'14532D' },
+    'Holiday':          { bg:'1565C0', fg:WHITE    },
+    'Sch Day Off':      { bg:'64748B', fg:WHITE    },
+    'Half day Holiday': { bg:'D946EF', fg:WHITE    },
+    'Sick':             { bg:'FB7185', fg:'7F1D1D' },
+    'AAUP':             { bg:'E65100', fg:WHITE    },
+    'AAP':              { bg:'22D3EE', fg:'164E63' },
+    'Training':         { bg:'A3E635', fg:'365314' },
+    'BH':               { bg:'818CF8', fg:WHITE    },
   };
 
   const NON_ENG_BG  = "FFF3CD";
   const NON_ENG_FG  = "7B4500";
-  const GOLD_DED    = "FEF9C3";   // bright yellow deduction highlight
+  const GOLD_DED    = "FEF9C3";
   const RED_FG      = "B91C1C";
   const TOTAL_BG    = "001530";
-  const TOTAL_FG    = "FFD700";   // gold total text
+  const TOTAL_FG    = "FFD700";
 
   const font = (sz=9, bold=false, color='222222', italic=false) =>
     ({ name:'Calibri', sz, bold, color, italic });
@@ -1044,13 +1110,14 @@ function doExport() {
   const viewLabel = engFilter === 'engineers' ? 'ENGINEERS ONLY' : 'ALL STAFF';
   const rows1 = [];
   rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID (${viewLabel})`, 's', titleStyle),
-    ...Array(1 + dayCols.length).fill(blank('60C4FF')) ]);
+    ...Array(2 + dayCols.length).fill(blank('60C4FF')) ]);
   rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(2)}/hr  |  ⚙ = Non-engineer (exempt)`, 's', subStyle),
-    ...Array(1 + dayCols.length).fill(blank('1A4A7A')) ]);
-  rows1.push([ blank('EEEEEE'), ...Array(1 + dayCols.length).fill(blank('EEEEEE')) ]);
+    ...Array(2 + dayCols.length).fill(blank('1A4A7A')) ]);
+  rows1.push([ blank('EEEEEE'), ...Array(2 + dayCols.length).fill(blank('EEEEEE')) ]);
 
   const hdr3 = [
     sc('Staff Member', 's', hdrStyle('left')),
+    sc('Clawback (£)', 's', hdrStyle('right')),
     sc('Deduction (£)', 's', hdrStyle('right')),
   ];
   dayCols.forEach(col => {
@@ -1067,6 +1134,7 @@ function doExport() {
   const hdr4 = [
     sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
     sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
+    sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
   ];
   dayCols.forEach(col => {
     if (col.w) {
@@ -1079,18 +1147,21 @@ function doExport() {
   });
   rows1.push(hdr4);
 
-  // alternating row shading
   const ROW_A = 'F5F7FA';
   const ROW_B = 'E8EEF5';
 
   fil.forEach((s, ri) => {
     const rowBg  = ri % 2 === 0 ? ROW_A : ROW_B;
     const total  = staffTotal(s.id);
+    const cb     = clawbacks[s.id] || 0;
     const isNonEng = nonEngineers.has(s.id);
     const hasDed = total > 0;
     const nameDisplay = isNonEng ? `⚙ ${s.name}` : s.name;
     const dataRow = [
       sc(nameDisplay, 's', nameStyle(rowBg, hasDed, isNonEng)),
+      isNonEng
+        ? sc('—', 's', dedStyle(false, true))
+        : cb > 0 ? nc(cb, '"£"#,##0.00', dedStyle(true, false)) : sc('—', 's', dedStyle(false, false)),
       isNonEng
         ? sc('Non-eng', 's', dedStyle(false, true))
         : hasDed
@@ -1115,23 +1186,24 @@ function doExport() {
       const label = (STATUSES.find(o=>o.code===st)?.deducts && e.hours > 0 && !isNonEng)
         ? `${abbr} ${e.hours}h`
         : abbr;
-      // Non-engineers: keep their status colour but overlay amber tint in name only; use normal colour in cells
       dataRow.push(sc(label, 's', { font:font(8,true,isNonEng ? fg : fg), fill:fill(isNonEng ? bg : bg), alignment:A(), border:border('thin','FFFFFF') }));
     });
     rows1.push(dataRow);
   });
 
   const grand = fil.reduce((a,s)=>a+staffTotal(s.id), 0);
+  const grandClawback = fil.reduce((a,s)=>a+(clawbacks[s.id]||0), 0);
   rows1.push([
     sc('TOTAL DEDUCTIONS (engineers only)', 's', totalStyle('left')),
+    nc(grandClawback, '"£"#,##0.00', totalStyle('right')),
     nc(grand, '"£"#,##0.00', totalStyle('right')),
     ...dayCols.map(() => blank(TOTAL_BG)),
   ]);
   rows1.push([ sc('† Bank Holiday  ⚙ Non-engineer (no pay deduction applied)', 's',
     { font:font(8,false,'777777'), fill:fill('EEEEEE'), alignment:A('left') }),
-    ...Array(1+dayCols.length).fill(blank('EEEEEE')) ]);
+    ...Array(2+dayCols.length).fill(blank('EEEEEE')) ]);
 
-  const ws1 = buildWS(rows1, [24, 14, ...dayCols.map(() => 4.5)]);
+  const ws1 = buildWS(rows1, [24, 12, 14, ...dayCols.map(() => 4.5)]);
 
   // ── Sheet 2: Deduction Summary ─────────────────────────────────────────
   const staffStats = fil.map(s => {
@@ -1145,21 +1217,22 @@ function doExport() {
         if (opt?.deducts && e.hours > 0) { hrs += e.hours; ev++; }
       });
     }
-    return { name:s.name, isNonEng, ev, hrs, total:staffTotal(s.id), rate:getHourlyRate(s.name) };
+    return { name:s.name, isNonEng, ev, hrs, cb:clawbacks[s.id]||0, total:staffTotal(s.id), rate:getHourlyRate(s.name) };
   }).sort((a,b) => b.total - a.total);
 
   const rows2 = [];
-  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF') ]);
+  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF') ]);
   rows2.push([ sc(`Period: ${period}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(8)}/hr  |  * = custom rate`, 's', subStyle),
-    blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A') ]);
-  rows2.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
+    blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A') ]);
+  rows2.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
   rows2.push([
     sc('Staff Member',    's', hdrStyle('left')),
     sc('Type',            's', hdrStyle()),
-    sc('Hourly Rate',    's', hdrStyle()),
-    sc('Absence Events', 's', hdrStyle()),
-    sc('Hours Absent',   's', hdrStyle()),
-    sc('Deduction (£)',  's', hdrStyle('right')),
+    sc('Hourly Rate',     's', hdrStyle()),
+    sc('Absence Events',  's', hdrStyle()),
+    sc('Hours Absent',    's', hdrStyle()),
+    sc('Clawback (£)',    's', hdrStyle('right')),
+    sc('Deduction (£)',   's', hdrStyle('right')),
   ]);
 
   staffStats.forEach((s, ri) => {
@@ -1180,6 +1253,7 @@ function doExport() {
       }),
       s.ev > 0  ? nc(s.ev,   '0;-0;"-"',        bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
       s.hrs > 0 ? nc(s.hrs,  '0.00;-0.00;"-"', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg)),
+      s.cb > 0  ? nc(s.cb,   '"£"#,##0.00',    bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg,'right',false,'B91C1C')) : sc('—', 's', bodyStyle(s.isNonEng ? NON_ENG_BG : rowBg,'right',false,'AAAAAA')),
       s.isNonEng
         ? sc('Exempt', 's', { font:font(9,false,NON_ENG_FG,true), fill:fill(NON_ENG_BG), alignment:A('right'), border:border() })
         : hasDed
@@ -1190,19 +1264,21 @@ function doExport() {
 
   const totHrs = staffStats.reduce((a,s)=>a+s.hrs, 0);
   const totDed = staffStats.reduce((a,s)=>a+s.total, 0);
+  const totCb  = staffStats.reduce((a,s)=>a+s.cb, 0);
   rows2.push([
     sc('TOTAL', 's', totalStyle('left')),
     sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
     sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
     nc(staffStats.reduce((a,s)=>a+s.ev,0), '0', totalStyle()),
     nc(totHrs,   '0.00',        totalStyle()),
+    nc(totCb,    '"£"#,##0.00', totalStyle('right')),
     nc(totDed,   '"£"#,##0.00', totalStyle('right')),
   ]);
   rows2.push([ sc('* Custom hourly rate applied for this employee', 's',
     { font:font(8,false,'777777',true), fill:fill('EEEEEE'), alignment:A('left') }),
-    blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
+    blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
 
-  const ws2 = buildWS(rows2, [26, 12, 14, 16, 16, 16]);
+  const ws2 = buildWS(rows2, [26, 12, 14, 16, 16, 14, 16]);
 
   // ── Sheet 3: Deduction Events ──────────────────────────────────────────
   const rows3 = [];
