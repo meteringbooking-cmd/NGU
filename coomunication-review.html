@@ -160,6 +160,7 @@
             <th>Coaching Point</th>
             <th>Revisit</th>
             <th>Status</th>
+            <th>Images</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -227,6 +228,15 @@
       }
     }
 
+    window.openImage = function(base64Str) {
+      const w = window.open("");
+      if (w) {
+        w.document.write(`<html><body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;height:100vh;"><img src="${base64Str}" style="max-width:100%;max-height:100%;"></body></html>`);
+      } else {
+        alert("Popup blocked. Please allow popups to view the image.");
+      }
+    };
+
     function getStatusBadge(status) {
       if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
       if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
@@ -242,21 +252,29 @@
         return;
       }
 
-      tbody.innerHTML = comms.map(c => `
-        <tr>
-          <td>${c.date}</td>
-          <td style="font-weight: 500;">${c.engineerName}</td>
-          <td>${c.manager}</td>
-          <td>${c.coachingPoint}</td>
-          <td>${c.revisit}</td>
-          <td>${getStatusBadge(c.status)}</td>
-          <td>
-            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="openPushModal('${c.id}', '${c.engineerName}')">
-              Push to Engineer
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = comms.map((c, i) => {
+        window[`_commImgs_${i}`] = c.images || [];
+        const imageLinks = (c.images || []).map((img, imgIdx) => 
+          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].data); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
+        ).join('');
+
+        return `
+          <tr>
+            <td>${c.date}</td>
+            <td style="font-weight: 500;">${c.engineerName}</td>
+            <td>${c.manager}</td>
+            <td>${c.coachingPoint}</td>
+            <td>${c.revisit}</td>
+            <td>${getStatusBadge(c.status)}</td>
+            <td>${imageLinks || '<span style="color:var(--text-muted)">None</span>'}</td>
+            <td>
+              <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="openPushModal('${c.id}', '${c.engineerName}')">
+                Push to Engineer
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     // Modal Logic
