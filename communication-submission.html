@@ -229,6 +229,7 @@
               <th>Engineer</th>
               <th>Point</th>
               <th>Status</th>
+              <th>Images</th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -284,6 +285,24 @@
       }
     }
 
+    window.openImage = function(base64Str) {
+      const w = window.open("");
+      if (w) {
+        w.document.write(`<html><body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;height:100vh;"><img src="${base64Str}" style="max-width:100%;max-height:100%;"></body></html>`);
+      } else {
+        alert("Popup blocked. Please allow popups to view the image.");
+      }
+    };
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
     // File Upload handling mockup
     const uploadBox = document.getElementById('uploadBox');
     const imageUpload = document.getElementById('imageUpload');
@@ -308,6 +327,10 @@
       btn.disabled = true;
       btn.innerText = 'Submitting...';
 
+      const base64Images = await Promise.all(selectedFiles.map(async f => {
+        return { name: f.name, data: await fileToBase64(f) };
+      }));
+
       const data = {
         engineerName: document.getElementById('engName').value,
         date: document.getElementById('commDate').value,
@@ -315,7 +338,7 @@
         coachingPoint: document.getElementById('coachingPoint').value,
         revisit: document.querySelector('input[name="revisit"]:checked').value,
         managerComments: document.getElementById('managerComments').value,
-        images: selectedFiles.map(f => f.name) // Mocking image storage by saving names
+        images: base64Images
       };
 
       try {
@@ -348,14 +371,23 @@
         return;
       }
 
-      tbody.innerHTML = comms.map(c => `
-        <tr style="cursor: pointer;" onclick="alert('Manager: ${c.manager}\\nComments: ${c.managerComments}\\n\\nEng Comments: ${c.engineerComments || 'N/A'}\\nSignature: ${c.signature || 'N/A'}')">
-          <td>${c.date}</td>
-          <td style="font-weight: 500;">${c.engineerName}</td>
-          <td>${c.coachingPoint}</td>
-          <td>${getStatusBadge(c.status)}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = comms.map((c, i) => {
+        // Store images in a global object to avoid massive inline HTML strings
+        window[`_commImgs_${i}`] = c.images || [];
+        const imageLinks = (c.images || []).map((img, imgIdx) => 
+          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].data); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
+        ).join('');
+
+        return `
+          <tr style="cursor: pointer;" onclick="alert('Manager: ${c.manager}\\nComments: ${c.managerComments}\\n\\nEng Comments: ${c.engineerComments || 'N/A'}\\nSignature: ${c.signature || 'N/A'}')">
+            <td>${c.date}</td>
+            <td style="font-weight: 500;">${c.engineerName}</td>
+            <td>${c.coachingPoint}</td>
+            <td>${getStatusBadge(c.status)}</td>
+            <td>${imageLinks || '<span style="color:var(--text-muted)">None</span>'}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
     window.onload = () => {
