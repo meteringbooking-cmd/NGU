@@ -133,7 +133,18 @@
     .modal h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
     .modal-body { font-size: 14px; margin-bottom: 22px; color: var(--text-muted); }
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-  <style>
+
+    /* Image Lightbox Modal */
+    .image-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      z-index: 9999; align-items: center; justify-content: center; padding: 20px;
+    }
+    .image-modal-overlay.open { display: flex; }
+    .image-modal-overlay img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .image-modal-close {
+      position: absolute; top: 20px; right: 30px; color: #fff; font-size: 30px;
+      font-family: sans-serif; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
     .read-only-field {
       background: var(--surface2); border: 1px solid var(--border); color: var(--text);
       border-radius: var(--radius); padding: 10px 14px; font-family: 'DM Sans', sans-serif;
@@ -231,6 +242,12 @@
     </div>
   </div>
 
+  <!-- Image Modal / Lightbox -->
+  <div class="image-modal-overlay" id="imageModal" onclick="this.classList.remove('open')">
+    <div class="image-modal-close">&times;</div>
+    <img id="imageModalImg" src="" onclick="event.stopPropagation()">
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, orderBy } 
@@ -275,12 +292,8 @@
     }
 
     window.openImage = function(base64Str) {
-      const w = window.open("");
-      if (w) {
-        w.document.write(`<html><body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;height:100vh;"><img src="${base64Str}" style="max-width:100%;max-height:100%;"></body></html>`);
-      } else {
-        alert("Popup blocked. Please allow popups to view the image.");
-      }
+      document.getElementById('imageModalImg').src = base64Str;
+      document.getElementById('imageModal').classList.add('open');
     };
 
     let currentCommId = null;
