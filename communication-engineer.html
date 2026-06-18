@@ -274,6 +274,15 @@
       }
     }
 
+    window.openImage = function(base64Str) {
+      const w = window.open("");
+      if (w) {
+        w.document.write(`<html><body style="margin:0;display:flex;justify-content:center;align-items:center;background:#000;height:100vh;"><img src="${base64Str}" style="max-width:100%;max-height:100%;"></body></html>`);
+      } else {
+        alert("Popup blocked. Please allow popups to view the image.");
+      }
+    };
+
     let currentCommId = null;
 
     async function loadCommunication() {
@@ -305,7 +314,11 @@
       document.getElementById('roComments').innerText = comm.managerComments;
 
       if (comm.images && comm.images.length > 0) {
-        document.getElementById('roImages').innerHTML = comm.images.map(img => `<div>📎 ${img}</div>`).join('');
+        // Store images in global variable to avoid large strings in inline handlers
+        window._currentCommImgs = comm.images;
+        document.getElementById('roImages').innerHTML = comm.images.map((img, idx) => 
+          `<a href="#" onclick="event.preventDefault(); window.openImage(window._currentCommImgs[${idx}].data);" style="color:var(--accent2); display:block; margin-bottom:5px;">📎 ${img.name}</a>`
+        ).join('');
       } else {
         document.getElementById('roImagesContainer').style.display = 'none';
       }
