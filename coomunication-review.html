@@ -110,10 +110,6 @@
     .radio-group { display: flex; gap: 16px; }
     .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
-    .nav-links { display: flex; gap: 16px; margin-bottom: 20px; background: var(--surface); padding: 10px 20px; border-radius: var(--radius); border: 1px solid var(--border); }
-    .nav-links a { color: var(--accent2); text-decoration: none; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
-    .nav-links a:hover { text-decoration: underline; }
-
     .upload-box {
       border: 2px dashed var(--border); border-radius: var(--radius); padding: 20px;
       text-align: center; color: var(--text-muted); cursor: pointer; transition: border-color 0.2s;
@@ -148,12 +144,6 @@
   </header>
 
   <div class="page">
-    <div class="nav-links">
-      <a href="communication-submission.html">Main Admin Page</a>
-      <a href="communication-review.html" style="text-decoration: underline;">Team Leader Review</a>
-      <a href="communication-engineer.html">Engineer Portal</a>
-    </div>
-
     <div class="card">
       <div class="card-title">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -276,8 +266,9 @@
     window.openPushModal = (id, name) => {
       currentId = id;
       document.getElementById('modalEngName').innerText = name;
-      const baseUrl = window.location.href.replace('communication-review.html', 'communication-engineer.html');
-      document.getElementById('shareLink').value = baseUrl + '?id=' + id;
+      const url = new URL('communication-engineer.html', window.location.href);
+      url.searchParams.set('id', id);
+      document.getElementById('shareLink').value = url.href;
       pushModal.classList.add('open');
     };
 
