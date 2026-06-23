@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Energise — Historic Communications</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+      --bg: #141820;
+      --surface: #1e2530;
+      --surface2: #252d3a;
+      --border: #2e3a4e;
+      --accent: #d4f53c;
+      --accent2: #47c8ff;
+      --text: #f0f4ff;
+      --text-muted: #8899aa;
+      --in-stock: #4ade80;
+      --out: #f87171;
+      --warning: #fbbf24;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; min-height: 100vh; }
+
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .header-badge {
+      background: rgba(212,245,60,0.12); border: 1px solid rgba(212,245,60,0.25);
+      color: var(--accent); padding: 5px 14px; border-radius: 20px;
+      font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.05em;
+    }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+
+    .page { max-width: 1280px; margin: 0 auto; padding: 28px 32px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 24px 28px; margin-bottom: 28px; position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-title svg { color: var(--accent); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-label {
+      font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+    }
+    .form-input {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      border-radius: var(--radius); padding: 10px 14px; font-family: 'DM Sans', sans-serif;
+      font-size: 14px; width: 100%; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,245,60,0.12);
+    }
+
+    .btn {
+      background: var(--accent); color: #000; border: none;
+      padding: 10px 20px; border-radius: var(--radius);
+      font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:hover { background: #d4eb30; transform: translateY(-1px); }
+
+    .btn-outline {
+      background: transparent; color: var(--text); border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 2px solid var(--accent); }
+    th {
+      font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+      padding: 14px 16px; text-align: left; background: var(--surface);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    tbody tr:hover { background: rgba(255,255,255,0.04); }
+    td { padding: 14px 16px; vertical-align: middle; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px;
+      font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; white-space: nowrap;
+    }
+    .badge-pending { background: rgba(251,191,36,0.12); color: var(--warning); }
+    .badge-accepted { background: rgba(74,222,128,0.12); color: var(--in-stock); }
+    .badge-challenged { background: rgba(248,113,113,0.12); color: var(--out); }
+    .badge-closed { background: rgba(71,200,255,0.12); color: var(--accent2); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      z-index: 200; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      width: 600px; max-width: 100%; padding: 28px; position: relative; max-height: 90vh; overflow-y: auto;
+    }
+    .modal h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+    .modal-body { font-size: 14px; margin-bottom: 22px; color: var(--text-muted); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    
+    .detail-group { margin-bottom: 16px; background: var(--surface2); padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .detail-label { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent2); margin-bottom: 6px; }
+    .detail-text { white-space: pre-wrap; font-size: 13px; }
+
+    /* Image Lightbox Modal */
+    .image-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      z-index: 9999; align-items: center; justify-content: center; padding: 20px;
+    }
+    .image-modal-overlay.open { display: flex; }
+    .image-modal-overlay img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    .image-modal-close {
+      position: absolute; top: 20px; right: 30px; color: #fff; font-size: 30px;
+      font-family: sans-serif; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">energise<span>.</span></div>
+    <div class="header-right">
+      <span class="header-badge">Historic Communications</span>
+    </div>
+  </header>
+
+  <div class="page">
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Search & Filter
+      </div>
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Engineer Name</label>
+          <input type="text" id="filterName" class="form-input" placeholder="Type to search by name...">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Date From</label>
+            <input type="date" id="filterDateFrom" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date To</label>
+            <input type="date" id="filterDateTo" class="form-input">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Submission Records
+      </div>
+
+      <table id="historicTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Engineer Name</th>
+            <th>Manager</th>
+            <th>Coaching Point</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal">
+      <h3>Communication Details</h3>
+      
+      <div class="detail-group">
+        <div class="detail-label">Manager Comments</div>
+        <div class="detail-text" id="modManagerComments"></div>
+      </div>
+
+      <div class="detail-group">
+        <div class="detail-label">Engineer Comments</div>
+        <div class="detail-text" id="modEngineerComments"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="detail-group">
+          <div class="detail-label">Revisit Required?</div>
+          <div class="detail-text" id="modRevisit"></div>
+        </div>
+        <div class="detail-group">
+          <div class="detail-label">Digital Signature</div>
+          <div class="detail-text" id="modSignature"></div>
+        </div>
+      </div>
+
+      <div class="detail-group" id="modImagesContainer">
+        <div class="detail-label">Attached Images</div>
+        <div class="detail-text" id="modImages" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeDetailsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Modal / Lightbox -->
+  <div class="image-modal-overlay" id="imageModal" onclick="this.classList.remove('open')">
+    <div class="image-modal-close">&times;</div>
+    <img id="imageModalImg" src="" onclick="event.stopPropagation()">
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } 
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+      authDomain: "oesperformance-a54c0.firebaseapp.com",
+      projectId: "oesperformance-a54c0",
+      storageBucket: "oesperformance-a54c0.firebasestorage.app",
+      messagingSenderId: "484894102454",
+      appId: "1:484894102454:web:17535ee497eac2d90d6717",
+      measurementId: "G-R56BGZYV8N"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allComms = [];
+
+    async function fetchCommunications() {
+      try {
+        const q = query(collection(db, "communication-submissions"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const comms = [];
+        querySnapshot.forEach((doc) => {
+          comms.push({ id: doc.id, ...doc.data() });
+        });
+        return comms;
+      } catch (e) {
+        console.error("Error getting documents: ", e);
+        return [];
+      }
+    }
+
+    window.openImage = function(base64Str) {
+      document.getElementById('imageModalImg').src = base64Str;
+      document.getElementById('imageModal').classList.add('open');
+    };
+
+    function getStatusBadge(status) {
+      if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
+      if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
+      if (status === 'Challenge closed') return '<span class="badge badge-closed">Challenge Closed</span>';
+      return '<span class="badge badge-pending">Pending</span>';
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const nameFilter = document.getElementById('filterName').value.toLowerCase();
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+
+      // Filter Data
+      const filtered = allComms.filter(c => {
+        if (nameFilter && !(c.engineerName || '').toLowerCase().includes(nameFilter)) return false;
+        if (dateFrom && c.date < dateFrom) return false;
+        if (dateTo && c.date > dateTo) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No matching submissions found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((c, i) => {
+        window[`_historicImgs_${c.id}`] = c.images || [];
+        return `
+          <tr>
+            <td>${c.date}</td>
+            <td style="font-weight: 500;">${c.engineerName}</td>
+            <td>${c.manager}</td>
+            <td>${c.coachingPoint}</td>
+            <td>${getStatusBadge(c.status)}</td>
+            <td>
+              <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="openDetailsModal('${c.id}')">
+                View Details
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Modal Logic
+    const detailsModal = document.getElementById('detailsModal');
+
+    window.openDetailsModal = (id) => {
+      const c = allComms.find(comm => comm.id === id);
+      if (!c) return;
+
+      document.getElementById('modManagerComments').innerText = c.managerComments || 'N/A';
+      document.getElementById('modEngineerComments').innerText = c.engineerComments || 'N/A';
+      document.getElementById('modRevisit').innerText = c.revisit || 'N/A';
+      document.getElementById('modSignature').innerText = c.signature || 'N/A';
+
+      if (c.images && c.images.length > 0) {
+        document.getElementById('modImagesContainer').style.display = 'block';
+        document.getElementById('modImages').innerHTML = c.images.map((img, imgIdx) => 
+          `<a href="#" onclick="event.preventDefault(); window.openImage(window['_historicImgs_${c.id}'][${imgIdx}].data);" style="color:var(--accent2); background:var(--surface); padding:4px 8px; border-radius:4px; text-decoration:none; border:1px solid var(--border);">📎 ${img.name}</a>`
+        ).join('');
+      } else {
+        document.getElementById('modImagesContainer').style.display = 'none';
+      }
+
+      detailsModal.classList.add('open');
+    };
+
+    window.closeDetailsModal = () => {
+      detailsModal.classList.remove('open');
+    };
+
+    // Event Listeners for Filters
+    document.getElementById('filterName').addEventListener('input', renderTable);
+    document.getElementById('filterDateFrom').addEventListener('change', renderTable);
+    document.getElementById('filterDateTo').addEventListener('change', renderTable);
+
+    window.onload = async () => {
+      allComms = await fetchCommunications();
+      renderTable();
+    };
+  </script>
+</body>
+</html>
