@@ -42,6 +42,7 @@
   --cell-train-bg:#65a30d;    --cell-train-t:#ffffff;
   --cell-bh-bg:#4f46e5;       --cell-bh-t:#ffffff;
   --cell-sch-bg:#475569;      --cell-sch-t:#ffffff;
+  --cell-awol-bg:#831843;     --cell-awol-t:#ffffff;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
@@ -159,6 +160,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-clawback,tr.row-non-eng .col-ded{b
 .s-Training{ background:var(--cell-train-bg);color:var(--cell-train-t); }
 .s-BH      { background:var(--cell-bh-bg);   color:var(--cell-bh-t); }
 .s-SchDayOff { background:var(--cell-sch-bg); color:var(--cell-sch-t); }
+.s-AWOL     { background:var(--cell-awol-bg); color:var(--cell-awol-t); }
 
 .totals-row td{background:var(--bg3);border-top:2px solid var(--border);height:34px;font-family:var(--mono);font-size:10px;text-align:center;vertical-align:middle;color:var(--muted);position:sticky;bottom:0;z-index:10;}
 .totals-row td.col-staff{z-index:21;text-align:left;padding:0 12px;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
@@ -264,6 +266,7 @@ tr.row-non-eng .col-staff,tr.row-non-eng .col-clawback,tr.row-non-eng .col-ded{b
     <div class="legend-item"><div class="lchip s-Training">Tr</div>Training</div>
     <div class="legend-item"><div class="lchip" style="background:var(--cell-wknd);color:var(--faint)">—</div>Weekend</div>
     <div class="legend-item"><div class="lchip s-BH">BH</div>Bank Hol</div>
+    <div class="legend-item"><div class="lchip s-AWOL">AW</div>AWOL</div>
     <div class="legend-item" style="margin-left:6px;padding-left:10px;border-left:1px solid var(--border)">
       <div class="non-eng-pill">⚙ excl.</div>
       <span>Non-engineer (no deduction)</span>
@@ -382,6 +385,7 @@ const STATUSES = [
   { code:'AAUP',             label:'AAUP (Unpaid)',    abbr:'AU',  cls:'s-AAUP',       deducts:true  },
   { code:'AAP',              label:'AAP (Paid)',       abbr:'AP',  cls:'s-AAP',        deducts:false },
   { code:'Training',         label:'Training',         abbr:'Tr',  cls:'s-Training',   deducts:false },
+  { code:'AWOL',             label:'AWOL',             abbr:'AW',  cls:'s-AWOL',       deducts:true  },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -1024,6 +1028,7 @@ function doExport() {
     'AAP':              { bg:'22D3EE', fg:'164E63' },
     'Training':         { bg:'A3E635', fg:'365314' },
     'BH':               { bg:'818CF8', fg:WHITE    },
+    'AWOL':             { bg:'831843', fg:'FFFFFF' },
   };
 
   const NON_ENG_BG  = "FFF3CD";
@@ -1111,7 +1116,7 @@ function doExport() {
   }
   const STATUS_ABBR = {
     'In':'In','Holiday':'H','Sch Day Off':'SD','Half day Holiday':'½H',
-    'Sick':'S','AAUP':'AU','AAP':'AP','Training':'Tr'
+    'Sick':'S','AAUP':'AU','AAP':'AP','Training':'Tr', 'AWOL':'AW',
   };
   const viewLabel = engFilter === 'engineers' ? 'ENGINEERS ONLY' : 'ALL STAFF';
   const rows1 = [];
