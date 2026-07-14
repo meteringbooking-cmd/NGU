@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <title>Energise — Communication Submission</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -337,6 +338,30 @@
       fileList.innerHTML = selectedFiles.map(f => `<div>📎 ${f.name}</div>`).join('');
     });
 
+    // Manager email lookup
+    const managerEmails = {
+      'Richard Wiecko': 'richard.wiecko@next-gen.uk',
+      'Scott Carson': 'scott.carson@next-gen.uk',
+      'Stuart Whyte': 'stuart.whyte@next-gen.uk',
+      'Thomas Green': 'thomas.green@next-gen.uk'
+    };
+
+    // EmailJS init
+    emailjs.init('ziLnha91scpGjFABh');
+
+    async function sendManagerEmail(managerName, engineerName, coachingPoint, date) {
+      const toEmail = managerEmails[managerName];
+      if (!toEmail) return;
+      await emailjs.send('service_8lgghpq', 'template_pv50ldd', {
+        manager_name: managerName,
+        to_email: toEmail,
+        engineer_name: engineerName,
+        coaching_point: coachingPoint,
+        date: date,
+        comms_hub_url: 'https://ngu-green.vercel.app/communication-review.html'
+      });
+    }
+
     // Form Submission
     document.getElementById('submissionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -360,6 +385,12 @@
 
       try {
         await submitCommunication(data);
+        // Send email notification to manager
+        try {
+          await sendManagerEmail(data.manager, data.engineerName, data.coachingPoint, data.date);
+        } catch (emailErr) {
+          console.warn('Email notification failed (submission still saved):', emailErr);
+        }
         alert('Communication submitted successfully!');
         e.target.reset();
         selectedFiles = [];
