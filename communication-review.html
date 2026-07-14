@@ -188,17 +188,13 @@
     <div class="modal">
       <h3>Push to Engineer</h3>
       <div class="modal-body">
-        Select how you would like to push this communication to <strong><span id="modalEngName"></span></strong>.
+        Select Copy Link and send it to <strong><span id="modalEngName"></span></strong> via email or WhatsApp for them to review.
       </div>
       <div style="margin-bottom: 20px;">
         <input type="text" id="shareLink" class="form-input" readonly style="font-family: 'DM Mono', monospace; font-size: 12px; background: var(--surface2); color: var(--accent2);">
       </div>
       <div class="modal-actions" style="justify-content: flex-start;">
-        <button class="btn" onclick="sendEmail()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-          Send via Email
-        </button>
-        <button class="btn btn-outline" onclick="copyLink()">
+        <button class="btn" onclick="copyLink()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           Copy Link
         </button>
@@ -313,12 +309,6 @@
       link.select();
       document.execCommand('copy');
       alert('Link copied to clipboard. You can now send it to the engineer.');
-      closeModal();
-    };
-
-    window.sendEmail = () => {
-      const link = document.getElementById('shareLink').value;
-      window.location.href = `mailto:?subject=New Communication Review&body=Please review your recent communication here: ${link}`;
       closeModal();
     };
 
