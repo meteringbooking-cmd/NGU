@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Exit Interview</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+[data-theme="dark"] {
+  --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942;
+  --border:#2a3f5f;
+  --text:#E8EDF2; --muted:#7a8fa8;
+  --accent:#00A3E0; --accent2:#005EB8;
+}
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; display: grid; place-items: center; min-height: 100vh; margin: 0; box-sizing: border-box; }
+.card { background: var(--bg2); padding: 40px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 500px; width: 100%; text-align: center; }
+h1 { color: var(--accent); margin-top: 0; }
+.form-group { margin-bottom: 20px; text-align: left; }
+label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--muted); }
+input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg3); color: var(--text); font-family: inherit; font-size: 16px; box-sizing: border-box; }
+button { background: var(--accent); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 15px; border-radius: 6px; width: 100%; font-size: 16px; margin-top: 10px; }
+button:hover { background: var(--accent2); }
+#msg { display: none; margin-top: 20px; padding: 15px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid #10B981; }
+</style>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  
+  emailjs.init("ziLnha91scpGjFABh");
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+    authDomain: "oesperformance-a54c0.firebaseapp.com",
+    projectId: "oesperformance-a54c0",
+    storageBucket: "oesperformance-a54c0.firebasestorage.app",
+    messagingSenderId: "484894102454",
+    appId: "1:484894102454:web:17535ee497eac2d90d6717"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get('id');
+  if(!id) { alert('Invalid link.'); }
+
+  let empData = null;
+
+  async function loadData() {
+      if(!id) return;
+      const docSnap = await getDoc(doc(db, "Offboarding Forms", id));
+      if (docSnap.exists()) {
+          empData = docSnap.data();
+          document.getElementById('welcomeMsg').textContent = `Book Exit Interview for ${empData.name}`;
+      }
+  }
+
+  window.submitBooking = async function(e) {
+      e.preventDefault();
+      const dateStr = document.getElementById('bDate').value;
+      const timeStr = document.getElementById('bTime').value;
+
+      if (!dateStr || !timeStr) return alert("Please select both a date and a time.");
+
+      const d = new Date(dateStr);
+      const day = d.getDay();
+      if (day === 0 || day === 6) {
+          return alert("Please select a weekday (Monday to Friday).");
+      }
+
+      const timeSplit = timeStr.split(':');
+      const hours = parseInt(timeSplit[0]);
+      const mins = parseInt(timeSplit[1]);
+      const totalMins = hours * 60 + mins;
+
+      // 8:30am = 510, 4:30pm = 990
+      if (totalMins < 510 || totalMins > 990) {
+          return alert("Please select a time between 08:30 and 16:30.");
+      }
+
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Booking...';
+
+      try {
+          await updateDoc(doc(db, "Offboarding Forms", id), {
+              exitInterviewBooking: {
+                  date: dateStr,
+                  time: timeStr,
+                  bookedAt: new Date().toISOString()
+              }
+          });
+
+          await emailjs.send("service_hdd4x8i", "template_b2xgrvd", {
+              employee_name: empData ? empData.name : 'Employee',
+              booking_date: dateStr,
+              booking_time: timeStr
+          });
+
+          document.getElementById('bForm').style.display = 'none';
+          document.getElementById('msg').style.display = 'block';
+          document.getElementById('msg').textContent = 'Your exit interview has been successfully booked. You will receive a confirmation email shortly.';
+      } catch(err) {
+          console.error(err);
+          alert('Failed to book interview. Please try again.');
+          btn.disabled = false;
+          btn.textContent = 'Confirm Booking';
+      }
+  }
+
+  loadData();
+</script>
+</head>
+<body>
+    <div class="card">
+        <h1>Schedule Exit Interview</h1>
+        <p id="welcomeMsg" style="color:var(--muted); margin-bottom: 30px;">Loading...</p>
+        
+        <form id="bForm" onsubmit="submitBooking(event)">
+            <div class="form-group">
+                <label>Select Date</label>
+                <input type="date" id="bDate" required>
+            </div>
+            <div class="form-group">
+                <label>Select Time (Between 08:30 and 16:30)</label>
+                <input type="time" id="bTime" min="08:30" max="16:30" required>
+            </div>
+            <button type="submit" id="btnSubmit">Confirm Booking</button>
+        </form>
+
+        <div id="msg"></div>
+    </div>
+</body>
+</html>
