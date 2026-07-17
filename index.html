@@ -334,7 +334,11 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="check-item"><input type="checkbox" id="cp7" value="Uniform"><label for="cp7">Uniform</label></div>
       <div class="check-item"><input type="checkbox" id="cp8" value="PPE"><label for="cp8">PPE</label></div>
       <div class="check-item"><input type="checkbox" id="cp9" value="Tools"><label for="cp9">Tools</label></div>
-      <div class="check-item"><input type="checkbox" id="cp10" value="Other"><label for="cp10">Other</label></div>
+      <div class="check-item"><input type="checkbox" id="cp10" value="Other" onchange="toggleOtherProperty()"><label for="cp10">Other</label></div>
+    </div>
+    <div id="otherPropertySection" style="display: none; margin-top: 12px;">
+      <label class="field-label">Specify Other Property</label>
+      <input type="text" id="otherPropertyText" placeholder="e.g. Fuel Fob, Special Equipment...">
     </div>
   </div>
 
@@ -499,6 +503,14 @@ textarea { resize: vertical; min-height: 80px; }
     document.getElementById('exitInterviewSection').style.display = val === 'yes' ? 'block' : 'none';
   };
 
+  window.toggleOtherProperty = function() {
+    const isChecked = document.getElementById('cp10').checked;
+    document.getElementById('otherPropertySection').style.display = isChecked ? 'block' : 'none';
+    if (!isChecked) {
+      document.getElementById('otherPropertyText').value = '';
+    }
+  };
+
   function getChecked(name) {
     const el = document.querySelector(`input[name="${name}"]:checked`);
     return el ? el.value : '';
@@ -524,6 +536,11 @@ textarea { resize: vertical; min-height: 80px; }
     if (!document.getElementById('ftmSignature').value.trim()) return showToast('Please provide a manager signature.', 'error');
     if (!document.getElementById('declarationDate').value) return showToast('Please enter the declaration date.', 'error');
 
+    if (document.getElementById('cp10').checked) {
+      const otherVal = document.getElementById('otherPropertyText').value.trim();
+      if (!otherVal) return showToast('Please specify the "Other" company property issued.', 'error');
+    }
+
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.textContent = 'Submitting…';
@@ -533,7 +550,11 @@ textarea { resize: vertical; min-height: 80px; }
     const wantsInterview = getChecked('exitInterview') === 'yes';
     const managerEmail = document.getElementById('managerEmail').value.trim();
 
-    const companyProperty = getCheckboxValues(['cp1','cp2','cp3','cp4','cp5','cp6','cp7','cp8','cp9','cp10']);
+    let companyProperty = getCheckboxValues(['cp1','cp2','cp3','cp4','cp5','cp6','cp7','cp8','cp9']);
+    if (document.getElementById('cp10').checked) {
+      const otherVal = document.getElementById('otherPropertyText').value.trim();
+      companyProperty.push(`Other: ${otherVal}`);
+    }
     const outstanding = getCheckboxValues(['os1','os2','os3','os4','os5','os6']);
 
     try {
