@@ -212,7 +212,20 @@ textarea { resize: vertical; min-height: 80px; }
       </div>
       <div class="form-group">
         <label class="field-label">Department</label>
-        <input type="text" id="department" placeholder="e.g. Field Operations">
+        <select id="department" required>
+          <option value="">-- Select department --</option>
+          <option>Energise Octopus</option>
+          <option>Sureserve Octopus</option>
+          <option>Sureserve Scottish Power</option>
+          <option>Compliance</option>
+          <option>Director</option>
+          <option>Field Team Manager</option>
+          <option>Finance</option>
+          <option>Fleet</option>
+          <option>Operation Support</option>
+          <option>Recruitment</option>
+          <option>Team Quality Coach</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="field-label">Line Manager / FTM</label>
@@ -460,6 +473,7 @@ textarea { resize: vertical; min-height: 80px; }
     document.getElementById('empName').value = emp.name || '';
     document.getElementById('empNum').value = emp.id || '';
     document.getElementById('jobTitle').value = emp.jobTitle || '';
+    document.getElementById('department').value = emp.department || '';
     document.getElementById('manager').value = emp.manager || '';
     document.getElementById('location').value = emp.postcode || '';
 
