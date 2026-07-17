@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exit Interview Feedback Form</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+[data-theme="dark"] {
+  --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942;
+  --border:#2a3f5f;
+  --text:#E8EDF2; --muted:#7a8fa8;
+  --accent:#00A3E0; --accent2:#005EB8;
+}
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; margin: 0; }
+.container { max-width: 900px; margin: 0 auto; background: var(--bg2); padding: 40px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+h1 { color: var(--accent); margin-top: 0; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+.section-title { background: var(--bg3); padding: 15px; border-radius: 6px; font-weight: 600; font-size: 1.1em; color: var(--accent); margin: 30px 0 15px 0; border-left: 4px solid var(--accent); }
+.form-group { margin-bottom: 20px; }
+label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text); }
+input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 15px; box-sizing: border-box; }
+textarea { resize: vertical; min-height: 80px; }
+.radio-group { display: flex; gap: 20px; margin-bottom: 10px; }
+.radio-group label { display: flex; align-items: center; gap: 5px; font-weight: 400; color: var(--muted); cursor: pointer; }
+button { background: var(--accent); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 15px; border-radius: 6px; width: 100%; font-size: 16px; margin-top: 30px; }
+button:hover { background: var(--accent2); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+</style>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  
+  emailjs.init("ziLnha91scpGjFABh");
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+    authDomain: "oesperformance-a54c0.firebaseapp.com",
+    projectId: "oesperformance-a54c0",
+    storageBucket: "oesperformance-a54c0.firebasestorage.app",
+    messagingSenderId: "484894102454",
+    appId: "1:484894102454:web:17535ee497eac2d90d6717"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get('id');
+  if(!id) { alert('Invalid link.'); }
+
+  let empData = null;
+
+  async function loadData() {
+      if(!id) return;
+      const docSnap = await getDoc(doc(db, "Offboarding Forms", id));
+      if (docSnap.exists()) {
+          empData = docSnap.data();
+          document.getElementById('empName').value = empData.name || '';
+          document.getElementById('jobTitle').value = empData.jobTitle || '';
+          document.getElementById('manager').value = empData.manager || '';
+      }
+  }
+
+  function getRadioValue(name) {
+      const ele = document.querySelector(`input[name="${name}"]:checked`);
+      return ele ? ele.value : '';
+  }
+
+  window.submitInterview = async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.textContent = 'Saving Interview...';
+
+      const formData = {
+          employeeId: id,
+          employeeName: document.getElementById('empName').value,
+          interviewer: document.getElementById('interviewer').value,
+          interviewDate: document.getElementById('interviewDate').value,
+          
+          sec1_overall: getRadioValue('s1_rate'),
+          sec1_comments: document.getElementById('s1_comm').value,
+          sec1_enjoy: document.getElementById('s1_enjoy').value,
+          sec1_rewarding: document.getElementById('s1_reward').value,
+
+          sec2_training: getRadioValue('s2_train'),
+          sec2_comments: document.getElementById('s2_comm').value,
+          sec2_support: document.getElementById('s2_supp').value,
+
+          sec3_comm: getRadioValue('s3_comm'),
+          sec3_comm_text: document.getElementById('s3_comm_text').value,
+          sec3_respect: getRadioValue('s3_resp'),
+          sec3_respect_text: document.getElementById('s3_resp_text').value,
+          sec3_barriers: document.getElementById('s3_barr').value,
+
+          sec4_improve: document.getElementById('s4_imp').value,
+          sec4_stay: document.getElementById('s4_stay').value,
+          sec4_recommend: getRadioValue('s4_rec'),
+          sec4_recommend_why: document.getElementById('s4_rec_why').value,
+          sec4_return: getRadioValue('s4_ret'),
+          sec4_return_text: document.getElementById('s4_ret_text').value,
+
+          sec5_actions: getRadioValue('s5_act'),
+          sec5_actionText: document.getElementById('s5_act_text').value,
+          sec5_review: getRadioValue('s5_rev'),
+          
+          signature: document.getElementById('signature').value,
+          timestamp: new Date().toISOString()
+      };
+
+      try {
+          await setDoc(doc(db, "Offboarding exit interview form", id), formData);
+
+          // Send email
+          await emailjs.send("service_hdd4x8i", "template_9m8mjfo", {
+              employee_name: formData.employeeName,
+              interviewer: formData.interviewer,
+              date: formData.interviewDate
+          });
+
+          alert('Exit Interview successfully saved and logged.');
+          window.location.href = 'checklist.html?id=' + id;
+      } catch(err) {
+          console.error(err);
+          alert('Failed to save interview.');
+          btn.disabled = false;
+          btn.textContent = 'Submit Exit Interview';
+      }
+  }
+
+  loadData();
+</script>
+</head>
+<body>
+<div class="container">
+    <h1>Exit Interview Feedback Form</h1>
+    <p style="text-align: center; color: var(--muted); margin-bottom: 40px;">
+        The purpose of this discussion is to understand the experience at NGU and identify opportunities to improve.
+    </p>
+
+    <form onsubmit="submitInterview(event)">
+        <!-- Details -->
+        <div class="grid-2">
+            <div class="form-group"><label>Employee Name</label><input type="text" id="empName" required></div>
+            <div class="form-group"><label>Job Title</label><input type="text" id="jobTitle"></div>
+            <div class="form-group"><label>Line Manager / FTM</label><input type="text" id="manager"></div>
+            <div class="form-group"><label>Interview Conducted By</label><input type="text" id="interviewer" required></div>
+            <div class="form-group"><label>Interview Date</label><input type="date" id="interviewDate" required></div>
+        </div>
+
+        <!-- Section 1 -->
+        <div class="section-title">Section 1 - Your Experience at NGU</div>
+        <div class="form-group">
+            <label>Overall, how would you rate your experience working at NGU?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s1_rate" value="Excellent" required> Excellent</label>
+                <label><input type="radio" name="s1_rate" value="Good"> Good</label>
+                <label><input type="radio" name="s1_rate" value="Satisfactory"> Satisfactory</label>
+                <label><input type="radio" name="s1_rate" value="Poor"> Poor</label>
+            </div>
+            <textarea id="s1_comm" placeholder="Comments..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>What did you enjoy most about working at NGU?</label>
+            <textarea id="s1_enjoy"></textarea>
+        </div>
+        <div class="form-group">
+            <label>What aspects of your role did you find most rewarding?</label>
+            <textarea id="s1_reward"></textarea>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="section-title">Section 2 - Training & Support</div>
+        <div class="form-group">
+            <label>Did you receive the training and support needed to carry out your role effectively?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s2_train" value="Yes" required> Yes</label>
+                <label><input type="radio" name="s2_train" value="Partially"> Partially</label>
+                <label><input type="radio" name="s2_train" value="No"> No</label>
+            </div>
+            <textarea id="s2_comm" placeholder="Comments..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>How would you describe the support you received from your manager?</label>
+            <textarea id="s2_supp"></textarea>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="section-title">Section 3 - Communication & Workplace</div>
+        <div class="form-group">
+            <label>How would you rate communication within your team?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s3_comm" value="Excellent" required> Excellent</label>
+                <label><input type="radio" name="s3_comm" value="Good"> Good</label>
+                <label><input type="radio" name="s3_comm" value="Fair"> Fair</label>
+                <label><input type="radio" name="s3_comm" value="Poor"> Poor</label>
+            </div>
+            <textarea id="s3_comm_text" placeholder="Comments..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Did you feel respected and valued as an employee?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s3_resp" value="Always" required> Always</label>
+                <label><input type="radio" name="s3_resp" value="Most of the time"> Most of the time</label>
+                <label><input type="radio" name="s3_resp" value="Sometimes"> Sometimes</label>
+                <label><input type="radio" name="s3_resp" value="No"> No</label>
+            </div>
+            <textarea id="s3_resp_text" placeholder="Comments..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Were there any barriers that made it difficult to do your job?</label>
+            <textarea id="s3_barr"></textarea>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="section-title">Section 4 - Looking Forward</div>
+        <div class="form-group"><label>What could NGU do differently to improve the employee experience?</label><textarea id="s4_imp"></textarea></div>
+        <div class="form-group"><label>Is there anything we could have done to encourage you to stay?</label><textarea id="s4_stay"></textarea></div>
+        
+        <div class="form-group">
+            <label>Would you recommend NGU as an employer?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s4_rec" value="Yes" required> Yes</label>
+                <label><input type="radio" name="s4_rec" value="No"> No</label>
+                <label><input type="radio" name="s4_rec" value="Unsure"> Unsure</label>
+            </div>
+            <textarea id="s4_rec_why" placeholder="Why?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Would you consider returning to NGU in the future?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s4_ret" value="Yes" required> Yes</label>
+                <label><input type="radio" name="s4_ret" value="No"> No</label>
+                <label><input type="radio" name="s4_ret" value="Maybe"> Maybe</label>
+            </div>
+            <textarea id="s4_ret_text" placeholder="Comments..."></textarea>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="section-title">Section 5 - Recruitment Summary</div>
+        <div class="form-group">
+            <label>Are any follow-up actions required?</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s5_act" value="Yes" required> Yes</label>
+                <label><input type="radio" name="s5_act" value="No"> No</label>
+            </div>
+            <textarea id="s5_act_text" placeholder="If yes, list actions, who they are assigned to, and target date."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Recruitment Review Outcome</label>
+            <div class="radio-group">
+                <label><input type="radio" name="s5_rev" value="No further action required" required> No further action required</label>
+                <label><input type="radio" name="s5_rev" value="Follow-up actions assigned"> Follow-up actions assigned</label>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <label>Recruitment Representative Signature (Type Name)</label>
+            <input type="text" id="signature" required placeholder="I confirm this accurately reflects the discussion">
+        </div>
+
+        <button type="submit" id="btnSubmit">Submit Exit Interview</button>
+    </form>
+</div>
+</body>
+</html>
