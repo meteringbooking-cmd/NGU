@@ -162,9 +162,33 @@ input[type="date"]:focus, input[type="time"]:focus { border-color: var(--accent)
   font-size: 0.9rem;
   color: var(--text);
 }
+.logo-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  background: rgba(10,22,40,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-bar img { height: 34px; display: block; }
+.logo-bar .page-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+  margin-left: 4px;
+}
 </style>
 </head>
-<body>
+<body style="padding-top: 80px;">
+<nav class="logo-bar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&st=ypirkk3e&dl=1" alt="NGU Logo">
+  <span class="page-label">Exit Interview Booking</span>
+</nav>
 
 <div class="wrapper">
 
@@ -206,7 +230,19 @@ input[type="date"]:focus, input[type="time"]:focus { border-color: var(--accent)
       <div class="success-icon">✅</div>
       <h3>Booking Confirmed!</h3>
       <div class="booking-summary" id="bookingSummary"></div>
-      <p>A confirmation email has been sent. If you need to rearrange, please contact your Field Team Manager.</p>
+      <a id="teamsBtn" href="#" target="_blank" style="
+        display: inline-block;
+        margin: 16px 0 8px;
+        background: #6264A7;
+        color: white;
+        padding: 12px 28px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        font-family: inherit;
+      ">🟣 Join Teams Meeting</a>
+      <p style="margin-top:12px;">A confirmation email with this link has been sent to you. If you need to rearrange, please contact your Field Team Manager.</p>
     </div>
   </div>
 
@@ -283,12 +319,21 @@ input[type="date"]:focus, input[type="time"]:focus { border-color: var(--accent)
     document.getElementById('bForm').style.display = 'none';
     const successBox = document.getElementById('successBox');
     successBox.style.display = 'block';
-    const d = new Date(dateStr);
+    // Parse date using UTC to avoid timezone shift
+    const parts = dateStr.split('-');
+    const d = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])));
     const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const friendlyDate = `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+    const friendlyDate = `${dayNames[d.getUTCDay()]} ${d.getUTCDate()} ${monthNames[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
     document.getElementById('bookingSummary').innerHTML =
       `<strong>${name}</strong><br>📅 ${friendlyDate}<br>🕐 ${timeStr}`;
+    // Set the Teams button link — uses the global TEAMS_LINK if available
+    const teamsBtn = document.getElementById('teamsBtn');
+    if (typeof TEAMS_LINK !== 'undefined' && TEAMS_LINK && TEAMS_LINK !== 'YOUR_TEAMS_MEETING_LINK_HERE') {
+      teamsBtn.href = TEAMS_LINK;
+    } else {
+      teamsBtn.style.display = 'none';
+    }
   }
   window._showSuccess = showSuccess;
 </script>
@@ -296,6 +341,10 @@ input[type="date"]:focus, input[type="time"]:focus { border-color: var(--accent)
 <!-- UI Logic -->
 <script>
   emailjs.init("ziLnha91scpGjFABh");
+
+  // ── PASTE YOUR STATIC TEAMS LINK HERE ──────────────────────────────────────
+  const TEAMS_LINK = 'https://teams.microsoft.com/meet/321726570089280?p=zYxRfUj91QwvBHMyMK';
+  // ───────────────────────────────────────────────────────────────────────────
 
   function showError(msg) {
     const el = document.getElementById('errorMsg');
@@ -349,7 +398,8 @@ input[type="date"]:focus, input[type="time"]:focus { border-color: var(--accent)
         manager_email: emp.managerEmail || '',
         employee_name: emp.name || 'Employee',
         booking_date: dateStr,
-        booking_time: timeStr
+        booking_time: timeStr,
+        teams_link: TEAMS_LINK
       });
 
       window._showSuccess(emp.name || 'Employee', dateStr, timeStr);
