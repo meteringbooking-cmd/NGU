@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Department Offboarding Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+[data-theme="dark"] {
+  --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942; --bg4:#0d1a2e;
+  --border:#2a3f5f; --border2:#1e3050;
+  --text:#E8EDF2; --muted:#7a8fa8;
+  --accent:#00A3E0; --accent2:#005EB8; --green:#10B981; --warning:#F59E0B;
+}
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+.container { max-width: 1000px; margin: 0 auto; }
+.header { background: var(--bg2); padding: 20px 30px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { margin: 0; color: var(--accent); }
+.header h3 { margin: 5px 0 0 0; color: var(--muted); font-weight: 400; }
+.btn-final { background: var(--warning); color: #000; border: none; padding: 12px 20px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+.btn-final:hover { background: #e08b00; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.card h2 { margin-top: 0; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.checklist-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+.checklist-item label { cursor: pointer; user-select: none; }
+
+.completion-box { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+.completion-box input[type="text"] { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg3); color: white; }
+.btn-complete { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-complete:hover { background: var(--accent2); }
+
+.completed-badge { background: rgba(16, 185, 129, 0.1); color: var(--green); border: 1px solid var(--green); padding: 10px; border-radius: 6px; text-align: center; font-weight: 500; font-size: 0.9em; margin-top: 20px; width: 100%; box-sizing: border-box; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; place-items: center; z-index: 100; backdrop-filter: blur(5px); }
+.modal { background: var(--bg2); padding: 30px; border-radius: 10px; max-width: 500px; width: 100%; border: 1px solid var(--border); }
+.modal h2 { margin-top: 0; color: var(--warning); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+</style>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  
+  emailjs.init("ziLnha91scpGjFABh");
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+    authDomain: "oesperformance-a54c0.firebaseapp.com",
+    projectId: "oesperformance-a54c0",
+    storageBucket: "oesperformance-a54c0.firebasestorage.app",
+    messagingSenderId: "484894102454",
+    appId: "1:484894102454:web:17535ee497eac2d90d6717"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get('id');
+  if(!id) { alert('No ID provided.'); window.location.href='index.html'; }
+
+  let empName = "";
+
+  async function loadData() {
+      const docRef = doc(db, "offboarding checklist", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+          const data = docSnap.data();
+          empName = data.name;
+          document.getElementById('headerName').textContent = data.name;
+          document.getElementById('headerId').textContent = "ID: " + data.employeeId;
+
+          // Hydrate UI based on completions
+          ['finance', 'fleet', 'scheduling', 'it', 'hr', 'ftm'].forEach(dept => {
+              if (data[dept] && data[dept].completed) {
+                  showCompleted(dept, data[dept].completedBy, data[dept].timestamp);
+              }
+          });
+      }
+  }
+
+  function showCompleted(dept, by, timestamp) {
+      const box = document.getElementById(`box-${dept}`);
+      const date = new Date(timestamp).toLocaleString('en-GB');
+      box.innerHTML = `<div class="completed-badge">✓ Completed by ${by} on ${date}</div>`;
+      
+      // Check all checkboxes in that card to visually indicate done
+      document.querySelectorAll(`input[data-dept="${dept}"]`).forEach(cb => cb.checked = true);
+      document.querySelectorAll(`input[data-dept="${dept}"]`).forEach(cb => cb.disabled = true);
+  }
+
+  window.markComplete = async function(dept) {
+      const nameInput = document.getElementById(`name-${dept}`).value;
+      if (!nameInput) return alert('Please enter your name to sign off.');
+
+      const checkboxes = document.querySelectorAll(`input[data-dept="${dept}"]`);
+      let allChecked = true;
+      checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
+      if(!allChecked) return alert('Please complete all checklist items before signing off.');
+
+      try {
+          const timestamp = new Date().toISOString();
+          const docRef = doc(db, "offboarding checklist", id);
+          
+          let updateObj = {};
+          updateObj[dept] = {
+              completed: true,
+              completedBy: nameInput,
+              timestamp: timestamp
+          };
+
+          await updateDoc(docRef, updateObj);
+          showCompleted(dept, nameInput, timestamp);
+      } catch (err) {
+          console.error(err);
+          alert('Error saving completion.');
+      }
+  }
+
+  window.openFinalModal = function() {
+      document.getElementById('finalModal').style.display = 'grid';
+  }
+  window.closeFinalModal = function() {
+      document.getElementById('finalModal').style.display = 'none';
+  }
+
+  window.submitFinalSignOff = async function() {
+      const c1 = document.getElementById('fc1').checked;
+      const c2 = document.getElementById('fc2').checked;
+      const c3 = document.getElementById('fc3').checked;
+      const c4 = document.getElementById('fc4').checked;
+      const c5 = document.getElementById('fc5').checked;
+
+      if(!(c1 && c2 && c3 && c4 && c5)) {
+          return alert('All final checks must be confirmed to proceed.');
+      }
+
+      try {
+          const btn = document.getElementById('finalBtn');
+          btn.disabled = true;
+          btn.textContent = "Processing...";
+
+          await updateDoc(doc(db, "offboarding checklist", id), {
+              finalSignOff: {
+                  completed: true,
+                  timestamp: new Date().toISOString()
+              }
+          });
+
+          // Send final confirmation email
+          await emailjs.send("service_hdd4x8i", "template_o3zl7wb", {
+              employee_name: empName
+          });
+
+          alert('Final sign-off complete. Offboarding finished.');
+          closeFinalModal();
+      } catch (err) {
+          console.error(err);
+          alert('Error completing final sign-off.');
+      }
+  }
+
+  loadData();
+</script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>Leaver Checklist</h1>
+            <h3 id="headerName">Loading...</h3>
+            <small style="color:var(--muted);" id="headerId"></small>
+        </div>
+        <button class="btn-final" onclick="openFinalModal()">Final HR/Recruitment Sign-Off</button>
+    </div>
+
+    <div class="grid">
+        <!-- Finance -->
+        <div class="card">
+            <h2>Finance & Payroll</h2>
+            <div class="checklist-item"><input type="checkbox" data-dept="finance" id="f1"><label for="f1">Final Salary Calculated</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="finance" id="f2"><label for="f2">Holiday Calculation Completed</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="finance" id="f3"><label for="f3">Deductions Applied</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="finance" id="f4"><label for="f4">Expenses Settled</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="finance" id="f5"><label for="f5">P45 Issued</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="finance" id="f6"><label for="f6">Payroll Processing Completed</label></div>
+            <div class="completion-box" id="box-finance">
+                <input type="text" id="name-finance" placeholder="Your Name">
+                <button class="btn-complete" onclick="markComplete('finance')">Sign Off</button>
+            </div>
+        </div>
+
+        <!-- Fleet -->
+        <div class="card">
+            <h2>Fleet</h2>
+            <div class="checklist-item"><input type="checkbox" data-dept="fleet" id="fl1"><label for="fl1">Recover Van</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="fleet" id="fl2"><label for="fl2">Fuel Card Returned</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="fleet" id="fl3"><label for="fl3">Vehicle Inspection Completed</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="fleet" id="fl4"><label for="fl4">Keys Returned</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="fleet" id="fl5"><label for="fl5">Tools Returned (if Fleet managed)</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="fleet" id="fl6"><label for="fl6">Equipment Check</label></div>
+            <div class="completion-box" id="box-fleet">
+                <input type="text" id="name-fleet" placeholder="Your Name">
+                <button class="btn-complete" onclick="markComplete('fleet')">Sign Off</button>
+            </div>
+        </div>
+
+        <!-- Scheduling -->
+        <div class="card">
+            <h2>Scheduling</h2>
+            <div class="checklist-item"><input type="checkbox" data-dept="scheduling" id="s1"><label for="s1">Remove from Rota</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="scheduling" id="s2"><label for="s2">Reassign Pending Work</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="scheduling" id="s3"><label for="s3">Notify Clients/Customers (if applicable)</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="scheduling" id="s4"><label for="s4">Remove from Call-out Rota</label></div>
+            <div class="completion-box" id="box-scheduling">
+                <input type="text" id="name-scheduling" placeholder="Your Name">
+                <button class="btn-complete" onclick="markComplete('scheduling')">Sign Off</button>
+            </div>
+        </div>
+
+        <!-- IT -->
+        <div class="card">
+            <h2>IT & Systems</h2>
+            <div class="checklist-item"><input type="checkbox" data-dept="it" id="i1"><label for="i1">Disable Email Account</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="it" id="i2"><label for="i2">Disable All System Access</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="it" id="i3"><label for="i3">Recover Laptop (if applicable)</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="it" id="i4"><label for="i4">Recover Mobile Phone</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="it" id="i5"><label for="i5">Archive Relevant Files</label></div>
+            <div class="completion-box" id="box-it">
+                <input type="text" id="name-it" placeholder="Your Name">
+                <button class="btn-complete" onclick="markComplete('it')">Sign Off</button>
+            </div>
+        </div>
+
+        <!-- Recruitment / HR -->
+        <div class="card">
+            <h2>Recruitment & HR</h2>
+            <div class="checklist-item"><input type="checkbox" data-dept="hr" id="h1"><label for="h1">Personnel File Updated</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="hr" id="h2"><label for="h2">References Processed</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="hr" id="h3"><label for="h3">Exit Interview Logged</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="hr" id="h4"><label for="h4">Employment End Date Recorded</label></div>
+            <div class="completion-box" id="box-hr">
+                <input type="text" id="name-hr" placeholder="Your Name">
+                <button class="btn-complete" onclick="markComplete('hr')">Sign Off</button>
+            </div>
+        </div>
+
+        <!-- FTM -->
+        <div class="card">
+            <h2>FTM / Line Manager</h2>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft1"><label for="ft1">Arrange Return of Company Vehicle</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft2"><label for="ft2">Collect Company Keys (if applicable)</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft3"><label for="ft3">Collect ID Badge</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft4"><label for="ft4">Collect Laptop / Tablet / Mobile</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft5"><label for="ft5">Collect Tools & Equipment</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft6"><label for="ft6">Collect PPE & Uniform</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft7"><label for="ft7">Confirm Outstanding Work Handed Over</label></div>
+            <div class="checklist-item"><input type="checkbox" data-dept="ftm" id="ft8"><label for="ft8">Confirm Property Returned/Outstanding</label></div>
+            <div class="completion-box" id="box-ftm">
+                <input type="text" id="name-ftm" placeholder="Your Name">
+                <button class="btn-complete" onclick="markComplete('ftm')">Sign Off</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="finalModal">
+    <div class="modal">
+        <h2>Final HR Sign-Off</h2>
+        <p style="color:var(--muted); margin-bottom: 20px;">Please confirm the following are true to close this offboarding file permanently.</p>
+        
+        <div class="checklist-item"><input type="checkbox" id="fc1"><label for="fc1">All department checklists are 100% complete.</label></div>
+        <div class="checklist-item"><input type="checkbox" id="fc2"><label for="fc2">Exit interview has been completed OR formally declined.</label></div>
+        <div class="checklist-item"><input type="checkbox" id="fc3"><label for="fc3">Any follow-up actions identified have been closed.</label></div>
+        <div class="checklist-item"><input type="checkbox" id="fc4"><label for="fc4">Payroll is completely finalised.</label></div>
+        <div class="checklist-item"><input type="checkbox" id="fc5"><label for="fc5">Personnel file has been fully updated and archived.</label></div>
+
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+            <button onclick="closeFinalModal()" style="background:var(--bg3); color:white; border:none; padding:12px; border-radius:6px; cursor:pointer; flex:1;">Cancel</button>
+            <button id="finalBtn" onclick="submitFinalSignOff()" style="background:var(--warning); color:#000; border:none; font-weight:600; padding:12px; border-radius:6px; cursor:pointer; flex:2;">Confirm Offboarding Complete</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
