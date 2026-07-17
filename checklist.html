@@ -126,9 +126,34 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 .toast { position: fixed; bottom: 24px; right: 24px; padding: 13px 20px; border-radius: 8px; font-size: 0.9rem; font-weight: 500; z-index: 9999; display: none; }
 .toast.success { background: rgba(16,185,129,0.15); border: 1px solid var(--green); color: var(--green); }
 .toast.error { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: var(--red); }
+.logo-bar {
+  position: sticky; top: 0; z-index: 999;
+  background: rgba(10,22,40,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.logo-bar img { height: 36px; display: block; }
+.logo-bar .page-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+  margin-left: 4px;
+}
 </style>
 </head>
 <body>
+<nav class="logo-bar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&st=ypirkk3e&dl=1" alt="NGU Logo">
+  <span class="page-label">Leaver Checklist</span>
+</nav>
 
 <!-- Header -->
 <div class="page-header" id="pageHeader">
