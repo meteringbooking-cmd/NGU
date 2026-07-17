@@ -51,15 +51,15 @@ button:hover { background: var(--accent2); }
     btn.textContent = 'Loading staff data...';
     try {
         const snap = await getDocs(collection(db, 'Establishment Report'));
-        const select = document.getElementById('employeeSelect');
+        const datalist = document.getElementById('employeeList');
         snap.forEach(doc => {
             const data = doc.data();
             if (data._type === 'staff') {
-                staffData[doc.id] = { id: doc.id, ...data };
+                const label = `${data.name} (${doc.id})`;
+                staffData[label] = { id: doc.id, ...data };
                 const option = document.createElement('option');
-                option.value = doc.id;
-                option.textContent = `${data.name} (${doc.id})`;
-                select.appendChild(option);
+                option.value = label;
+                datalist.appendChild(option);
             }
         });
         btn.disabled = false;
@@ -71,9 +71,10 @@ button:hover { background: var(--accent2); }
   }
 
   window.handleEmployeeSelect = function() {
-      const id = document.getElementById('employeeSelect').value;
-      if(!id) return;
-      const emp = staffData[id];
+      const val = document.getElementById('employeeSelect').value;
+      if(!val) return;
+      const emp = staffData[val];
+      if(!emp) return;
       document.getElementById('empName').value = emp.name || '';
       document.getElementById('empNum').value = emp.id || '';
       document.getElementById('jobTitle').value = emp.jobTitle || '';
@@ -90,8 +91,10 @@ button:hover { background: var(--accent2); }
 
   window.submitOffboarding = async function(e) {
       e.preventDefault();
-      const id = document.getElementById('employeeSelect').value;
-      if (!id) return alert('Please select an employee.');
+      const val = document.getElementById('employeeSelect').value;
+      const emp = staffData[val];
+      if (!emp) return alert('Please select a valid employee from the list.');
+      const id = emp.id;
       
       const btn = document.getElementById('submitBtn');
       btn.disabled = true;
@@ -170,9 +173,8 @@ button:hover { background: var(--accent2); }
     <form onsubmit="submitOffboarding(event)">
         <div class="form-group">
             <label>Select Staff Member</label>
-            <select id="employeeSelect" onchange="handleEmployeeSelect()" required>
-                <option value="">-- Start typing or select --</option>
-            </select>
+            <input list="employeeList" id="employeeSelect" placeholder="-- Start typing to search --" onchange="handleEmployeeSelect()" required>
+            <datalist id="employeeList"></datalist>
         </div>
 
         <div class="grid-2">
