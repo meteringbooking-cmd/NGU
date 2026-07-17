@@ -3,31 +3,219 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Schedule Exit Interview</title>
+<title>Schedule Exit Interview – NGU</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
 <style>
-[data-theme="dark"] {
+:root {
   --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942;
   --border:#2a3f5f;
   --text:#E8EDF2; --muted:#7a8fa8;
   --accent:#00A3E0; --accent2:#005EB8;
+  --green:#10B981; --red:#EF4444;
 }
-body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; display: grid; place-items: center; min-height: 100vh; margin: 0; box-sizing: border-box; }
-.card { background: var(--bg2); padding: 40px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 500px; width: 100%; text-align: center; }
-h1 { color: var(--accent); margin-top: 0; }
-.form-group { margin-bottom: 20px; text-align: left; }
-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--muted); }
-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg3); color: var(--text); font-family: inherit; font-size: 16px; box-sizing: border-box; }
-button { background: var(--accent); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 15px; border-radius: 6px; width: 100%; font-size: 16px; margin-top: 10px; }
-button:hover { background: var(--accent2); }
-#msg { display: none; margin-top: 20px; padding: 15px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid #10B981; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 30px 20px;
+}
+
+.wrapper { width: 100%; max-width: 520px; }
+
+/* ── Employee banner ── */
+.emp-banner {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
+  padding: 22px 28px;
+}
+.emp-banner .label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.emp-banner .leaver-name {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.meta-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.pill span { color: var(--text); font-weight: 500; }
+
+/* skeleton loader */
+.skeleton { animation: pulse 1.5s infinite; background: var(--bg3); border-radius: 4px; display: inline-block; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+
+/* ── Card ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 0 0 12px 12px;
+  padding: 28px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.card h2 {
+  font-size: 1.1rem;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.card .sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.form-group { margin-bottom: 18px; }
+label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+input[type="date"], input[type="time"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg3);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color .2s;
+}
+input[type="date"]:focus, input[type="time"]:focus { border-color: var(--accent); }
+
+.hint { font-size: 0.78rem; color: var(--muted); margin-top: 5px; }
+
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+  margin-top: 8px;
+}
+.btn-submit:hover:not(:disabled) { background: var(--accent2); }
+.btn-submit:active { transform: scale(0.99); }
+.btn-submit:disabled { opacity: .55; cursor: not-allowed; }
+
+/* ── Validation message ── */
+.error-msg {
+  display: none;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+}
+
+/* ── Success state ── */
+.success-box {
+  display: none;
+  text-align: center;
+  padding: 30px 10px;
+}
+.success-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+}
+.success-box h3 { color: var(--green); font-size: 1.3rem; margin-bottom: 10px; }
+.success-box p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+.booking-summary {
+  background: rgba(16,185,129,0.08);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: 8px;
+  padding: 14px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
 </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Employee Banner -->
+  <div class="emp-banner">
+    <div class="label">Exit Interview Booking</div>
+    <div class="leaver-name" id="leaverName">
+      <span class="skeleton" style="width:200px;height:28px;">&nbsp;</span>
+    </div>
+    <div class="meta-pills" id="metaPills">
+      <span class="skeleton pill" style="width:130px;height:24px;">&nbsp;</span>
+      <span class="skeleton pill" style="width:110px;height:24px;">&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- Booking Card -->
+  <div class="card">
+    <h2>📅 Select a Date & Time</h2>
+    <p class="sub">Please choose a date and time that is convenient for you. All interviews take place Monday to Friday between 08:30 and 16:30.</p>
+
+    <div id="errorMsg" class="error-msg"></div>
+
+    <form id="bForm">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="bDate" required>
+        <div class="hint">Weekdays only (Mon – Fri)</div>
+      </div>
+      <div class="form-group">
+        <label>Time</label>
+        <input type="time" id="bTime" min="08:30" max="16:30" step="900" required>
+        <div class="hint">Between 08:30 and 16:30</div>
+      </div>
+      <button type="button" id="btnSubmit" class="btn-submit" onclick="confirmBooking()">Confirm Booking</button>
+    </form>
+
+    <!-- Success state -->
+    <div class="success-box" id="successBox">
+      <div class="success-icon">✅</div>
+      <h3>Booking Confirmed!</h3>
+      <div class="booking-summary" id="bookingSummary"></div>
+      <p>A confirmation email has been sent. If you need to rearrange, please contact your Field Team Manager.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Firebase -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-  import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-  
-  emailjs.init("ziLnha91scpGjFABh");
 
   const firebaseConfig = {
     apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
@@ -37,98 +225,143 @@ button:hover { background: var(--accent2); }
     messagingSenderId: "484894102454",
     appId: "1:484894102454:web:17535ee497eac2d90d6717"
   };
+
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  window._db = db;
+  window._doc = doc;
+  window._updateDoc = updateDoc;
+
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get('id');
-  if(!id) { alert('Invalid link.'); }
+  window._offboardId = id;
 
-  let empData = null;
+  if (!id) {
+    document.getElementById('leaverName').textContent = 'Invalid booking link.';
+    document.getElementById('metaPills').innerHTML = '';
+    document.getElementById('btnSubmit').disabled = true;
+  } else {
+    try {
+      const snap = await getDoc(doc(db, 'Offboarding Forms', id));
+      if (snap.exists()) {
+        const data = snap.data();
+        window._empData = data;
 
-  async function loadData() {
-      if(!id) return;
-      const docSnap = await getDoc(doc(db, "Offboarding Forms", id));
-      if (docSnap.exists()) {
-          empData = docSnap.data();
-          document.getElementById('welcomeMsg').textContent = `Book Exit Interview for ${empData.name}`;
+        document.getElementById('leaverName').textContent = data.name || 'Employee';
+        document.title = `Exit Interview – ${data.name} | NGU`;
+
+        const pills = [];
+        if (data.jobTitle) pills.push(`💼 <span>${data.jobTitle}</span>`);
+        if (data.lastWorkingDay) pills.push(`📅 Last day: <span>${formatDate(data.lastWorkingDay)}</span>`);
+        document.getElementById('metaPills').innerHTML = pills.map(p => `<div class="pill">${p}</div>`).join('');
+
+        // If already booked, show success immediately
+        if (data.exitInterviewBooking) {
+          const b = data.exitInterviewBooking;
+          showSuccess(data.name, b.date, b.time);
+        }
+      } else {
+        document.getElementById('leaverName').textContent = 'Record not found.';
+        document.getElementById('metaPills').innerHTML = '';
       }
+    } catch (err) {
+      console.error(err);
+      document.getElementById('leaverName').textContent = 'Error loading data.';
+    }
   }
 
-  window.submitBooking = async function(e) {
-      e.preventDefault();
-      const dateStr = document.getElementById('bDate').value;
-      const timeStr = document.getElementById('bTime').value;
-
-      if (!dateStr || !timeStr) return alert("Please select both a date and a time.");
-
-      const d = new Date(dateStr);
-      const day = d.getDay();
-      if (day === 0 || day === 6) {
-          return alert("Please select a weekday (Monday to Friday).");
-      }
-
-      const timeSplit = timeStr.split(':');
-      const hours = parseInt(timeSplit[0]);
-      const mins = parseInt(timeSplit[1]);
-      const totalMins = hours * 60 + mins;
-
-      // 8:30am = 510, 4:30pm = 990
-      if (totalMins < 510 || totalMins > 990) {
-          return alert("Please select a time between 08:30 and 16:30.");
-      }
-
-      const btn = document.getElementById('btnSubmit');
-      btn.disabled = true;
-      btn.textContent = 'Booking...';
-
-      try {
-          await updateDoc(doc(db, "Offboarding Forms", id), {
-              exitInterviewBooking: {
-                  date: dateStr,
-                  time: timeStr,
-                  bookedAt: new Date().toISOString()
-              }
-          });
-
-          await emailjs.send("service_hdd4x8i", "template_b2xgrvd", {
-              employee_name: empData ? empData.name : 'Employee',
-              booking_date: dateStr,
-              booking_time: timeStr
-          });
-
-          document.getElementById('bForm').style.display = 'none';
-          document.getElementById('msg').style.display = 'block';
-          document.getElementById('msg').textContent = 'Your exit interview has been successfully booked. You will receive a confirmation email shortly.';
-      } catch(err) {
-          console.error(err);
-          alert('Failed to book interview. Please try again.');
-          btn.disabled = false;
-          btn.textContent = 'Confirm Booking';
-      }
+  function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
   }
+  window._formatDate = formatDate;
 
-  loadData();
+  function showSuccess(name, dateStr, timeStr) {
+    document.getElementById('bForm').style.display = 'none';
+    const successBox = document.getElementById('successBox');
+    successBox.style.display = 'block';
+    const d = new Date(dateStr);
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const friendlyDate = `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+    document.getElementById('bookingSummary').innerHTML =
+      `<strong>${name}</strong><br>📅 ${friendlyDate}<br>🕐 ${timeStr}`;
+  }
+  window._showSuccess = showSuccess;
 </script>
-</head>
-<body>
-    <div class="card">
-        <h1>Schedule Exit Interview</h1>
-        <p id="welcomeMsg" style="color:var(--muted); margin-bottom: 30px;">Loading...</p>
-        
-        <form id="bForm" onsubmit="submitBooking(event)">
-            <div class="form-group">
-                <label>Select Date</label>
-                <input type="date" id="bDate" required>
-            </div>
-            <div class="form-group">
-                <label>Select Time (Between 08:30 and 16:30)</label>
-                <input type="time" id="bTime" min="08:30" max="16:30" required>
-            </div>
-            <button type="submit" id="btnSubmit">Confirm Booking</button>
-        </form>
 
-        <div id="msg"></div>
-    </div>
+<!-- UI Logic -->
+<script>
+  emailjs.init("ziLnha91scpGjFABh");
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
+  }
+
+  window.confirmBooking = async function() {
+    const dateStr = document.getElementById('bDate').value;
+    const timeStr = document.getElementById('bTime').value;
+
+    // Basic presence check
+    if (!dateStr) return showError('Please select a date.');
+    if (!timeStr) return showError('Please select a time.');
+
+    // Weekday check
+    // Use UTC to avoid timezone off-by-one
+    const parts = dateStr.split('-');
+    const d = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2])));
+    const dayOfWeek = d.getUTCDay(); // 0=Sun, 6=Sat
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return showError('Please select a weekday (Monday to Friday).');
+    }
+
+    // Time window check (08:30 – 16:30)
+    const [hours, mins] = timeStr.split(':').map(Number);
+    const totalMins = hours * 60 + mins;
+    if (totalMins < 510 || totalMins > 990) {
+      return showError('Please select a time between 08:30 and 16:30.');
+    }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Confirming booking…';
+
+    try {
+      // Save to Firebase
+      await window._updateDoc(window._doc(window._db, 'Offboarding Forms', window._offboardId), {
+        exitInterviewBooking: {
+          date: dateStr,
+          time: timeStr,
+          bookedAt: new Date().toISOString()
+        }
+      });
+
+      // Send confirmation email
+      const emp = window._empData || {};
+      await emailjs.send('service_hdd4x8i', 'template_b2xgrvd', {
+        to_email: emp.personalEmail || '',
+        manager_email: emp.managerEmail || '',
+        employee_name: emp.name || 'Employee',
+        booking_date: dateStr,
+        booking_time: timeStr
+      });
+
+      window._showSuccess(emp.name || 'Employee', dateStr, timeStr);
+
+    } catch (err) {
+      console.error(err);
+      showError('Something went wrong. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Confirm Booking';
+    }
+  };
+</script>
+
 </body>
 </html>
