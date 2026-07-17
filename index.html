@@ -3,286 +3,381 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Initiate Offboarding – NGU</title>
+<title>Employee Offboarding Form – NGU</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<!-- EmailJS loaded as a regular script (NOT a module) -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
 <style>
 :root {
   --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942;
   --border:#2a3f5f;
   --text:#E8EDF2; --muted:#7a8fa8;
   --accent:#00A3E0; --accent2:#005EB8;
-  --green:#10B981; --red:#EF4444;
+  --green:#10B981; --red:#EF4444; --warning:#F59E0B;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'IBM Plex Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  padding: 30px 20px;
-}
-.container {
-  max-width: 820px;
-  margin: 0 auto;
-  background: var(--bg2);
-  padding: 36px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-}
-.header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-.header h1 { color: var(--accent); font-size: 1.6rem; margin-bottom: 4px; }
-.header p { color: var(--muted); font-size: 0.9rem; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-.form-group { margin-bottom: 18px; }
-label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-
-input, select, textarea {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg3);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 15px;
-  transition: border-color 0.2s;
-  outline: none;
-}
-input:focus, select:focus { border-color: var(--accent); }
-input[readonly] {
-  background: rgba(10,22,40,0.6);
-  color: var(--muted);
-  cursor: not-allowed;
-  border-color: var(--border);
-}
-
-/* Search wrapper */
-.search-wrap { position: relative; }
-.search-wrap input { padding-right: 36px; }
-.search-wrap .search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted);
-  pointer-events: none;
-  font-size: 1rem;
-}
-/* Custom dropdown results */
-#dropdown-results {
-  display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0; right: 0;
-  background: var(--bg2);
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  max-height: 220px;
-  overflow-y: auto;
-  z-index: 500;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-}
-#dropdown-results .drp-item {
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background 0.15s;
-  border-bottom: 1px solid var(--border);
-}
-#dropdown-results .drp-item:last-child { border-bottom: none; }
-#dropdown-results .drp-item:hover, #dropdown-results .drp-item.active { background: rgba(0,163,224,0.12); color: var(--accent); }
-#dropdown-results .drp-item .sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.section-divider { border: none; border-top: 1px solid var(--border); margin: 26px 0; }
-
-.info-card {
-  background: rgba(0,163,224,0.05);
-  border: 1px solid rgba(0,163,224,0.25);
-  border-radius: 8px;
-  padding: 14px 18px;
-  margin-bottom: 18px;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-#exitInterviewSection {
-  display: none;
-  padding: 18px;
-  background: var(--bg3);
-  border-radius: 8px;
-  margin-top: 10px;
-  border: 1px solid var(--border);
-}
-
-button[type="submit"] {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 8px;
-  background: var(--accent);
-  color: white;
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  margin-top: 10px;
-}
-button[type="submit"]:hover:not(:disabled) { background: var(--accent2); }
-button[type="submit"]:active { transform: scale(0.99); }
-button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.toast {
-  position: fixed; bottom: 24px; right: 24px;
-  padding: 14px 22px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.9rem;
-  z-index: 9999;
-  display: none;
-  animation: fadeUp 0.3s ease;
-}
-.toast.success { background: rgba(16,185,129,0.15); border: 1px solid var(--green); color: var(--green); }
-.toast.error { background: rgba(239,68,68,0.15); border: 1px solid var(--red); color: var(--red); }
-@keyframes fadeUp {
-  from { opacity:0; transform: translateY(10px); }
-  to { opacity:1; transform: translateY(0); }
-}
+/* ── Logo Bar ── */
 .logo-bar {
   position: sticky; top: 0; z-index: 999;
   background: rgba(10,22,40,0.97);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   padding: 12px 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex; align-items: center; gap: 12px;
 }
 .logo-bar img { height: 36px; display: block; }
 .logo-bar .page-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--muted);
-  border-left: 1px solid var(--border);
-  padding-left: 12px;
-  margin-left: 4px;
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); border-left: 1px solid var(--border);
+  padding-left: 12px; margin-left: 4px;
 }
+
+/* ── Layout ── */
+.page-wrap { max-width: 860px; margin: 0 auto; padding: 30px 20px 60px; }
+
+/* ── Intro card ── */
+.intro-card {
+  background: rgba(0,163,224,0.06);
+  border: 1px solid rgba(0,163,224,0.2);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.intro-card strong { color: var(--text); }
+
+/* ── Section cards ── */
+.section-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  background: var(--accent); color: white;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+}
+.section-header h2 { font-size: 1rem; font-weight: 600; color: var(--text); }
+
+/* ── Form elements ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.form-group { margin-bottom: 16px; }
+.form-group:last-child { margin-bottom: 0; }
+
+label.field-label {
+  display: block;
+  font-size: 0.78rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em;
+  color: var(--muted); margin-bottom: 6px;
+}
+input[type="text"], input[type="date"], input[type="email"], select, textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg3); color: var(--text);
+  font-family: inherit; font-size: 15px; outline: none;
+  transition: border-color .2s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+input[readonly] { background: rgba(10,22,40,0.5); color: var(--muted); cursor: not-allowed; }
+textarea { resize: vertical; min-height: 80px; }
+
+/* ── Radio / Checkbox groups ── */
+.check-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 8px;
+}
+.check-grid.cols-1 { grid-template-columns: 1fr; }
+.check-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  user-select: none;
+}
+.check-item:has(input:checked) {
+  border-color: var(--accent);
+  background: rgba(0,163,224,0.08);
+}
+.check-item input[type="radio"],
+.check-item input[type="checkbox"] {
+  width: 16px; height: 16px; cursor: pointer;
+  accent-color: var(--accent); flex-shrink: 0;
+  padding: 0; border: none; background: none;
+}
+.check-item label { cursor: pointer; font-size: 0.9rem; color: var(--text); }
+
+/* ── Conditional section ── */
+#exitInterviewSection { display: none; margin-top: 14px; padding: 14px; background: var(--bg3); border-radius: 8px; border: 1px solid var(--border); }
+
+/* ── Search wrap ── */
+.search-wrap { position: relative; }
+.search-wrap .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+#dropdown-results {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--bg2); border: 1px solid var(--accent); border-radius: 8px;
+  max-height: 220px; overflow-y: auto; z-index: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+#dropdown-results .drp-item {
+  padding: 10px 14px; cursor: pointer; font-size: 0.9rem;
+  transition: background .15s; border-bottom: 1px solid var(--border);
+}
+#dropdown-results .drp-item:last-child { border-bottom: none; }
+#dropdown-results .drp-item:hover { background: rgba(0,163,224,0.1); color: var(--accent); }
+#dropdown-results .drp-item .sub { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+
+/* ── Submit button ── */
+.btn-submit {
+  width: 100%; padding: 15px;
+  background: var(--accent); color: white;
+  border: none; border-radius: 10px;
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer; transition: background .2s, transform .1s;
+  margin-top: 10px;
+}
+.btn-submit:hover:not(:disabled) { background: var(--accent2); }
+.btn-submit:active { transform: scale(0.99); }
+.btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 13px 20px; border-radius: 8px;
+  font-size: 0.9rem; font-weight: 500; z-index: 9999; display: none;
+}
+.toast.success { background: rgba(16,185,129,0.15); border: 1px solid var(--green); color: var(--green); }
+.toast.error { background: rgba(239,68,68,0.12); border: 1px solid var(--red); color: var(--red); }
 </style>
 </head>
 <body>
+
+<!-- Logo Bar -->
 <nav class="logo-bar">
   <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&st=ypirkk3e&dl=1" alt="NGU Logo">
   <span class="page-label">Offboarding Portal</span>
 </nav>
-<div class="container">
-  <div class="header">
-    <h1>Initiate Employee Offboarding</h1>
-    <p>Search for the staff member leaving and complete the offboarding form below.</p>
+
+<div class="page-wrap">
+
+  <!-- Intro -->
+  <div class="intro-card">
+    <strong>Employee Offboarding Form</strong><br>
+    This form must be completed by the Field Team Manager when an employee resigns, or their employment is due to end.
+    Submission of this form will automatically initiate the offboarding process and notify the relevant departments.
   </div>
 
-  <form id="offboardForm" onsubmit="submitOffboarding(event)" novalidate>
+  <!-- Section 1 – Employee Details -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Employee Details</h2>
+    </div>
 
-    <!-- Employee Search -->
     <div class="form-group">
-      <label>Search Staff Member</label>
+      <label class="field-label">Search Staff Member</label>
       <div class="search-wrap">
-        <input type="text" id="employeeSearch" placeholder="Start typing a name..." autocomplete="off" oninput="filterEmployees()">
+        <input type="text" id="employeeSearch" placeholder="Start typing a name…" autocomplete="off" oninput="filterEmployees()">
         <span class="search-icon">🔍</span>
         <div id="dropdown-results"></div>
       </div>
       <input type="hidden" id="selectedEmployeeId">
     </div>
 
-    <!-- Auto-populated fields -->
     <div class="grid-2">
       <div class="form-group">
-        <label>Employee Name</label>
+        <label class="field-label">Employee Name</label>
         <input type="text" id="empName" readonly>
       </div>
       <div class="form-group">
-        <label>Employee Number</label>
+        <label class="field-label">Employee Number</label>
         <input type="text" id="empNum" readonly>
       </div>
       <div class="form-group">
-        <label>Job Title</label>
+        <label class="field-label">Job Title</label>
         <input type="text" id="jobTitle" readonly>
       </div>
       <div class="form-group">
-        <label>Contract Type</label>
-        <input type="text" id="contract" readonly>
+        <label class="field-label">Department</label>
+        <input type="text" id="department" placeholder="e.g. Field Operations">
       </div>
       <div class="form-group">
-        <label>Line Manager / FTM</label>
+        <label class="field-label">Line Manager / FTM</label>
         <input type="text" id="manager" readonly>
       </div>
       <div class="form-group">
-        <label>Location (Postcode)</label>
+        <label class="field-label">Location</label>
         <input type="text" id="location" readonly>
       </div>
       <div class="form-group">
-        <label>Employment Start Date</label>
+        <label class="field-label">Employment Start Date</label>
         <input type="text" id="startDate" readonly>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Final Working Day</label>
+        <input type="date" id="lastDay" required>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 – Employment Ending -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Employment Ending</h2>
+    </div>
+
+    <div class="form-group">
+      <label class="field-label">Reason for Leaving</label>
+      <div class="check-grid">
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr1" value="Resignation"><label for="lr1">Resignation</label></div>
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr2" value="Retirement"><label for="lr2">Retirement</label></div>
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr3" value="End of Fixed Term Contract"><label for="lr3">End of Fixed Term Contract</label></div>
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr4" value="Redundancy"><label for="lr4">Redundancy</label></div>
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr5" value="Dismissal"><label for="lr5">Dismissal</label></div>
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr6" value="Internal Transfer"><label for="lr6">Internal Transfer</label></div>
+        <div class="check-item"><input type="radio" name="leaveReason" id="lr7" value="Other"><label for="lr7">Other (please specify)</label></div>
       </div>
     </div>
 
-    <hr class="section-divider">
+    <div class="form-group" style="margin-top:16px;">
+      <label class="field-label">Comments</label>
+      <textarea id="leaveComments" placeholder="Any additional context…"></textarea>
+    </div>
 
-    <!-- Additional fields -->
+    <div class="form-group" style="margin-top:16px;">
+      <label class="field-label">Notice Arrangement</label>
+      <div class="check-grid">
+        <div class="check-item"><input type="radio" name="noticeArrangement" id="na1" value="Working Notice"><label for="na1">Working Notice</label></div>
+        <div class="check-item"><input type="radio" name="noticeArrangement" id="na2" value="Garden Leave"><label for="na2">Garden Leave</label></div>
+        <div class="check-item"><input type="radio" name="noticeArrangement" id="na3" value="Payment in Lieu of Notice (PILON)"><label for="na3">Payment in Lieu of Notice (PILON)</label></div>
+        <div class="check-item"><input type="radio" name="noticeArrangement" id="na4" value="Immediate Termination"><label for="na4">Immediate Termination (where applicable)</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3 – Offboarding Requirements -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Offboarding Requirements</h2>
+    </div>
+
     <div class="form-group">
-      <label>Leaver's Personal Email</label>
+      <label class="field-label">Has the employee been informed of their final working arrangements?</label>
+      <div class="check-grid">
+        <div class="check-item"><input type="radio" name="informed" id="inf1" value="Yes"><label for="inf1">Yes</label></div>
+        <div class="check-item"><input type="radio" name="informed" id="inf2" value="No"><label for="inf2">No</label></div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:16px;">
+      <label class="field-label">Leaver's Personal Email (for confirmation email)</label>
       <input type="email" id="personalEmail" placeholder="e.g. john.smith@gmail.com" required>
     </div>
 
-    <div class="form-group">
-      <label>Last Working Day</label>
-      <input type="date" id="lastDay" required>
-    </div>
-
-    <div class="form-group">
-      <label>Reason for Leaving</label>
-      <select id="leaveReason" required>
-        <option value="">-- Select reason --</option>
-        <option>Resignation</option>
-        <option>Redundancy</option>
-        <option>End of Contract</option>
-        <option>Retirement</option>
-        <option>Dismissal</option>
-        <option>Mutual Agreement</option>
-        <option>Other</option>
-      </select>
-    </div>
-
-    <hr class="section-divider">
-
-    <!-- Exit interview -->
-    <div class="form-group">
-      <label>Would the employee like an exit interview with HR/Recruitment?</label>
-      <select id="exitInterview" onchange="toggleInterview()" required>
-        <option value="">-- Select --</option>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
-      </select>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="field-label">Is an Exit Interview being offered?</label>
+      <div class="check-grid">
+        <div class="check-item"><input type="radio" name="exitInterview" id="ei1" value="yes" onchange="toggleInterview()"><label for="ei1">Yes</label></div>
+        <div class="check-item"><input type="radio" name="exitInterview" id="ei2" value="no" onchange="toggleInterview()"><label for="ei2">No</label></div>
+      </div>
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:8px;">If Yes, Recruitment will automatically send the employee an email with a link to book an exit interview.</p>
     </div>
 
     <div id="exitInterviewSection">
-      <div class="form-group" style="margin-bottom:0;">
-        <label>Manager's Email Address (to receive scheduling link)</label>
-        <input type="email" id="managerEmail" placeholder="manager@ngu.co.uk">
+      <label class="field-label">Manager's Email Address (to receive scheduling link)</label>
+      <input type="email" id="managerEmail" placeholder="manager@ngu.co.uk">
+    </div>
+  </div>
+
+  <!-- Section 4 – Company Property -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Company Property Issued</h2>
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">Please tick all items that apply.</p>
+    <div class="check-grid">
+      <div class="check-item"><input type="checkbox" id="cp1" value="Company Vehicle"><label for="cp1">Company Vehicle</label></div>
+      <div class="check-item"><input type="checkbox" id="cp2" value="Fuel Card"><label for="cp2">Fuel Card</label></div>
+      <div class="check-item"><input type="checkbox" id="cp3" value="Laptop"><label for="cp3">Laptop</label></div>
+      <div class="check-item"><input type="checkbox" id="cp4" value="Mobile Phone"><label for="cp4">Mobile Phone</label></div>
+      <div class="check-item"><input type="checkbox" id="cp5" value="Tablet / Handheld Device"><label for="cp5">Tablet / Handheld Device</label></div>
+      <div class="check-item"><input type="checkbox" id="cp6" value="Keys"><label for="cp6">Keys</label></div>
+      <div class="check-item"><input type="checkbox" id="cp7" value="Uniform"><label for="cp7">Uniform</label></div>
+      <div class="check-item"><input type="checkbox" id="cp8" value="PPE"><label for="cp8">PPE</label></div>
+      <div class="check-item"><input type="checkbox" id="cp9" value="Tools"><label for="cp9">Tools</label></div>
+      <div class="check-item"><input type="checkbox" id="cp10" value="Other"><label for="cp10">Other</label></div>
+    </div>
+  </div>
+
+  <!-- Section 5 – Outstanding Information -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Outstanding Information</h2>
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">Are there any outstanding matters Recruitment should be aware of?</p>
+    <div class="check-grid">
+      <div class="check-item"><input type="checkbox" id="os1" value="Outstanding Annual Leave"><label for="os1">Outstanding Annual Leave</label></div>
+      <div class="check-item"><input type="checkbox" id="os2" value="Outstanding Expenses"><label for="os2">Outstanding Expenses</label></div>
+      <div class="check-item"><input type="checkbox" id="os3" value="Active Disciplinary Process"><label for="os3">Active Disciplinary Process</label></div>
+      <div class="check-item"><input type="checkbox" id="os4" value="Company Property Outstanding"><label for="os4">Company Property Outstanding</label></div>
+      <div class="check-item"><input type="checkbox" id="os5" value="Ongoing Customer Work"><label for="os5">Ongoing Customer Work</label></div>
+      <div class="check-item"><input type="checkbox" id="os6" value="Other"><label for="os6">Other</label></div>
+    </div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="field-label">Comments</label>
+      <textarea id="outstandingComments" placeholder="Provide any details about outstanding matters…"></textarea>
+    </div>
+  </div>
+
+  <!-- Section 6 – Manager Declaration -->
+  <div class="section-card">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Manager Declaration</h2>
+    </div>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:20px; line-height:1.6;">
+      I confirm that the information provided is accurate and request that the employee offboarding process is commenced.
+    </p>
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="field-label">Field Team Manager Name</label>
+        <input type="text" id="ftmName" placeholder="Full name" required>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Signature (type name to confirm)</label>
+        <input type="text" id="ftmSignature" placeholder="Type your name to sign" required>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Date</label>
+        <input type="date" id="declarationDate" required>
       </div>
     </div>
+  </div>
 
-    <button type="submit" id="submitBtn" disabled>Initiate Offboarding</button>
-  </form>
+  <button class="btn-submit" id="submitBtn" onclick="submitOffboarding()" disabled>
+    Submit & Initiate Offboarding
+  </button>
+
 </div>
 
-<div id="toast" class="toast"></div>
+<div class="toast" id="toast"></div>
 
 <!-- Firebase -->
 <script type="module">
@@ -301,16 +396,13 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Expose db to global so the non-module script can use it
   window._db = db;
   window._addDoc = addDoc;
   window._setDoc = setDoc;
   window._collection = collection;
   window._doc = doc;
-
-  // Load staff
+  window._allStaff = [];
   window._staffData = {};
-  let allStaff = [];
 
   try {
     const snap = await getDocs(collection(db, 'Establishment Report'));
@@ -319,19 +411,18 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
       if (data._type === 'staff') {
         const entry = { id: d.id, ...data };
         window._staffData[d.id] = entry;
-        allStaff.push(entry);
+        window._allStaff.push(entry);
       }
     });
-    window._allStaff = allStaff;
     document.getElementById('submitBtn').disabled = false;
-    document.getElementById('submitBtn').textContent = 'Initiate Offboarding';
+    document.getElementById('submitBtn').textContent = 'Submit & Initiate Offboarding';
   } catch (err) {
     console.error('Firebase load error:', err);
-    showToast('Failed to load staff data. Check console for details.', 'error');
+    showToast('Failed to load staff data.', 'error');
   }
 </script>
 
-<!-- UI logic (non-module so it can call global window functions) -->
+<!-- UI Logic -->
 <script>
   emailjs.init("ziLnha91scpGjFABh");
 
@@ -340,9 +431,8 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
     t.textContent = msg;
     t.className = 'toast ' + type;
     t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 4000);
+    setTimeout(() => { t.style.display = 'none'; }, 5000);
   }
-  window.showToast = showToast;
 
   function filterEmployees() {
     const query = document.getElementById('employeeSearch').value.toLowerCase().trim();
@@ -350,14 +440,8 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
     results.innerHTML = '';
     if (!query || !window._allStaff) { results.style.display = 'none'; return; }
 
-    const matches = window._allStaff.filter(e =>
-      (e.name || '').toLowerCase().includes(query)
-    );
-
-    if (matches.length === 0) {
-      results.style.display = 'none';
-      return;
-    }
+    const matches = window._allStaff.filter(e => (e.name || '').toLowerCase().includes(query));
+    if (!matches.length) { results.style.display = 'none'; return; }
 
     matches.slice(0, 12).forEach(emp => {
       const item = document.createElement('div');
@@ -376,94 +460,112 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
     document.getElementById('empName').value = emp.name || '';
     document.getElementById('empNum').value = emp.id || '';
     document.getElementById('jobTitle').value = emp.jobTitle || '';
-    document.getElementById('contract').value = emp.contract || '';
     document.getElementById('manager').value = emp.manager || '';
     document.getElementById('location').value = emp.postcode || '';
+
     const raw = emp.createdAt || '';
     if (raw) {
       const d = new Date(raw);
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      document.getElementById('startDate').value = `${dd}/${mm}/${yyyy}`;
+      document.getElementById('startDate').value =
+        `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     } else {
       document.getElementById('startDate').value = '';
     }
     document.getElementById('dropdown-results').style.display = 'none';
   }
 
-  // Hide dropdown when clicking outside
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', e => {
     if (!e.target.closest('.search-wrap')) {
       document.getElementById('dropdown-results').style.display = 'none';
     }
   });
 
   window.toggleInterview = function() {
-    const val = document.getElementById('exitInterview').value;
+    const val = document.querySelector('input[name="exitInterview"]:checked')?.value;
     document.getElementById('exitInterviewSection').style.display = val === 'yes' ? 'block' : 'none';
   };
 
-  window.submitOffboarding = async function(e) {
-    e.preventDefault();
+  function getChecked(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '';
+  }
 
+  function getCheckboxValues(ids) {
+    return ids.filter(id => document.getElementById(id).checked)
+              .map(id => document.getElementById(id).value);
+  }
+
+  window.submitOffboarding = async function() {
     const empId = document.getElementById('selectedEmployeeId').value;
-    if (!empId) return showToast('Please search and select a staff member first.', 'error');
+    if (!empId) return showToast('Please search and select a staff member.', 'error');
+    if (!document.getElementById('lastDay').value) return showToast('Please enter the Final Working Day.', 'error');
+    if (!getChecked('leaveReason')) return showToast('Please select a Reason for Leaving.', 'error');
+    if (!getChecked('informed')) return showToast('Please confirm if the employee has been informed.', 'error');
+    if (!getChecked('exitInterview')) return showToast('Please confirm exit interview preference.', 'error');
 
     const personalEmail = document.getElementById('personalEmail').value.trim();
     if (!personalEmail) return showToast('Please enter the leaver\'s personal email.', 'error');
 
-    const lastDay = document.getElementById('lastDay').value;
-    if (!lastDay) return showToast('Please enter the last working day.', 'error');
-
-    const leaveReason = document.getElementById('leaveReason').value;
-    if (!leaveReason) return showToast('Please select a reason for leaving.', 'error');
-
-    const exitChoice = document.getElementById('exitInterview').value;
-    if (!exitChoice) return showToast('Please select whether the employee wants an exit interview.', 'error');
+    if (!document.getElementById('ftmName').value.trim()) return showToast('Please enter the FTM name.', 'error');
+    if (!document.getElementById('ftmSignature').value.trim()) return showToast('Please provide a manager signature.', 'error');
+    if (!document.getElementById('declarationDate').value) return showToast('Please enter the declaration date.', 'error');
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.textContent = 'Processing...';
+    btn.textContent = 'Submitting…';
 
     const empName = document.getElementById('empName').value;
+    const lastDay = document.getElementById('lastDay').value;
+    const wantsInterview = getChecked('exitInterview') === 'yes';
     const managerEmail = document.getElementById('managerEmail').value.trim();
-    const wantsInterview = exitChoice === 'yes';
+
+    const companyProperty = getCheckboxValues(['cp1','cp2','cp3','cp4','cp5','cp6','cp7','cp8','cp9','cp10']);
+    const outstanding = getCheckboxValues(['os1','os2','os3','os4','os5','os6']);
 
     try {
       const offboardData = {
         employeeId: empId,
         name: empName,
         jobTitle: document.getElementById('jobTitle').value,
-        contract: document.getElementById('contract').value,
+        department: document.getElementById('department').value,
+        contract: window._staffData[empId]?.contract || '',
         manager: document.getElementById('manager').value,
         location: document.getElementById('location').value,
         startDate: document.getElementById('startDate').value,
         lastWorkingDay: lastDay,
-        leaveReason: leaveReason,
+        leaveReason: getChecked('leaveReason'),
+        leaveComments: document.getElementById('leaveComments').value,
+        noticeArrangement: getChecked('noticeArrangement'),
+        employeeInformed: getChecked('informed'),
         personalEmail: personalEmail,
         exitInterviewRequested: wantsInterview,
         managerEmail: managerEmail,
+        companyProperty: companyProperty,
+        outstandingMatters: outstanding,
+        outstandingComments: document.getElementById('outstandingComments').value,
+        ftmName: document.getElementById('ftmName').value.trim(),
+        ftmSignature: document.getElementById('ftmSignature').value.trim(),
+        declarationDate: document.getElementById('declarationDate').value,
         initiatedAt: new Date().toISOString()
       };
 
-      // Save to Offboarding Forms
-      const docRef = await window._addDoc(window._collection(window._db, "Offboarding Forms"), offboardData);
+      // Save offboarding form
+      const docRef = await window._addDoc(window._collection(window._db, 'Offboarding Forms'), offboardData);
       const checklistId = docRef.id;
 
-      // Create matching checklist document
-      await window._setDoc(window._doc(window._db, "offboarding checklist", checklistId), {
+      // Create department checklist document
+      await window._setDoc(window._doc(window._db, 'offboarding checklist', checklistId), {
         employeeId: empId,
         name: empName,
-        jobTitle: document.getElementById('jobTitle').value,
-        manager: document.getElementById('manager').value,
+        jobTitle: offboardData.jobTitle,
+        manager: offboardData.manager,
         lastWorkingDay: lastDay,
-        leaveReason: leaveReason,
+        leaveReason: offboardData.leaveReason,
         initiatedAt: new Date().toISOString()
       });
 
       // Email 1: Resignation confirmation to leaver
-      await emailjs.send("service_hdd4x8i", "template_sv97s64", {
+      await emailjs.send('service_hdd4x8i', 'template_sv97s64', {
         to_email: personalEmail,
         employee_name: empName,
         last_working_day: lastDay
@@ -471,30 +573,30 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
 
       // Email 2: Notify all departments
       const portalLink = window.location.href.replace('index.html', '') + `checklist.html?id=${checklistId}`;
-      await emailjs.send("service_hdd4x8i", "template_r1ehsyt", {
+      await emailjs.send('service_hdd4x8i', 'template_r1ehsyt', {
         employee_name: empName,
         checklist_link: portalLink,
         last_working_day: lastDay
       });
 
-      // Email 3: Exit interview scheduling link to manager
+      // Email 3: Exit interview scheduling link (if requested)
       if (wantsInterview && managerEmail) {
         const bookingLink = window.location.href.replace('index.html', '') + `book-exit-interview.html?id=${checklistId}`;
-        await emailjs.send("service_hdd4x8i", "template_okr3omr", {
+        await emailjs.send('service_hdd4x8i', 'template_okr3omr', {
           to_email: managerEmail,
           employee_name: empName,
           booking_link: bookingLink
         });
       }
 
-      showToast('Offboarding successfully initiated! Emails have been sent.', 'success');
-      setTimeout(() => window.location.reload(), 3000);
+      showToast(`Offboarding initiated for ${empName}. All emails sent. ✓`, 'success');
+      setTimeout(() => window.location.reload(), 3500);
 
     } catch (err) {
       console.error(err);
       showToast('Error: ' + err.message, 'error');
       btn.disabled = false;
-      btn.textContent = 'Initiate Offboarding';
+      btn.textContent = 'Submit & Initiate Offboarding';
     }
   };
 </script>
