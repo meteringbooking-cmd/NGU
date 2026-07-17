@@ -154,9 +154,33 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
   from { opacity:0; transform: translateY(10px); }
   to { opacity:1; transform: translateY(0); }
 }
+.logo-bar {
+  position: sticky; top: 0; z-index: 999;
+  background: rgba(10,22,40,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo-bar img { height: 36px; display: block; }
+.logo-bar .page-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+  margin-left: 4px;
+}
 </style>
 </head>
 <body>
+<nav class="logo-bar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&st=ypirkk3e&dl=1" alt="NGU Logo">
+  <span class="page-label">Offboarding Portal</span>
+</nav>
 <div class="container">
   <div class="header">
     <h1>Initiate Employee Offboarding</h1>
