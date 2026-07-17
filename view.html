@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaver Submissions – NGU</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0A1628; --bg2:#111f38; --bg3:#1a2942; --bg4:#0d1a2e;
+  --border:#2a3f5f; --border2:#1e3050;
+  --text:#E8EDF2; --muted:#7a8fa8;
+  --accent:#00A3E0; --accent2:#005EB8; --green:#10B981; --warning:#F59E0B;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Logo Bar ── */
+.logo-bar {
+  background: rgba(10,22,40,0.97);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.logo-bar img { height: 36px; display: block; }
+.logo-bar .page-label {
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); border-left: 1px solid var(--border);
+  padding-left: 12px; margin-left: 4px;
+}
+
+/* ── Main Layout ── */
+.main-wrap { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 320px; background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+.sidebar-header {
+  padding: 20px; border-bottom: 1px solid var(--border);
+}
+.sidebar-header h2 { font-size: 1.1rem; font-weight: 600; color: var(--accent); }
+.search-input {
+  width: 100%; padding: 10px 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); font-family: inherit; font-size: 0.9rem;
+  margin-top: 10px; outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+.leaver-list { flex: 1; overflow-y: auto; }
+.leaver-item {
+  padding: 16px 20px; border-bottom: 1px solid var(--border2);
+  cursor: pointer; transition: background 0.2s;
+}
+.leaver-item:hover { background: rgba(0,163,224,0.04); }
+.leaver-item.active { background: rgba(0,163,224,0.1); border-left: 4px solid var(--accent); padding-left: 16px; }
+.leaver-item .name { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+.leaver-item .meta { font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; }
+
+/* ── Content View ── */
+.content-view { flex: 1; background: var(--bg); display: flex; flex-direction: column; overflow-y: auto; padding: 30px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; color: var(--muted); }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+/* ── Details UI ── */
+.detail-header {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 24px; margin-bottom: 24px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.detail-header-left h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+.meta-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; color: var(--muted);
+}
+.pill span { color: var(--text); font-weight: 500; }
+.action-buttons { display: flex; gap: 10px; }
+.btn {
+  padding: 10px 18px; border-radius: 6px; font-family: inherit; font-size: 0.88rem;
+  font-weight: 600; text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;
+}
+.btn-primary { background: var(--accent); color: white; border: none; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+
+.section-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; margin-bottom: 20px;
+}
+.section-card h3 { font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.data-group { margin-bottom: 12px; }
+.data-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 4px; }
+.data-value { font-size: 0.95rem; font-weight: 500; }
+.data-value.none { color: var(--muted); font-style: italic; }
+
+.badge-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.badge { background: var(--bg3); border: 1px solid var(--border); padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; color: var(--text); }
+
+.comments-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 0.9rem; color: var(--text); line-height: 1.5; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<!-- Logo Bar -->
+<nav class="logo-bar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&st=ypirkk3e&dl=1" alt="NGU Logo">
+  <span class="page-label">Leaver Submissions</span>
+</nav>
+
+<div class="main-wrap">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Leaver Directory</h2>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search leavers..." oninput="filterList()">
+    </div>
+    <div class="leaver-list" id="leaverList">
+      <div class="empty-state" style="padding: 40px; text-align: center;">Loading submissions...</div>
+    </div>
+  </aside>
+
+  <!-- Content View -->
+  <main class="content-view" id="contentView">
+    <div class="empty-state">
+      <div class="empty-icon">📂</div>
+      <p>Select a leaver from the sidebar to view their full offboarding details.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getFirestore, collection, query, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+    authDomain: "oesperformance-a54c0.firebaseapp.com",
+    projectId: "oesperformance-a54c0",
+    storageBucket: "oesperformance-a54c0.firebasestorage.app",
+    messagingSenderId: "484894102454",
+    appId: "1:484894102454:web:17535ee497eac2d90d6717"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window._db = db;
+  window._docs = [];
+
+  async function loadSubmissions() {
+    try {
+      const q = query(collection(db, 'Offboarding Forms'), orderBy('initiatedAt', 'desc'));
+      const snap = await getDocs(q);
+      
+      const listEl = document.getElementById('leaverList');
+      listEl.innerHTML = '';
+      window._docs = [];
+
+      if (snap.empty) {
+        listEl.innerHTML = '<div class="empty-state" style="padding:40px;">No records found.</div>';
+        return;
+      }
+
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const entry = { id: docSnap.id, ...data };
+        window._docs.push(entry);
+      });
+
+      renderList(window._docs);
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('leaverList').innerHTML = '<div class="empty-state" style="padding:40px;color:var(--red);">Failed to load data.</div>';
+    }
+  }
+
+  loadSubmissions();
+</script>
+
+<!-- UI Logic -->
+<script>
+  function renderList(items) {
+    const listEl = document.getElementById('leaverList');
+    listEl.innerHTML = '';
+    items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'leaver-item';
+      div.id = `item-${item.id}`;
+      div.addEventListener('click', () => selectLeaver(item));
+
+      const lastDay = item.lastWorkingDay ? formatDate(item.lastWorkingDay) : '—';
+      div.innerHTML = `
+        <div class="name">${item.name || 'Unknown'}</div>
+        <div class="meta">
+          <span>${item.jobTitle || '—'}</span>
+          <span>Last Day: ${lastDay}</span>
+        </div>
+      `;
+      listEl.appendChild(div);
+    });
+  }
+
+  function filterList() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (!window._docs) return;
+    const filtered = window._docs.filter(item => 
+      (item.name || '').toLowerCase().includes(q) ||
+      (item.jobTitle || '').toLowerCase().includes(q) ||
+      (item.employeeId || '').toLowerCase().includes(q)
+    );
+    renderList(filtered);
+  }
+  window.filterList = filterList;
+
+  function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  }
+
+  function selectLeaver(item) {
+    // Remove active class
+    document.querySelectorAll('.leaver-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(`item-${item.id}`).classList.add('active');
+
+    const content = document.getElementById('contentView');
+    
+    // Exit Interview summary
+    let exitSummary = 'Not requested';
+    if (item.exitInterviewRequested) {
+      exitSummary = 'Requested';
+      if (item.exitInterviewBooking) {
+        exitSummary = `Scheduled for ${formatDate(item.exitInterviewBooking.date)} @ ${item.exitInterviewBooking.time}`;
+      } else {
+        exitSummary = 'Requested – Booking Pending';
+      }
+    }
+
+    // Parse list arrays
+    const propList = item.companyProperty && item.companyProperty.length 
+      ? item.companyProperty.map(p => `<span class="badge">${p}</span>`).join('')
+      : '<span class="data-value none">No property logged</span>';
+
+    const outList = item.outstandingMatters && item.outstandingMatters.length
+      ? item.outstandingMatters.map(m => `<span class="badge">${m}</span>`).join('')
+      : '<span class="data-value none">No outstanding matters logged</span>';
+
+    content.innerHTML = `
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <h1>${item.name || 'Unknown'}</h1>
+          <div class="meta-pills">
+            <div class="pill">Emp ID: <span>${item.employeeId || '—'}</span></div>
+            <div class="pill">Job Title: <span>${item.jobTitle || '—'}</span></div>
+            <div class="pill">FTM: <span>${item.manager || '—'}</span></div>
+          </div>
+        </div>
+        <div class="action-buttons">
+          <a class="btn btn-primary" href="checklist.html?id=${item.id}">📋 Open Checklist</a>
+          ${item.exitInterviewRequested ? `<a class="btn btn-secondary" href="exit-interview-form.html?id=${item.id}">💬 Conduct Interview</a>` : ''}
+        </div>
+      </div>
+
+      <!-- Section 1 Details -->
+      <div class="section-card">
+        <h3>Section 1 - Employee Details</h3>
+        <div class="grid-2">
+          <div class="data-group"><div class="data-label">Department</div><div class="data-value">${item.department || '—'}</div></div>
+          <div class="data-group"><div class="data-label">Location</div><div class="data-value">${item.location || '—'}</div></div>
+          <div class="data-group"><div class="data-label">Employment Start Date</div><div class="data-value">${item.startDate || '—'}</div></div>
+          <div class="data-group"><div class="data-label">Final Working Day</div><div class="data-value">${item.lastWorkingDay ? formatDate(item.lastWorkingDay) : '—'}</div></div>
+        </div>
+      </div>
+
+      <!-- Section 2 Details -->
+      <div class="section-card">
+        <h3>Section 2 - Employment Ending</h3>
+        <div class="grid-2">
+          <div class="data-group"><div class="data-label">Reason for Leaving</div><div class="data-value">${item.leaveReason || '—'}</div></div>
+          <div class="data-group"><div class="data-label">Notice Arrangement</div><div class="data-value">${item.noticeArrangement || '—'}</div></div>
+        </div>
+        ${item.leaveComments ? `<div class="data-group" style="margin-top:10px;"><div class="data-label">Comments</div><div class="comments-box">${item.leaveComments}</div></div>` : ''}
+      </div>
+
+      <!-- Section 3 Details -->
+      <div class="section-card">
+        <h3>Section 3 - Offboarding Requirements</h3>
+        <div class="grid-2">
+          <div class="data-group"><div class="data-label">Employee Informed?</div><div class="data-value">${item.employeeInformed || '—'}</div></div>
+          <div class="data-group"><div class="data-label">Personal Email</div><div class="data-value">${item.personalEmail || '—'}</div></div>
+          <div class="data-group" style="grid-column: span 2;"><div class="data-label">Exit Interview Option</div><div class="data-value">${exitSummary}</div></div>
+        </div>
+      </div>
+
+      <!-- Section 4 Details -->
+      <div class="section-card">
+        <h3>Section 4 - Company Property Issued</h3>
+        <div class="badge-list">${propList}</div>
+      </div>
+
+      <!-- Section 5 Details -->
+      <div class="section-card">
+        <h3>Section 5 - Outstanding Information</h3>
+        <div class="badge-list">${outList}</div>
+        ${item.outstandingComments ? `<div class="data-group" style="margin-top:14px;"><div class="data-label">Manager Comments</div><div class="comments-box">${item.outstandingComments}</div></div>` : ''}
+      </div>
+
+      <!-- Section 6 Details -->
+      <div class="section-card">
+        <h3>Section 6 - Manager Declaration</h3>
+        <div class="grid-2">
+          <div class="data-group"><div class="data-label">Field Team Manager</div><div class="data-value">${item.ftmName || '—'}</div></div>
+          <div class="data-group"><div class="data-label">Signature / Date</div><div class="data-value">${item.ftmSignature || '—'} (${item.declarationDate ? formatDate(item.declarationDate) : '—'})</div></div>
+        </div>
+      </div>
+    `;
+  }
+</script>
+</body>
+</html>
