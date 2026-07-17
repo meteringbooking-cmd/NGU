@@ -26,6 +26,27 @@ button { background: var(--accent); color: white; border: none; font-weight: 600
 button:hover { background: var(--accent2); }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.logo-bar {
+  position: sticky; top: 0; z-index: 999;
+  background: rgba(10,22,40,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -40px -20px 30px;
+}
+.logo-bar img { height: 34px; display: block; }
+.logo-bar .page-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+  margin-left: 4px;
+}
 </style>
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -133,6 +154,10 @@ button:hover { background: var(--accent2); }
 </script>
 </head>
 <body>
+<nav class="logo-bar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&st=ypirkk3e&dl=1" alt="NGU Logo">
+  <span class="page-label">Exit Interview Form</span>
+</nav>
 <div class="container">
     <h1>Exit Interview Feedback Form</h1>
     <p style="text-align: center; color: var(--muted); margin-bottom: 40px;">
