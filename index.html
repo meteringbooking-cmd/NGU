@@ -355,7 +355,16 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
     document.getElementById('contract').value = emp.contract || '';
     document.getElementById('manager').value = emp.manager || '';
     document.getElementById('location').value = emp.postcode || '';
-    document.getElementById('startDate').value = emp.createdAt || '';
+    const raw = emp.createdAt || '';
+    if (raw) {
+      const d = new Date(raw);
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      document.getElementById('startDate').value = `${dd}/${mm}/${yyyy}`;
+    } else {
+      document.getElementById('startDate').value = '';
+    }
     document.getElementById('dropdown-results').style.display = 'none';
   }
 
