@@ -283,91 +283,36 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase -->
+<!-- Firebase: expose globals only -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-  const firebaseConfig = {
+  const app = initializeApp({
     apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
     authDomain: "oesperformance-a54c0.firebaseapp.com",
     projectId: "oesperformance-a54c0",
     storageBucket: "oesperformance-a54c0.firebasestorage.app",
     messagingSenderId: "484894102454",
     appId: "1:484894102454:web:17535ee497eac2d90d6717"
-  };
+  });
 
-  const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-
   window._db = db;
   window._doc = doc;
   window._getDoc = getDoc;
   window._updateDoc = updateDoc;
 
-  // Load on start
-  const urlParams = new URLSearchParams(window.location.search);
-  const id = urlParams.get('id');
-
-  if (!id) {
-    document.getElementById('leaverName').textContent = 'No checklist ID provided.';
-  } else {
-    window._checklistId = id;
-    try {
-      const snap = await getDoc(doc(db, 'offboarding checklist', id));
-      if (snap.exists()) {
-        const data = snap.data();
-        window._empName = data.name || 'Unknown Employee';
-        window._empData = data;
-
-        // Populate header
-        document.getElementById('leaverName').textContent = data.name || '—';
-        document.title = `Checklist – ${data.name} | NGU`;
-
-        const pills = [
-          { icon: '💼', label: 'Job Title', val: data.jobTitle },
-          { icon: '👤', label: 'Manager', val: data.manager },
-          { icon: '📅', label: 'Last Day', val: data.lastWorkingDay ? formatDate(data.lastWorkingDay) : null },
-          { icon: '📝', label: 'Reason', val: data.leaveReason },
-        ].filter(p => p.val);
-
-        document.getElementById('metaPills').innerHTML = pills.map(p =>
-          `<div class="pill">${p.icon} ${p.label}: <span>${p.val}</span></div>`
-        ).join('');
-
-        // Restore completed departments
-        let completed = 0;
-        ['finance','fleet','scheduling','it','hr','ftm'].forEach(dept => {
-          if (data[dept]?.completed) {
-            completed++;
-            showDone(dept, data[dept].completedBy, data[dept].timestamp);
-          }
-        });
-        updateProgress(completed);
-
-      } else {
-        document.getElementById('leaverName').textContent = 'Checklist not found.';
-        document.getElementById('metaPills').innerHTML = '';
-      }
-    } catch (err) {
-      console.error(err);
-      document.getElementById('leaverName').textContent = 'Error loading data.';
-    }
-  }
-
-  function formatDate(str) {
-    if (!str) return '';
-    const d = new Date(str);
-    if (isNaN(d)) return str; // already formatted
-    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-  }
-  window._formatDate = formatDate;
+  // Signal that Firebase is ready
+  window._firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseReady'));
 </script>
 
-<!-- UI logic -->
+<!-- UI Logic -->
 <script>
   emailjs.init("ziLnha91scpGjFABh");
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -376,24 +321,111 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
     setTimeout(() => { t.style.display = 'none'; }, 4000);
   }
 
+  function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  }
+
   function updateProgress(n) {
     const pct = Math.round((n / 6) * 100);
     document.getElementById('progressFill').style.width = pct + '%';
     document.getElementById('progressText').textContent = `${n} / 6 departments completed`;
   }
-  window._completedCount = 0;
 
   function showDone(dept, by, timestamp) {
     const box = document.getElementById(`box-${dept}`);
     const card = document.getElementById(`card-${dept}`);
+    if (!box || !card) return;
     const d = new Date(timestamp);
-    const dateStr = d.toLocaleDateString('en-GB') + ' at ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+    const dateStr = d.toLocaleDateString('en-GB') + ' at ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
     box.innerHTML = `<div class="done-badge">✓ Signed off by <strong>${by}</strong><br>${dateStr}</div>`;
     card.classList.add('done');
     document.querySelectorAll(`input[data-dept="${dept}"]`).forEach(cb => { cb.checked = true; cb.disabled = true; });
   }
-  window.showDone = showDone;
 
+  // ── Load checklist data from Firebase ──────────────────────────────────────
+  let completedCount = 0;  // tracks how many depts done – persists across calls
+
+  async function loadChecklist() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+
+    if (!id) {
+      document.getElementById('leaverName').textContent = 'No checklist ID provided.';
+      document.getElementById('metaPills').innerHTML = '';
+      return;
+    }
+
+    window._checklistId = id;
+
+    try {
+      const snap = await window._getDoc(window._doc(window._db, 'offboarding checklist', id));
+
+      if (!snap.exists()) {
+        document.getElementById('leaverName').textContent = 'Checklist not found.';
+        document.getElementById('metaPills').innerHTML = '';
+        return;
+      }
+
+      const data = snap.data();
+      window._empName = data.name || 'Unknown';
+      window._empData = data;
+
+      // ── Populate header ──
+      document.getElementById('leaverName').textContent = data.name || '—';
+      document.title = `Checklist – ${data.name} | NGU`;
+
+      const pills = [
+        { icon: '💼', label: 'Job Title', val: data.jobTitle },
+        { icon: '👤', label: 'Manager',   val: data.manager },
+        { icon: '📅', label: 'Last Day',  val: data.lastWorkingDay ? formatDate(data.lastWorkingDay) : null },
+        { icon: '📝', label: 'Reason',    val: data.leaveReason },
+      ].filter(p => p.val);
+
+      document.getElementById('metaPills').innerHTML = pills
+        .map(p => `<div class="pill">${p.icon} ${p.label}: <span>${p.val}</span></div>`)
+        .join('');
+
+      // ── Restore already-completed departments ──
+      completedCount = 0;
+      ['finance','fleet','scheduling','it','hr','ftm'].forEach(dept => {
+        if (data[dept] && data[dept].completed) {
+          completedCount++;
+          showDone(dept, data[dept].completedBy, data[dept].timestamp);
+        }
+      });
+      updateProgress(completedCount);
+
+      // ── Show final sign-off state if already closed ──
+      if (data.finalSignOff && data.finalSignOff.completed) {
+        const btn = document.querySelector('.btn-final');
+        if (btn) { btn.disabled = true; btn.textContent = '✓ Offboarding Closed'; }
+      }
+
+    } catch (err) {
+      console.error('Error loading checklist:', err);
+      document.getElementById('leaverName').textContent = 'Error loading data. Check console.';
+    }
+  }
+
+  // ── Wait for Firebase to be ready then load ────────────────────────────────
+  // The module script dispatches 'firebaseReady' once db is exposed on window
+  function startLoad() {
+    if (window._db && window._getDoc && window._doc) {
+      loadChecklist();
+    } else {
+      document.addEventListener('firebaseReady', loadChecklist, { once: true });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startLoad);
+  } else {
+    startLoad();
+  }
+
+  // ── Sign-off a department ──────────────────────────────────────────────────
   window.markComplete = async function(dept) {
     const nameInput = document.getElementById(`name-${dept}`).value.trim();
     if (!nameInput) return showToast('Please enter your name to sign off.', 'error');
@@ -405,13 +437,17 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 
     try {
       const timestamp = new Date().toISOString();
-      let update = {};
+      const update = {};
       update[dept] = { completed: true, completedBy: nameInput, timestamp };
-      await window._updateDoc(window._doc(window._db, 'offboarding checklist', window._checklistId), update);
+
+      await window._updateDoc(
+        window._doc(window._db, 'offboarding checklist', window._checklistId),
+        update
+      );
 
       showDone(dept, nameInput, timestamp);
-      window._completedCount = (window._completedCount || 0) + 1;
-      updateProgress(window._completedCount);
+      completedCount++;
+      updateProgress(completedCount);
       showToast(`${dept.toUpperCase()} signed off successfully!`);
     } catch (err) {
       console.error(err);
@@ -419,7 +455,8 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
     }
   };
 
-  window.openModal = function() { document.getElementById('finalModal').style.display = 'grid'; };
+  // ── Modal ──────────────────────────────────────────────────────────────────
+  window.openModal  = function() { document.getElementById('finalModal').style.display = 'grid'; };
   window.closeModal = function() { document.getElementById('finalModal').style.display = 'none'; };
 
   window.submitFinalSignOff = async function() {
@@ -431,9 +468,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
     btn.textContent = 'Processing...';
 
     try {
-      await window._updateDoc(window._doc(window._db, 'offboarding checklist', window._checklistId), {
-        finalSignOff: { completed: true, timestamp: new Date().toISOString() }
-      });
+      await window._updateDoc(
+        window._doc(window._db, 'offboarding checklist', window._checklistId),
+        { finalSignOff: { completed: true, timestamp: new Date().toISOString() } }
+      );
 
       await emailjs.send('service_hdd4x8i', 'template_o3zl7wb', {
         employee_name: window._empName || 'Employee'
@@ -441,7 +479,8 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 
       closeModal();
       showToast('Offboarding fully closed. Final email sent.');
-      setTimeout(() => { document.querySelector('.btn-final').disabled = true; document.querySelector('.btn-final').textContent = '✓ Offboarding Closed'; }, 1000);
+      const finalBtn = document.querySelector('.btn-final');
+      if (finalBtn) { finalBtn.disabled = true; finalBtn.textContent = '✓ Offboarding Closed'; }
     } catch (err) {
       console.error(err);
       showToast('Error completing sign-off.', 'error');
