@@ -388,6 +388,14 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
         .map(p => `<div class="pill">${p.icon} ${p.label}: <span>${p.val}</span></div>`)
         .join('');
 
+      // ── Restore individual checked checkboxes ──
+      if (data.checkedItems) {
+        Object.keys(data.checkedItems).forEach(key => {
+          const el = document.getElementById(key);
+          if (el) el.checked = !!data.checkedItems[key];
+        });
+      }
+
       // ── Restore already-completed departments ──
       completedCount = 0;
       ['finance','fleet','scheduling','it','hr','ftm'].forEach(dept => {
@@ -403,6 +411,24 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
         const btn = document.querySelector('.btn-final');
         if (btn) { btn.disabled = true; btn.textContent = '✓ Offboarding Closed'; }
       }
+
+      // ── Attach change listeners to checkboxes to auto-save state ──
+      document.querySelectorAll('input[type="checkbox"][data-dept]').forEach(cb => {
+        cb.addEventListener('change', async (e) => {
+          const cbId = e.target.id;
+          const isChecked = e.target.checked;
+          const update = {};
+          update[`checkedItems.${cbId}`] = isChecked;
+          try {
+            await window._updateDoc(
+              window._doc(window._db, 'offboarding checklist', window._checklistId),
+              update
+            );
+          } catch(err) {
+            console.error('Error saving checkbox state:', err);
+          }
+        });
+      });
 
     } catch (err) {
       console.error('Error loading checklist:', err);
