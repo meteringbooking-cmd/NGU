@@ -293,6 +293,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
   <div class="toolbar-right">
+    <button class="btn btn-ghost" id="bulkUploadBtn" style="font-size:12px;">📄 Bulk Upload</button>
+    <input type="file" id="bulkUploadInput" accept=".csv" style="display:none;">
     <button class="btn btn-accent" id="addEmpBtn">+ Add Employee</button>
     <button class="btn btn-ghost" id="refreshBtn" style="font-size:12px;">↻ Refresh</button>
     <div class="count-badge"><span id="staffCount">0</span> employees</div>
@@ -333,6 +335,24 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
         <div class="grid-header-cell" style="justify-content:flex-end">Actions</div>
       </div>
       <div id="archivedList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Upload Results Modal -->
+<div class="modal-overlay" id="bulkModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-head">
+      <h2>Bulk Upload Results</h2>
+      <button class="modal-close" id="bulkClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px; margin-bottom:12px;" id="bulkSummary"></div>
+      <div style="font-weight:600; font-size:12px; color:var(--red); margin-bottom:8px; display:none;" id="bulkUnmatchedTitle">Unmatched Employees (Please add/update manually):</div>
+      <div style="font-family:var(--mono); font-size:11px; color:var(--muted); max-height:200px; overflow-y:auto; background:var(--bg); border:1px solid var(--border); padding:8px; border-radius:6px; display:none;" id="bulkUnmatchedList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="bulkCloseBtn">Close</button>
     </div>
   </div>
 </div>
@@ -674,6 +694,12 @@ $('editEmpClose').onclick=closeEditEmp;
 $('editEmpCancelBtn').onclick=closeEditEmp;
 $('editEmpConfirmBtn').onclick=submitEditEmp;
 $('editEmpModal').onclick=e=>{if(e.target===$('editEmpModal'))closeEditEmp();};
+
+$('bulkUploadBtn').onclick=()=>$('bulkUploadInput').click();
+$('bulkUploadInput').onchange=handleBulkUpload;
+$('bulkClose').onclick=()=>$('bulkModal').classList.remove('show');
+$('bulkCloseBtn').onclick=()=>$('bulkModal').classList.remove('show');
+$('bulkModal').onclick=e=>{if(e.target===$('bulkModal'))$('bulkModal').classList.remove('show');};
 
 $('addStartDate').addEventListener('input',onStartDateChange);
 $('addAllowance').addEventListener('input',onStartDateChange);
@@ -1263,6 +1289,93 @@ function showLoad(v,msg){$('loadingOverlay').classList.toggle('hidden',!v);if(ms
 let tt;
 function toast(msg,err=false){const el=$('toast');el.textContent=msg;el.style.borderColor=err?'var(--red)':'var(--border)';el.style.color=err?'var(--red)':'var(--text)';el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+async function handleBulkUpload(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  $('bulkUploadInput').value = '';
+  showLoad(true, 'Reading CSV file...');
+  
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    try {
+      const text = ev.target.result;
+      const lines = text.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length < 2) { showLoad(false); toast('CSV must contain a header and at least one row', true); return; }
+      
+      // parse header, supporting quotes
+      const parseCsvLine = str => {
+        const re = /,(?=(?:[^"]*"[^"]*")*[^"]*$)/;
+        return str.split(re).map(x=>x.replace(/^"|"$/g,'').trim());
+      };
+      const headers = parseCsvLine(lines[0].toLowerCase());
+      const nameIdx = headers.findIndex(h => h.includes('name') || h.includes('employee'));
+      const pcIdx = headers.findIndex(h => h.includes('postcode') || h.includes('post code'));
+      const startIdx = headers.findIndex(h => h.includes('start') || h.includes('date'));
+      const mgrIdx = headers.findIndex(h => h.includes('manager'));
+      
+      if(nameIdx === -1) { showLoad(false); toast('CSV must contain a Name column', true); return; }
+      
+      showLoad(true, 'Updating employees...');
+      let updated = 0;
+      const unmatched = [];
+      const promises = [];
+      
+      for(let i=1; i<lines.length; i++) {
+        const row = parseCsvLine(lines[i]);
+        const name = row[nameIdx];
+        if(!name) continue;
+        
+        const pc = pcIdx!==-1 ? row[pcIdx] : '';
+        const sd = startIdx!==-1 ? row[startIdx] : '';
+        const mgr = mgrIdx!==-1 ? row[mgrIdx] : '';
+        
+        // Find matching employee
+        const isMatch = s => s.name.toLowerCase() === name.toLowerCase();
+        let emp = staff.find(isMatch) || archived.find(isMatch);
+        
+        if(emp) {
+          const updateData = {};
+          if(pc) { updateData.postcode = pc; emp.postcode = pc; }
+          if(mgr) { updateData.manager = mgr; emp.manager = mgr; }
+          if(sd) { 
+             updateData.startDate = sd; 
+             emp.startDate = sd; 
+          }
+          
+          if(Object.keys(updateData).length > 0) {
+            promises.push(setDoc(doc(db, 'Establishment Report', emp.id), updateData, {merge: true}));
+            updated++;
+          }
+        } else {
+          unmatched.push(name);
+        }
+      }
+      
+      await Promise.all(promises);
+      showLoad(false);
+      render();
+      
+      // Show Results
+      $('bulkSummary').innerHTML = `Successfully updated <strong>${updated}</strong> employee records from the CSV.`;
+      if(unmatched.length > 0) {
+        $('bulkUnmatchedTitle').style.display = 'block';
+        $('bulkUnmatchedList').style.display = 'block';
+        $('bulkUnmatchedList').innerHTML = unmatched.map(esc).join('<br>');
+      } else {
+        $('bulkUnmatchedTitle').style.display = 'none';
+        $('bulkUnmatchedList').style.display = 'none';
+      }
+      $('bulkModal').classList.add('show');
+      
+    } catch(err) {
+      console.error(err);
+      showLoad(false);
+      toast('Error parsing CSV', true);
+    }
+  };
+  reader.readAsText(file);
+}
 
 loadAll();
 </script>
