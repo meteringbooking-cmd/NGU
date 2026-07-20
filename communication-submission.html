@@ -169,22 +169,27 @@
             <label class="form-label">Engineer Name</label>
             <input type="text" id="engName" class="form-input" required placeholder="e.g. John Doe">
           </div>
-          
+
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label">Date</label>
               <input type="date" id="commDate" class="form-input" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Manager</label>
-              <select id="managerName" class="form-select" required>
-                <option value="">Select Manager...</option>
-                <option value="Richard Wiecko">Richard Wiecko</option>
-                <option value="Scott Carson">Scott Carson</option>
-                <option value="Stuart Whyte">Stuart Whyte</option>
-                <option value="Thomas Green">Thomas Green</option>
-              </select>
+              <label class="form-label">Job Number</label>
+              <input type="text" id="jobNumber" class="form-input" placeholder="e.g. JB-10234">
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Manager</label>
+            <select id="managerName" class="form-select" required>
+              <option value="">Select Manager...</option>
+              <option value="Richard Wiecko">Richard Wiecko</option>
+              <option value="Scott Carson">Scott Carson</option>
+              <option value="Stuart Whyte">Stuart Whyte</option>
+              <option value="Thomas Green">Thomas Green</option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -242,6 +247,7 @@
           <thead>
             <tr>
               <th>Date</th>
+              <th>Job #</th>
               <th>Engineer</th>
               <th>Point</th>
               <th>Status</th>
@@ -249,7 +255,7 @@
             </tr>
           </thead>
           <tbody id="tableBody">
-            <tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
+            <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -349,7 +355,7 @@
     // EmailJS init
     emailjs.init('ziLnha91scpGjFABh');
 
-    async function sendManagerEmail(managerName, engineerName, coachingPoint, date) {
+    async function sendManagerEmail(managerName, engineerName, coachingPoint, date, jobNumber) {
       const toEmail = managerEmails[managerName];
       if (!toEmail) return;
       await emailjs.send('service_8lgghpq', 'template_pv50ldd', {
@@ -358,6 +364,7 @@
         engineer_name: engineerName,
         coaching_point: coachingPoint,
         date: date,
+        job_number: jobNumber,
         comms_hub_url: 'https://ngu-green.vercel.app/communication-review.html'
       });
     }
@@ -376,6 +383,7 @@
       const data = {
         engineerName: document.getElementById('engName').value,
         date: document.getElementById('commDate').value,
+        jobNumber: document.getElementById('jobNumber').value,
         manager: document.getElementById('managerName').value,
         coachingPoint: document.getElementById('coachingPoint').value,
         revisit: document.querySelector('input[name="revisit"]:checked').value,
@@ -387,7 +395,7 @@
         await submitCommunication(data);
         // Send email notification to manager
         try {
-          await sendManagerEmail(data.manager, data.engineerName, data.coachingPoint, data.date);
+          await sendManagerEmail(data.manager, data.engineerName, data.coachingPoint, data.date, data.jobNumber);
         } catch (emailErr) {
           console.warn('Email notification failed (submission still saved):', emailErr);
         }
@@ -415,7 +423,7 @@
       const tbody = document.getElementById('tableBody');
       const comms = await getCommunications();
       if (comms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
         return;
       }
 
@@ -429,6 +437,7 @@
         return `
           <tr style="cursor: pointer;" onclick="alert('Manager: ${c.manager}\\nComments: ${c.managerComments}\\n\\nEng Comments: ${c.engineerComments || 'N/A'}\\nSignature: ${c.signature || 'N/A'}')">
             <td>${c.date}</td>
+            <td>${c.jobNumber || '<span style="color:var(--text-muted)">-</span>'}</td>
             <td style="font-weight: 500;">${c.engineerName}</td>
             <td>${c.coachingPoint}</td>
             <td>${getStatusBadge(c.status)}</td>
