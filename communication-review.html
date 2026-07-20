@@ -243,8 +243,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // EmailJS init
-    emailjs.init('ziLnha91scpGjFABh');
+    // EmailJS init (guarded so a failed/blocked CDN load doesn't break the whole page)
+    let emailjsReady = false;
+    try {
+      if (typeof emailjs !== 'undefined') {
+        emailjs.init('ziLnha91scpGjFABh');
+        emailjsReady = true;
+      } else {
+        console.warn('EmailJS script did not load; "Email to Engineer" will be disabled.');
+      }
+    } catch (e) {
+      console.error('EmailJS init failed:', e);
+    }
 
     async function getCommunications() {
       try {
@@ -275,12 +285,22 @@
     }
 
     // Guess the engineer's company email from their full name: firstname.lastname@next-gen.uk
+    // Strips apostrophes, accents, hyphens etc. since real addresses don't include them
+    // (e.g. "Barry O'Sullivan" -> "barry.osullivan@next-gen.uk")
+    function sanitizeForEmail(part) {
+      return part
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '') // strip accents (é -> e)
+        .replace(/[^a-z0-9]/gi, '') // strip anything that isn't a letter/number
+        .toLowerCase();
+    }
+
     function guessEngineerEmail(fullName) {
       if (!fullName) return '';
-      const parts = fullName.trim().toLowerCase().split(/\s+/);
+      const parts = fullName.trim().split(/\s+/).filter(Boolean);
       if (parts.length < 2) return '';
-      const first = parts[0];
-      const last = parts[parts.length - 1];
+      const first = sanitizeForEmail(parts[0]);
+      const last = sanitizeForEmail(parts[parts.length - 1]);
+      if (!first || !last) return '';
       return `${first}.${last}@next-gen.uk`;
     }
 
@@ -310,20 +330,27 @@
             <td>${getStatusBadge(c.status)}</td>
             <td>${imageLinks || '<span style="color:var(--text-muted)">None</span>'}</td>
             <td>
-              <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="openPushModal('${c.id}', '${c.engineerName}')">
+              <button class="btn btn-outline push-btn" style="padding: 6px 12px; font-size: 12px;" data-id="${c.id}" data-name="${(c.engineerName || '').replace(/"/g, '&quot;')}">
                 Push to Engineer
               </button>
             </td>
           </tr>
         `;
       }).join('');
+
+      // Wire up push buttons (avoids inline-onclick breaking on names with quotes/apostrophes)
+      tbody.querySelectorAll('.push-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openPushModal(btn.dataset.id, btn.dataset.name);
+        });
+      });
     }
 
     // Modal Logic
     const pushModal = document.getElementById('pushModal');
     let currentId = null;
 
-    window.openPushModal = (id, name) => {
+    function openPushModal(id, name) {
       currentId = id;
       document.getElementById('modalEngName').innerText = name;
       const url = new URL('communication-engineer.html', window.location.href);
@@ -331,7 +358,7 @@
       document.getElementById('shareLink').value = url.href;
       document.getElementById('engineerEmail').value = guessEngineerEmail(name);
       pushModal.classList.add('open');
-    };
+    }
 
     window.closeModal = () => {
       pushModal.classList.remove('open');
@@ -357,6 +384,10 @@
     };
 
     window.sendEmailToEngineer = async () => {
+      if (!emailjsReady) {
+        alert('Email sending isn\'t available right now (EmailJS failed to load). Please use Copy Link instead.');
+        return;
+      }
       const email = document.getElementById('engineerEmail').value.trim();
       if (!email) {
         alert('Please enter the engineer\'s email address.');
