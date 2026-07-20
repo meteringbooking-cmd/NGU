@@ -180,12 +180,13 @@
             <th>Coaching Point</th>
             <th>Revisit</th>
             <th>Status</th>
+            <th>Push Status</th>
             <th>Images</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="9" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
+          <tr><td colspan="10" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -280,8 +281,12 @@
       if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
       if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
       if (status === 'Challenge closed') return '<span class="badge badge-closed">Challenge Closed</span>';
-      if (status === 'Sent to Engineer') return '<span class="badge badge-sent">Sent to Engineer</span>';
       return '<span class="badge badge-pending">Pending</span>';
+    }
+
+    function getPushStatusBadge(pushStatus) {
+      if (pushStatus === 'Sent') return '<span class="badge badge-sent">Sent</span>';
+      return '<span class="badge" style="background: rgba(136,153,170,0.12); color: var(--text-muted);">Not Sent</span>';
     }
 
     // Guess the engineer's company email from their full name: firstname.lastname@next-gen.uk
@@ -309,7 +314,7 @@
       const comms = await getCommunications();
       window._comms = comms;
       if (comms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
         return;
       }
 
@@ -328,6 +333,7 @@
             <td>${c.coachingPoint}</td>
             <td>${c.revisit}</td>
             <td>${getStatusBadge(c.status)}</td>
+            <td>${getPushStatusBadge(c.pushStatus)}</td>
             <td>${imageLinks || '<span style="color:var(--text-muted)">None</span>'}</td>
             <td>
               <button class="btn btn-outline push-btn" style="padding: 6px 12px; font-size: 12px;" data-id="${c.id}" data-name="${(c.engineerName || '').replace(/"/g, '&quot;')}">
@@ -364,13 +370,13 @@
       pushModal.classList.remove('open');
     };
 
-    async function markSentToEngineer() {
+    async function markPushStatusSent() {
       if (!currentId) return;
       try {
-        await updateDoc(doc(db, "communication-submissions", currentId), { status: 'Sent to Engineer' });
+        await updateDoc(doc(db, "communication-submissions", currentId), { pushStatus: 'Sent' });
         loadTable();
       } catch (e) {
-        console.error('Could not update status:', e);
+        console.error('Could not update push status:', e);
       }
     }
 
@@ -379,7 +385,6 @@
       link.select();
       document.execCommand('copy');
       alert('Link copied to clipboard. You can now send it to the engineer.');
-      markSentToEngineer();
       closeModal();
     };
 
@@ -401,7 +406,7 @@
       btn.innerText = 'Sending...';
 
       try {
-        await emailjs.send('service_8lgghpq', 'template_engineer_review', {
+        await emailjs.send('service_8lgghpq', 'template_dvnz57i', {
           engineer_name: comm.engineerName,
           to_email: email,
           coaching_point: comm.coachingPoint,
@@ -410,7 +415,7 @@
           review_link: document.getElementById('shareLink').value
         });
         alert('Email sent to ' + email);
-        await markSentToEngineer();
+        await markPushStatusSent();
         closeModal();
       } catch (e) {
         console.error('Email send failed:', e);
