@@ -272,6 +272,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
@@ -285,6 +287,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     async function submitCommunication(data) {
       try {
@@ -318,30 +321,106 @@
       document.getElementById('imageModal').classList.add('open');
     };
 
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-    }
-
-    // File Upload handling mockup
+    // File Upload handling - uploads to Firebase Storage as soon as each file is selected
     const uploadBox = document.getElementById('uploadBox');
     const imageUpload = document.getElementById('imageUpload');
     const fileList = document.getElementById('fileList');
-    let selectedFiles = [];
+    let selectedFiles = []; // { id, name, status: 'uploading'|'done'|'error', progress, url, storagePath, task, promise }
+
+    function renderFileList() {
+      fileList.innerHTML = selectedFiles.map(f => {
+        let statusHtml = '';
+        if (f.status === 'uploading') {
+          statusHtml = `<span style="color: var(--warning);">Uploading… ${f.progress || 0}%</span>`;
+        } else if (f.status === 'done') {
+          statusHtml = `<span style="color: var(--in-stock);">Uploaded</span>`;
+        } else if (f.status === 'error') {
+          statusHtml = `<span style="color: var(--out);">Failed</span>`;
+        }
+        return `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 0;">
+            <span>📎 ${f.name}</span>
+            <span style="display:flex; align-items:center; gap:10px;">
+              ${statusHtml}
+              <span onclick="window.removeSelectedFile('${f.id}')" style="cursor:pointer; color: var(--out); font-weight:700;" title="Remove">✕</span>
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.removeSelectedFile = async function(id) {
+      const idx = selectedFiles.findIndex(f => f.id === id);
+      if (idx === -1) return;
+      const f = selectedFiles[idx];
+      if (f.task && f.status === 'uploading') {
+        try { f.task.cancel(); } catch (err) {}
+      }
+      if (f.status === 'done' && f.storagePath) {
+        try { await deleteObject(ref(storage, f.storagePath)); }
+        catch (err) { console.warn('Could not delete file from storage:', err); }
+      }
+      selectedFiles.splice(idx, 1);
+      renderFileList();
+    };
+
+    function uploadFile(fileEntry, file) {
+      const storagePath = `communication-images/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name}`;
+      const storageRef = ref(storage, storagePath);
+      const task = uploadBytesResumable(storageRef, file);
+      fileEntry.task = task;
+      fileEntry.storagePath = storagePath;
+
+      fileEntry.promise = new Promise((resolve) => {
+        task.on('state_changed',
+          (snapshot) => {
+            fileEntry.progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            renderFileList();
+          },
+          (error) => {
+            console.error('Upload failed:', error);
+            fileEntry.status = 'error';
+            renderFileList();
+            resolve(null);
+          },
+          async () => {
+            try {
+              const url = await getDownloadURL(task.snapshot.ref);
+              fileEntry.url = url;
+              fileEntry.status = 'done';
+              renderFileList();
+              resolve({ name: file.name, url, path: storagePath });
+            } catch (err) {
+              console.error('Could not get download URL:', err);
+              fileEntry.status = 'error';
+              renderFileList();
+              resolve(null);
+            }
+          }
+        );
+      });
+    }
 
     uploadBox.addEventListener('click', () => imageUpload.click());
     imageUpload.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
       if (files.length + selectedFiles.length > 5) {
         alert('You can only upload up to 5 images.');
+        imageUpload.value = '';
         return;
       }
-      selectedFiles = [...selectedFiles, ...files];
-      fileList.innerHTML = selectedFiles.map(f => `<div>📎 ${f.name}</div>`).join('');
+      files.forEach(file => {
+        const fileEntry = {
+          id: Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+          name: file.name,
+          status: 'uploading',
+          progress: 0
+        };
+        selectedFiles.push(fileEntry);
+        uploadFile(fileEntry, file);
+      });
+      renderFileList();
+      imageUpload.value = ''; // allow re-selecting a file with the same name later
     });
 
     // Manager email lookup
@@ -376,9 +455,11 @@
       btn.disabled = true;
       btn.innerText = 'Submitting...';
 
-      const base64Images = await Promise.all(selectedFiles.map(async f => {
-        return { name: f.name, data: await fileToBase64(f) };
-      }));
+      if (selectedFiles.some(f => f.status === 'uploading')) {
+        btn.innerText = 'Finishing image upload...';
+      }
+      const uploadResults = await Promise.all(selectedFiles.map(f => f.promise || Promise.resolve(null)));
+      const uploadedImages = uploadResults.filter(Boolean);
 
       const data = {
         engineerName: document.getElementById('engName').value,
@@ -388,7 +469,7 @@
         coachingPoint: document.getElementById('coachingPoint').value,
         revisit: document.querySelector('input[name="revisit"]:checked').value,
         managerComments: document.getElementById('managerComments').value,
-        images: base64Images
+        images: uploadedImages
       };
 
       try {
@@ -431,7 +512,7 @@
         // Store images in a global object to avoid massive inline HTML strings
         window[`_commImgs_${i}`] = c.images || [];
         const imageLinks = (c.images || []).map((img, imgIdx) => 
-          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].data); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
+          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
         ).join('');
 
         return `
