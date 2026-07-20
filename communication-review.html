@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Team Leader Review</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -87,6 +88,11 @@
     }
     .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
 
+    .btn-secondary {
+      background: var(--accent2); color: #04141c;
+    }
+    .btn-secondary:hover { background: #6cd4ff; }
+
     table { width: 100%; border-collapse: collapse; }
     thead tr { border-bottom: 2px solid var(--accent); }
     th {
@@ -106,6 +112,7 @@
     .badge-accepted { background: rgba(74,222,128,0.12); color: var(--in-stock); }
     .badge-challenged { background: rgba(248,113,113,0.12); color: var(--out); }
     .badge-closed { background: rgba(71,200,255,0.12); color: var(--accent2); }
+    .badge-sent { background: rgba(212,245,60,0.12); color: var(--accent); }
 
     .radio-group { display: flex; gap: 16px; }
     .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -132,7 +139,7 @@
     }
     .modal h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
     .modal-body { font-size: 14px; margin-bottom: 22px; color: var(--text-muted); }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
 
     /* Image Lightbox Modal */
     .image-modal-overlay {
@@ -167,6 +174,7 @@
         <thead>
           <tr>
             <th>Date</th>
+            <th>Job #</th>
             <th>Engineer Name</th>
             <th>Manager</th>
             <th>Coaching Point</th>
@@ -177,7 +185,7 @@
           </tr>
         </thead>
         <tbody id="tableBody">
-          <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
+          <tr><td colspan="9" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -188,17 +196,25 @@
     <div class="modal">
       <h3>Push to Engineer</h3>
       <div class="modal-body">
-        Select Copy Link and send it to <strong><span id="modalEngName"></span></strong> via email or WhatsApp for them to review.
+        Send this review to <strong><span id="modalEngName"></span></strong> — copy the link to send it yourself, or email it directly.
       </div>
-      <div style="margin-bottom: 20px;">
+      <div style="margin-bottom: 16px;">
         <input type="text" id="shareLink" class="form-input" readonly style="font-family: 'DM Mono', monospace; font-size: 12px; background: var(--surface2); color: var(--accent2);">
       </div>
-      <div class="modal-actions" style="justify-content: flex-start;">
+      <div class="form-group">
+        <label class="form-label">Engineer Email</label>
+        <input type="email" id="engineerEmail" class="form-input" placeholder="firstname.lastname@next-gen.uk">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" style="border: none;" onclick="closeModal()">Cancel</button>
         <button class="btn" onclick="copyLink()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           Copy Link
         </button>
-        <button class="btn-outline" style="margin-left: auto; border: none;" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-secondary" id="sendEmailBtn" onclick="sendEmailToEngineer()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          Email to Engineer
+        </button>
       </div>
     </div>
   </div>
@@ -227,6 +243,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // EmailJS init
+    emailjs.init('ziLnha91scpGjFABh');
+
     async function getCommunications() {
       try {
         const q = query(collection(db, "communication-submissions"), orderBy("createdAt", "desc"));
@@ -242,8 +261,8 @@
       }
     }
 
-    window.openImage = function(base64Str) {
-      document.getElementById('imageModalImg').src = base64Str;
+    window.openImage = function(url) {
+      document.getElementById('imageModalImg').src = url;
       document.getElementById('imageModal').classList.add('open');
     };
 
@@ -251,26 +270,39 @@
       if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
       if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
       if (status === 'Challenge closed') return '<span class="badge badge-closed">Challenge Closed</span>';
+      if (status === 'Sent to Engineer') return '<span class="badge badge-sent">Sent to Engineer</span>';
       return '<span class="badge badge-pending">Pending</span>';
+    }
+
+    // Guess the engineer's company email from their full name: firstname.lastname@next-gen.uk
+    function guessEngineerEmail(fullName) {
+      if (!fullName) return '';
+      const parts = fullName.trim().toLowerCase().split(/\s+/);
+      if (parts.length < 2) return '';
+      const first = parts[0];
+      const last = parts[parts.length - 1];
+      return `${first}.${last}@next-gen.uk`;
     }
 
     async function loadTable() {
       const tbody = document.getElementById('tableBody');
       const comms = await getCommunications();
+      window._comms = comms;
       if (comms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
         return;
       }
 
       tbody.innerHTML = comms.map((c, i) => {
         window[`_commImgs_${i}`] = c.images || [];
         const imageLinks = (c.images || []).map((img, imgIdx) => 
-          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].data); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
+          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
         ).join('');
 
         return `
           <tr>
             <td>${c.date}</td>
+            <td>${c.jobNumber || '<span style="color:var(--text-muted)">-</span>'}</td>
             <td style="font-weight: 500;">${c.engineerName}</td>
             <td>${c.manager}</td>
             <td>${c.coachingPoint}</td>
@@ -297,6 +329,7 @@
       const url = new URL('communication-engineer.html', window.location.href);
       url.searchParams.set('id', id);
       document.getElementById('shareLink').value = url.href;
+      document.getElementById('engineerEmail').value = guessEngineerEmail(name);
       pushModal.classList.add('open');
     };
 
@@ -304,12 +337,57 @@
       pushModal.classList.remove('open');
     };
 
+    async function markSentToEngineer() {
+      if (!currentId) return;
+      try {
+        await updateDoc(doc(db, "communication-submissions", currentId), { status: 'Sent to Engineer' });
+        loadTable();
+      } catch (e) {
+        console.error('Could not update status:', e);
+      }
+    }
+
     window.copyLink = () => {
       const link = document.getElementById('shareLink');
       link.select();
       document.execCommand('copy');
       alert('Link copied to clipboard. You can now send it to the engineer.');
+      markSentToEngineer();
       closeModal();
+    };
+
+    window.sendEmailToEngineer = async () => {
+      const email = document.getElementById('engineerEmail').value.trim();
+      if (!email) {
+        alert('Please enter the engineer\'s email address.');
+        return;
+      }
+      const comm = (window._comms || []).find(c => c.id === currentId);
+      if (!comm) return;
+
+      const btn = document.getElementById('sendEmailBtn');
+      btn.disabled = true;
+      btn.innerText = 'Sending...';
+
+      try {
+        await emailjs.send('service_8lgghpq', 'template_engineer_review', {
+          engineer_name: comm.engineerName,
+          to_email: email,
+          coaching_point: comm.coachingPoint,
+          date: comm.date,
+          job_number: comm.jobNumber || '',
+          review_link: document.getElementById('shareLink').value
+        });
+        alert('Email sent to ' + email);
+        await markSentToEngineer();
+        closeModal();
+      } catch (e) {
+        console.error('Email send failed:', e);
+        alert('Could not send email. Please check the address or try Copy Link instead.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email to Engineer';
+      }
     };
 
     window.onload = loadTable;
