@@ -671,15 +671,6 @@ textarea { resize: vertical; min-height: 80px; }
         last_working_day: formattedLastDay
       });
 
-      // Email 3: Exit interview scheduling link (if requested)
-      if (wantsInterview && managerEmail) {
-        const bookingLink = window.location.href.replace('index.html', '') + `book-exit-interview.html?id=${checklistId}`;
-        await emailjs.send('service_lr28ftj', 'template_okr3omr', {
-          to_email: managerEmail,
-          employee_name: empName,
-          booking_link: bookingLink
-        });
-      }
 
       showToast(`Offboarding initiated for ${empName}. All emails sent. ✓`, 'success');
       setTimeout(() => window.location.reload(), 3500);
