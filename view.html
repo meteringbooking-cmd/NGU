@@ -160,6 +160,11 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
       const q = query(collection(db, 'Offboarding Forms'), orderBy('initiatedAt', 'desc'));
       const snap = await getDocs(q);
       
+      const cQ = query(collection(db, 'offboarding checklist'));
+      const cSnap = await getDocs(cQ);
+      const checklists = {};
+      cSnap.forEach(doc => { checklists[doc.id] = doc.data(); });
+
       const listEl = document.getElementById('leaverList');
       listEl.innerHTML = '';
       window._docs = [];
@@ -172,6 +177,14 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
       snap.forEach(docSnap => {
         const data = docSnap.data();
         const entry = { id: docSnap.id, ...data };
+
+        const chk = checklists[docSnap.id] || {};
+        let count = 0;
+        ['finance', 'fleet', 'scheduling', 'it', 'hr', 'ftm'].forEach(d => {
+          if (chk[`${d}Completed`]) count++;
+        });
+        entry._checklistProgress = count;
+
         window._docs.push(entry);
       });
 
@@ -198,11 +211,12 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
       div.addEventListener('click', () => selectLeaver(item));
 
       const lastDay = item.lastWorkingDay ? formatDate(item.lastWorkingDay) : '—';
+      const pct = item._checklistProgress !== undefined ? item._checklistProgress + '/6 Done' : '';
       div.innerHTML = `
         <div class="name">${item.name || 'Unknown'}</div>
         <div class="meta">
           <span>${item.jobTitle || '—'}</span>
-          <span>Last Day: ${lastDay}</span>
+          <span style="color: ${item._checklistProgress===6 ? 'var(--green)' : 'var(--warning)'}; font-weight: 500;">${pct}</span>
         </div>
       `;
       listEl.appendChild(div);
@@ -262,7 +276,7 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
           <div class="meta-pills">
             <div class="pill">Emp ID: <span>${item.employeeId || '—'}</span></div>
             <div class="pill">Job Title: <span>${item.jobTitle || '—'}</span></div>
-            <div class="pill">FTM: <span>${item.manager || '—'}</span></div>
+            <div class="pill">Checklist Progress: <span style="color: ${item._checklistProgress===6 ? 'var(--green)' : 'var(--warning)'}">${item._checklistProgress}/6 Completed</span></div>
           </div>
         </div>
         <div class="action-buttons">
