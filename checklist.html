@@ -499,8 +499,13 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
         { finalSignOff: { completed: true, timestamp: new Date().toISOString() } }
       );
 
-      await emailjs.send('service_hdd4x8i', 'template_o3zl7wb', {
-        employee_name: window._empName || 'Employee'
+      const personalEmail = window._empData?.personalEmail || '';
+      await emailjs.send('service_lr28ftj', 'template_9eg8ngp', {
+        to_email: personalEmail,
+        employee_name: window._empName || 'Employee',
+        thank_you_doc_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e',
+        document_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e',
+        attachment_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e'
       });
 
       closeModal();
