@@ -250,13 +250,18 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
     const content = document.getElementById('contentView');
     
     // Exit Interview summary
-    let exitSummary = 'Not requested';
+    let exitSummary = 'Not offered';
     if (item.exitInterviewRequested) {
-      exitSummary = 'Requested';
-      if (item.exitInterviewBooking) {
-        exitSummary = `Scheduled for ${formatDate(item.exitInterviewBooking.date)} @ ${item.exitInterviewBooking.time}`;
+      if (item.exitInterviewAccepted === false) {
+        exitSummary = 'Employee Declined';
+      } else if (item.exitInterviewAccepted === true) {
+        if (item.exitInterviewBooking) {
+          exitSummary = `Scheduled for ${formatDate(item.exitInterviewBooking.date)} @ ${item.exitInterviewBooking.time}`;
+        } else {
+          exitSummary = 'Employee Accepted – Booking Pending';
+        }
       } else {
-        exitSummary = 'Requested – Booking Pending';
+        exitSummary = 'Offered – Awaiting Employee Response';
       }
     }
 
