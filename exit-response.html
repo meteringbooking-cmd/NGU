@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Processing Response...</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #0A1628; color: #E8EDF2; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+  .card { background: #111f38; border: 1px solid #2a3f5f; border-radius: 10px; padding: 40px; text-align: center; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #00A3E0; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  h2 { font-size: 1.2rem; font-weight: 500; margin: 0; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="spinner" id="spinner"></div>
+  <h2 id="msg">Processing your response...</h2>
+</div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getFirestore, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+    authDomain: "oesperformance-a54c0.firebaseapp.com",
+    projectId: "oesperformance-a54c0",
+    storageBucket: "oesperformance-a54c0.firebasestorage.app",
+    messagingSenderId: "484894102454",
+    appId: "1:484894102454:web:17535ee497eac2d90d6717"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function processResponse() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const response = params.get('response');
+
+    if (!id || !response) {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('msg').textContent = 'Invalid request.';
+      return;
+    }
+
+    try {
+      const docRef = doc(db, 'Offboarding Forms', id);
+      const isAccepted = (response === 'yes');
+      await updateDoc(docRef, {
+        exitInterviewAccepted: isAccepted
+      });
+
+      if (isAccepted) {
+        window.location.href = `book-exit-interview.html?id=${id}`;
+      } else {
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('msg').innerHTML = 'Thank you.<br><br>We have recorded that you do not wish to participate in an exit interview.';
+      }
+    } catch (e) {
+      console.error(e);
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('msg').textContent = 'An error occurred while updating your preference. Please try again.';
+    }
+  }
+
+  processResponse();
+</script>
+</body>
+</html>
