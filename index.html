@@ -652,10 +652,14 @@ textarea { resize: vertical; min-height: 80px; }
           contract_clause: contractClause
         });
       } else {
+        const baseUrl = window.location.href.replace('index.html', '').replace(/\?.*$/, '');
         await emailjs.send('service_lr28ftj', 'template_sv97s64', {
           to_email: personalEmail,
           employee_name: empName,
-          last_working_day: formattedLastDay
+          last_working_day: formattedLastDay,
+          show_interview: wantsInterview ? 'block' : 'none',
+          yes_link: baseUrl + `exit-response.html?id=${checklistId}&response=yes`,
+          no_link: baseUrl + `exit-response.html?id=${checklistId}&response=no`
         });
       }
 
