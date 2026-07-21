@@ -499,9 +499,18 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
         { finalSignOff: { completed: true, timestamp: new Date().toISOString() } }
       );
 
-      const personalEmail = window._empData?.personalEmail || '';
+      let personalEmail = window._empData?.personalEmail || '';
       
-      if (window._empData?.leaveReason !== 'Dismissal') {
+      if (!personalEmail) {
+        try {
+          const formSnap = await window._getDoc(window._doc(window._db, 'Offboarding Forms', window._checklistId));
+          if (formSnap.exists()) {
+            personalEmail = formSnap.data().personalEmail || '';
+          }
+        } catch(e) { console.error("Could not fetch personal email", e); }
+      }
+
+      if (window._empData?.leaveReason !== 'Dismissal' && personalEmail) {
         await emailjs.send('service_lr28ftj', 'template_9eg8ngp', {
           to_email: personalEmail,
           employee_name: window._empName || 'Employee',
