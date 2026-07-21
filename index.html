@@ -266,6 +266,24 @@ textarea { resize: vertical; min-height: 80px; }
       </div>
     </div>
 
+    <div id="dismissalReasonSection" style="display: none; margin-top: 16px;">
+      <label class="field-label">Termination Reason</label>
+      <select id="terminationReason">
+        <option value="" data-clause="">-- Select reason --</option>
+        <option value="Failed Probation" data-clause="Clause 10.1">Failed Probation</option>
+        <option value="Unsatisfactory References" data-clause="Clause 5.1">Unsatisfactory References</option>
+        <option value="Unsatisfactory DBS Check" data-clause="Clauses 5.2.4 and 15.1">Unsatisfactory DBS Check</option>
+        <option value="Failure to Disclose DBS Information" data-clause="Clause 15.1">Failure to Disclose DBS Information</option>
+        <option value="Loss of Right to Work" data-clause="Clauses 2.2 and 15.2.4">Loss of Right to Work</option>
+        <option value="Gross Misconduct" data-clause="Clause 15.2.4">Gross Misconduct</option>
+        <option value="Serious Breach of Contract" data-clause="Clause 15.2.4">Serious Breach of Contract</option>
+        <option value="Loss of Driving Licence / Required Accreditation" data-clause="Clause 11.1">Loss of Driving Licence / Required Accreditation</option>
+        <option value="Performance" data-clause="Clause 15.2.1 (following the disciplinary/capability process)">Performance</option>
+        <option value="Capability" data-clause="Clause 15.2.1 (following the capability process)">Capability</option>
+        <option value="Misconduct" data-clause="Clause 17.1 and 15.2.1 (or 15.2.4 if gross misconduct)">Misconduct</option>
+      </select>
+    </div>
+
     <div class="form-group" style="margin-top:16px;">
       <label class="field-label">Comments</label>
       <textarea id="leaveComments" placeholder="Any additional context…"></textarea>
@@ -521,11 +539,31 @@ textarea { resize: vertical; min-height: 80px; }
               .map(id => document.getElementById(id).value);
   }
 
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[name="leaveReason"]').forEach(el => {
+      el.addEventListener('change', () => {
+        document.getElementById('dismissalReasonSection').style.display = (el.value === 'Dismissal') ? 'block' : 'none';
+      });
+    });
+  });
+
   window.submitOffboarding = async function() {
     const empId = document.getElementById('selectedEmployeeId').value;
     if (!empId) return showToast('Please search and select a staff member.', 'error');
     if (!document.getElementById('lastDay').value) return showToast('Please enter the Final Working Day.', 'error');
-    if (!getChecked('leaveReason')) return showToast('Please select a Reason for Leaving.', 'error');
+    
+    const leaveReasonVal = getChecked('leaveReason');
+    if (!leaveReasonVal) return showToast('Please select a Reason for Leaving.', 'error');
+
+    let termReason = '';
+    let contractClause = '';
+    if (leaveReasonVal === 'Dismissal') {
+      const termSelect = document.getElementById('terminationReason');
+      if (!termSelect.value) return showToast('Please select a Termination Reason.', 'error');
+      termReason = termSelect.value;
+      contractClause = termSelect.options[termSelect.selectedIndex].getAttribute('data-clause');
+    }
+
     if (!getChecked('informed')) return showToast('Please confirm if the employee has been informed.', 'error');
     if (!getChecked('exitInterview')) return showToast('Please confirm exit interview preference.', 'error');
 
@@ -568,7 +606,9 @@ textarea { resize: vertical; min-height: 80px; }
         location: document.getElementById('location').value,
         startDate: document.getElementById('startDate').value,
         lastWorkingDay: lastDay,
-        leaveReason: getChecked('leaveReason'),
+        leaveReason: leaveReasonVal,
+        terminationReason: termReason,
+        contractClause: contractClause,
         leaveComments: document.getElementById('leaveComments').value,
         noticeArrangement: getChecked('noticeArrangement'),
         employeeInformed: getChecked('informed'),
@@ -607,7 +647,9 @@ textarea { resize: vertical; min-height: 80px; }
           to_email: personalEmail,
           employee_name: empName,
           last_working_day: formattedLastDay,
-          date: new Date().toLocaleDateString('en-GB')
+          date: new Date().toLocaleDateString('en-GB'),
+          termination_reason: termReason,
+          contract_clause: contractClause
         });
       } else {
         await emailjs.send('service_lr28ftj', 'template_sv97s64', {
@@ -619,7 +661,7 @@ textarea { resize: vertical; min-height: 80px; }
 
       // Email 2: Notify all departments
       const portalLink = window.location.href.replace('index.html', '') + `checklist.html?id=${checklistId}`;
-      await emailjs.send('service_lr28ftj', 'template_r1ehsyt', {
+      await emailjs.send('service_lr28ftj', 'template_soiqk7i', {
         employee_name: empName,
         checklist_link: portalLink,
         last_working_day: formattedLastDay
