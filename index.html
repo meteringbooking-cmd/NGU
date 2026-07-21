@@ -348,7 +348,7 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="section-num">5</div>
       <h2>Outstanding Information</h2>
     </div>
-    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">Are there any outstanding matters that should be communicated to the relevant departments?</p>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:14px;">Are there any outstanding matters Recruitment should be aware of?</p>
     <div class="check-grid">
       <div class="check-item"><input type="checkbox" id="os1" value="Outstanding Annual Leave"><label for="os1">Outstanding Annual Leave</label></div>
       <div class="check-item"><input type="checkbox" id="os2" value="Outstanding Expenses"><label for="os2">Outstanding Expenses</label></div>
@@ -599,16 +599,25 @@ textarea { resize: vertical; min-height: 80px; }
         initiatedAt: new Date().toISOString()
       });
 
-      // Email 1: Resignation confirmation to leaver
-      await emailjs.send('service_hdd4x8i', 'template_sv97s64', {
-        to_email: personalEmail,
-        employee_name: empName,
-        last_working_day: lastDay
-      });
+      // Email 1: Confirmation to leaver
+      if (offboardData.leaveReason === 'Dismissal') {
+        await emailjs.send('service_lr28ftj', 'template_uynul4o', {
+          to_email: personalEmail,
+          employee_name: empName,
+          last_working_day: lastDay,
+          date: new Date().toLocaleDateString('en-GB')
+        });
+      } else {
+        await emailjs.send('service_lr28ftj', 'template_sv97s64', {
+          to_email: personalEmail,
+          employee_name: empName,
+          last_working_day: lastDay
+        });
+      }
 
       // Email 2: Notify all departments
       const portalLink = window.location.href.replace('index.html', '') + `checklist.html?id=${checklistId}`;
-      await emailjs.send('service_hdd4x8i', 'template_r1ehsyt', {
+      await emailjs.send('service_lr28ftj', 'template_r1ehsyt', {
         employee_name: empName,
         checklist_link: portalLink,
         last_working_day: lastDay
@@ -617,7 +626,7 @@ textarea { resize: vertical; min-height: 80px; }
       // Email 3: Exit interview scheduling link (if requested)
       if (wantsInterview && managerEmail) {
         const bookingLink = window.location.href.replace('index.html', '') + `book-exit-interview.html?id=${checklistId}`;
-        await emailjs.send('service_hdd4x8i', 'template_okr3omr', {
+        await emailjs.send('service_lr28ftj', 'template_okr3omr', {
           to_email: managerEmail,
           employee_name: empName,
           booking_link: bookingLink
