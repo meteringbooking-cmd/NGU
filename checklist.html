@@ -500,13 +500,16 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
       );
 
       const personalEmail = window._empData?.personalEmail || '';
-      await emailjs.send('service_lr28ftj', 'template_9eg8ngp', {
-        to_email: personalEmail,
-        employee_name: window._empName || 'Employee',
-        thank_you_doc_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e',
-        document_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e',
-        attachment_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e'
-      });
+      
+      if (window._empData?.leaveReason !== 'Dismissal') {
+        await emailjs.send('service_lr28ftj', 'template_9eg8ngp', {
+          to_email: personalEmail,
+          employee_name: window._empName || 'Employee',
+          thank_you_doc_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e',
+          document_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e',
+          attachment_url: 'https://firebasestorage.googleapis.com/v0/b/oesperformance-a54c0.firebasestorage.app/o/offboarding%2Ftemplates%2FThank_you_from_Next_Generation_Utilities.docx?alt=media&token=8cccee42-af4c-421c-89c7-6157b461375e'
+        });
+      }
 
       closeModal();
       showToast('Offboarding fully closed. Final email sent.');
