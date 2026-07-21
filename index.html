@@ -599,19 +599,21 @@ textarea { resize: vertical; min-height: 80px; }
         initiatedAt: new Date().toISOString()
       });
 
+      const formattedLastDay = lastDay ? lastDay.split('-').reverse().join('/') : '';
+
       // Email 1: Confirmation to leaver
       if (offboardData.leaveReason === 'Dismissal') {
         await emailjs.send('service_lr28ftj', 'template_uynul4o', {
           to_email: personalEmail,
           employee_name: empName,
-          last_working_day: lastDay,
+          last_working_day: formattedLastDay,
           date: new Date().toLocaleDateString('en-GB')
         });
       } else {
         await emailjs.send('service_lr28ftj', 'template_sv97s64', {
           to_email: personalEmail,
           employee_name: empName,
-          last_working_day: lastDay
+          last_working_day: formattedLastDay
         });
       }
 
@@ -620,7 +622,7 @@ textarea { resize: vertical; min-height: 80px; }
       await emailjs.send('service_lr28ftj', 'template_r1ehsyt', {
         employee_name: empName,
         checklist_link: portalLink,
-        last_working_day: lastDay
+        last_working_day: formattedLastDay
       });
 
       // Email 3: Exit interview scheduling link (if requested)
