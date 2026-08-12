@@ -105,7 +105,12 @@
     td { padding: 14px 16px; vertical-align: middle; }
     .comments-cell {
       max-width: 240px; overflow: hidden; text-overflow: ellipsis;
-      white-space: nowrap; color: var(--text-muted); cursor: help;
+      white-space: nowrap; color: var(--accent2); cursor: pointer; text-decoration: underline dotted;
+      text-decoration-color: rgba(71,200,255,0.4);
+    }
+    .comments-cell:hover { color: #6cd4ff; }
+    .comments-cell.is-empty {
+      color: var(--text-muted); cursor: default; text-decoration: none;
     }
     .badge {
       display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px;
@@ -220,6 +225,16 @@
       </div>
     </div>
   </div>
+  <!-- Manager Comments Detail Modal -->
+  <div class="modal-overlay" id="detailModal" onclick="if(event.target===this) this.classList.remove('open')">
+    <div class="modal">
+      <h3>Manager Comments</h3>
+      <div class="modal-body" id="detailModalBody" style="color: var(--text);"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('detailModal').classList.remove('open')">Close</button>
+      </div>
+    </div>
+  </div>
   <!-- Image Modal / Lightbox -->
   <div class="image-modal-overlay" id="imageModal" onclick="this.classList.remove('open')">
     <div class="image-modal-close">&times;</div>
@@ -276,6 +291,22 @@
       document.getElementById('imageModalImg').src = url;
       document.getElementById('imageModal').classList.add('open');
     };
+    window.showDetail = function(i) {
+      const c = window[`_comm_${i}`];
+      if (!c || !c.managerComments) return;
+      const body = document.getElementById('detailModalBody');
+      body.innerHTML = `
+        <div style="margin-bottom: 14px;">
+          <div style="font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Engineer</div>
+          <div>${esc(c.engineerName)}${c.jobNumber ? ' &middot; ' + esc(c.jobNumber) : ''}</div>
+        </div>
+        <div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;">Comments</div>
+          <div style="white-space: pre-wrap;">${esc(c.managerComments)}</div>
+        </div>
+      `;
+      document.getElementById('detailModal').classList.add('open');
+    };
     function getStatusBadge(status) {
       if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
       if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
@@ -313,11 +344,14 @@
         return;
       }
       tbody.innerHTML = comms.map((c, i) => {
-        window[`_commImgs_${i}`] = c.images || [];
+        window[`_comm_${i}`] = c;
         const imageLinks = (c.images || []).map((img, imgIdx) =>
-          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${esc(img.name)}</a>`
+          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_comm_${i}'].images[${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${esc(img.name)}</a>`
         ).join('');
         const comment = c.managerComments || '';
+        const commentCell = comment
+          ? `<td class="comments-cell" title="Click to view full comment" onclick="window.showDetail(${i})">${esc(comment)}</td>`
+          : `<td class="comments-cell is-empty">-</td>`;
         return `
           <tr>
             <td>${esc(c.date)}</td>
@@ -325,7 +359,7 @@
             <td style="font-weight: 500;">${esc(c.engineerName)}</td>
             <td>${esc(c.manager)}</td>
             <td>${esc(c.coachingPoint)}</td>
-            <td class="comments-cell" title="${esc(comment)}">${esc(comment) || '<span style="color:var(--text-muted)">-</span>'}</td>
+            ${commentCell}
             <td>${esc(c.revisit)}</td>
             <td>${getStatusBadge(c.status)}</td>
             <td>${getPushStatusBadge(c.pushStatus)}</td>
@@ -398,6 +432,7 @@
           coaching_point: comm.coachingPoint,
           date: comm.date,
           job_number: comm.jobNumber || '',
+          manager_comments: comm.managerComments || '',
           review_link: document.getElementById('shareLink').value
         });
         alert('Email sent to ' + email);
