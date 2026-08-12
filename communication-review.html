@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Team Leader Review</title>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <title>Communication Submission</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
     :root {
@@ -43,14 +43,10 @@
       flex: 1 1 auto; width: 100%; margin: 0 auto; padding: 28px 32px;
       display: flex; flex-direction: column; min-height: 0;
     }
-    .grid-2 {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-      flex: 1 1 auto; min-height: 0; align-items: stretch;
-    }
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 10px; padding: 24px 28px; position: relative; overflow: hidden;
-      display: flex; flex-direction: column; min-height: 0;
+      flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;
     }
     .card::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
@@ -61,13 +57,10 @@
       display: flex; align-items: center; gap: 10px; flex-shrink: 0;
     }
     .card-title svg { color: var(--accent); }
-    #submissionForm {
-      display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow-y: auto;
-    }
-    .grid-2 .grid-2 { flex: 0 0 auto; }
+    .card > p { flex-shrink: 0; }
+    .table-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-    .form-group:has(.form-textarea) { flex: 1 1 auto; min-height: 0; }
-    .form-textarea { flex: 1 1 auto; }
     .form-label {
       font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
@@ -88,7 +81,6 @@
       font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
       cursor: pointer; transition: background 0.15s, transform 0.1s;
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      flex-shrink: 0;
     }
     .btn:hover { background: #d4eb30; transform: translateY(-1px); }
     .btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; transform: none; }
@@ -96,7 +88,10 @@
       background: transparent; color: var(--text); border: 1px solid var(--border);
     }
     .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
-    .table-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .btn-secondary {
+      background: var(--accent2); color: #04141c;
+    }
+    .btn-secondary:hover { background: #6cd4ff; }
     table { width: 100%; border-collapse: collapse; }
     thead tr { border-bottom: 2px solid var(--accent); }
     th {
@@ -109,8 +104,8 @@
     tbody tr:hover { background: rgba(255,255,255,0.04); }
     td { padding: 14px 16px; vertical-align: middle; }
     .comments-cell {
-      max-width: 260px; overflow: hidden; text-overflow: ellipsis;
-      white-space: nowrap; color: var(--text-muted);
+      max-width: 240px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; color: var(--text-muted); cursor: help;
     }
     .badge {
       display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 12px;
@@ -120,6 +115,7 @@
     .badge-accepted { background: rgba(74,222,128,0.12); color: var(--in-stock); }
     .badge-challenged { background: rgba(248,113,113,0.12); color: var(--out); }
     .badge-closed { background: rgba(71,200,255,0.12); color: var(--accent2); }
+    .badge-sent { background: rgba(212,245,60,0.12); color: var(--accent); }
     .radio-group { display: flex; gap: 16px; }
     .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .upload-box {
@@ -141,16 +137,8 @@
       width: 500px; max-width: 95vw; padding: 28px; max-height: 85vh; overflow-y: auto;
     }
     .modal h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-    .modal-body { font-size: 14px; margin-bottom: 22px; color: var(--text); }
-    .modal-body .row { margin-bottom: 14px; }
-    .modal-body .row:last-child { margin-bottom: 0; }
-    .modal-body .label {
-      font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-    .modal-body .value { white-space: pre-wrap; color: var(--text); }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-body { font-size: 14px; margin-bottom: 22px; color: var(--text-muted); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
     /* Image Lightbox Modal */
     .image-modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
@@ -163,125 +151,72 @@
       font-family: sans-serif; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
     @media (max-width: 900px) {
-      .grid-2 { grid-template-columns: 1fr; }
       .page { overflow-y: auto; }
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">Communication Hub<span>.</span></div>
+    <div class="logo">Communication Hub.<span>.</span></div>
     <div class="header-right">
-      <span class="header-badge">Admin: Communication Portal</span>
+      <span class="header-badge">Team Leader: Communication Review</span>
     </div>
   </header>
   <div class="page">
-    <div class="grid-2">
-      <!-- Submission Form -->
-      <div class="card">
-        <div class="card-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-          Submit Communication
-        </div>
-        <form id="submissionForm">
-          <div class="form-group">
-            <label class="form-label">Engineer Name</label>
-            <input type="text" id="engName" class="form-input" required placeholder="e.g. John Doe">
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
-              <label class="form-label">Date</label>
-              <input type="date" id="commDate" class="form-input" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Job Number</label>
-              <input type="text" id="jobNumber" class="form-input" placeholder="e.g. JB-10234">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Manager</label>
-            <select id="managerName" class="form-select" required>
-              <option value="">Select Manager...</option>
-              <option value="Richard Wiecko">Richard Wiecko</option>
-              <option value="Scott Carson">Scott Carson</option>
-              <option value="Stuart Whyte">Stuart Whyte</option>
-              <option value="Thomas Green">Thomas Green</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Coaching Point</label>
-            <select id="coachingPoint" class="form-select" required>
-              <option value="">Select Point...</option>
-              <option value="Audit fail">Audit fail</option>
-              <option value="Complaint">Complaint</option>
-              <option value="121">121</option>
-              <option value="WIP Feedback">WIP Feedback</option>
-              <option value="Recognition">Recognition</option>
-              <option value="Training issue">Training issue</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Revisit Required?</label>
-            <div class="radio-group">
-              <label class="radio-label"><input type="radio" name="revisit" value="Yes" required> Yes</label>
-              <label class="radio-label"><input type="radio" name="revisit" value="No"> No</label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Upload Images (Max 5)</label>
-            <div class="upload-box" id="uploadBox">
-              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Click to select up to 5 images
-              <input type="file" id="imageUpload" multiple accept="image/*">
-            </div>
-            <div id="fileList" class="files-list"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Manager Comments</label>
-            <textarea id="managerComments" class="form-textarea" required placeholder="Enter details regarding this communication..."></textarea>
-          </div>
-          <button type="submit" class="btn" id="submitBtn" style="width:100%">
-            Submit Communication
-          </button>
-        </form>
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Pending Engineer Communications
       </div>
-      <!-- Overview -->
-      <div class="card" style="grid-column: span 1;">
-        <div class="card-title" style="justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-            Recent Submissions
-          </div>
-          <a href="communication-historic.html" class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; text-decoration: none; border-radius: 4px;">View Historic</a>
-        </div>
-        <div class="table-wrap">
-          <table id="submissionsTable">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Job #</th>
-                <th>Engineer</th>
-                <th>Point</th>
-                <th>Comments</th>
-                <th>Status</th>
-                <th>Images</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-              <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Review submissions and push them to engineers for acknowledgement.</p>
+      <div class="table-wrap">
+        <table id="reviewTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Job #</th>
+              <th>Engineer Name</th>
+              <th>Manager</th>
+              <th>Coaching Point</th>
+              <th>Manager Comments</th>
+              <th>Revisit</th>
+              <th>Status</th>
+              <th>Push Status</th>
+              <th>Images</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="11" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  <!-- Submission Detail Modal -->
-  <div class="modal-overlay" id="detailModal" onclick="if(event.target===this) this.classList.remove('open')">
+  <!-- Modal for pushing comm -->
+  <div class="modal-overlay" id="pushModal">
     <div class="modal">
-      <h3>Submission Details</h3>
-      <div class="modal-body" id="detailModalBody"></div>
+      <h3>Push to Engineer</h3>
+      <div class="modal-body">
+        Send this review to <strong><span id="modalEngName"></span></strong> — copy the link to send it yourself, or email it directly.
+      </div>
+      <div style="margin-bottom: 16px;">
+        <input type="text" id="shareLink" class="form-input" readonly style="font-family: 'DM Mono', monospace; font-size: 12px; background: var(--surface2); color: var(--accent2);">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Engineer Email</label>
+        <input type="email" id="engineerEmail" class="form-input" placeholder="firstname.lastname@next-gen.uk">
+      </div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-outline" onclick="document.getElementById('detailModal').classList.remove('open')">Close</button>
+        <button class="btn-outline" style="border: none;" onclick="closeModal()">Cancel</button>
+        <button class="btn" onclick="copyLink()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy Link
+        </button>
+        <button class="btn btn-secondary" id="sendEmailBtn" onclick="sendEmailToEngineer()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          Email to Engineer
+        </button>
       </div>
     </div>
   </div>
@@ -294,8 +229,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, serverTimestamp, query, orderBy }
       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject }
-      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
     const firebaseConfig = {
       apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
       authDomain: "oesperformance-a54c0.firebaseapp.com",
@@ -307,17 +240,23 @@
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
-    async function submitCommunication(data) {
-      try {
-        data.createdAt = serverTimestamp();
-        data.status = 'Pending';
-        const docRef = await addDoc(collection(db, "communication-submissions"), data);
-        return docRef.id;
-      } catch (e) {
-        console.error("Error adding document: ", e);
-        throw e;
+    // EmailJS init (guarded so a failed/blocked CDN load doesn't break the whole page)
+    let emailjsReady = false;
+    try {
+      if (typeof emailjs !== 'undefined') {
+        emailjs.init('ziLnha91scpGjFABh');
+        emailjsReady = true;
+      } else {
+        console.warn('EmailJS script did not load; "Email to Engineer" will be disabled.');
       }
+    } catch (e) {
+      console.error('EmailJS init failed:', e);
+    }
+    // Small HTML-escape helper so comments/names can't break markup
+    function esc(str) {
+      return String(str ?? '').replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[m]));
     }
     async function getCommunications() {
       try {
@@ -333,226 +272,146 @@
         return [];
       }
     }
-    window.openImage = function(base64Str) {
-      document.getElementById('imageModalImg').src = base64Str;
+    window.openImage = function(url) {
+      document.getElementById('imageModalImg').src = url;
       document.getElementById('imageModal').classList.add('open');
     };
-    // Small HTML-escape helper so comments/names can't break markup
-    function esc(str) {
-      return String(str ?? '').replace(/[&<>"']/g, (m) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[m]));
-    }
-    window.showDetail = function(i) {
-      const c = window[`_comm_${i}`];
-      if (!c) return;
-      const body = document.getElementById('detailModalBody');
-      body.innerHTML = `
-        <div class="row"><div class="label">Engineer</div><div class="value">${esc(c.engineerName)}</div></div>
-        <div class="row"><div class="label">Manager</div><div class="value">${esc(c.manager)}</div></div>
-        <div class="row"><div class="label">Coaching Point</div><div class="value">${esc(c.coachingPoint)}</div></div>
-        <div class="row"><div class="label">Manager Comments</div><div class="value">${esc(c.managerComments) || '<span style="color:var(--text-muted)">None</span>'}</div></div>
-        <div class="row"><div class="label">Engineer Comments</div><div class="value">${esc(c.engineerComments) || '<span style="color:var(--text-muted)">None</span>'}</div></div>
-        <div class="row"><div class="label">Signature</div><div class="value">${esc(c.signature) || '<span style="color:var(--text-muted)">None</span>'}</div></div>
-      `;
-      document.getElementById('detailModal').classList.add('open');
-    };
-    // File Upload handling - uploads to Firebase Storage as soon as each file is selected
-    const uploadBox = document.getElementById('uploadBox');
-    const imageUpload = document.getElementById('imageUpload');
-    const fileList = document.getElementById('fileList');
-    let selectedFiles = []; // { id, name, status: 'uploading'|'done'|'error', progress, url, storagePath, task, promise }
-    function renderFileList() {
-      fileList.innerHTML = selectedFiles.map(f => {
-        let statusHtml = '';
-        if (f.status === 'uploading') {
-          statusHtml = `<span style="color: var(--warning);">Uploading… ${f.progress || 0}%</span>`;
-        } else if (f.status === 'done') {
-          statusHtml = `<span style="color: var(--in-stock);">Uploaded</span>`;
-        } else if (f.status === 'error') {
-          statusHtml = `<span style="color: var(--out);">Failed</span>`;
-        }
-        return `
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 0;">
-            <span>📎 ${f.name}</span>
-            <span style="display:flex; align-items:center; gap:10px;">
-              ${statusHtml}
-              <span onclick="window.removeSelectedFile('${f.id}')" style="cursor:pointer; color: var(--out); font-weight:700;" title="Remove">✕</span>
-            </span>
-          </div>
-        `;
-      }).join('');
-    }
-    window.removeSelectedFile = async function(id) {
-      const idx = selectedFiles.findIndex(f => f.id === id);
-      if (idx === -1) return;
-      const f = selectedFiles[idx];
-      if (f.task && f.status === 'uploading') {
-        try { f.task.cancel(); } catch (err) {}
-      }
-      if (f.status === 'done' && f.storagePath) {
-        try { await deleteObject(ref(storage, f.storagePath)); }
-        catch (err) { console.warn('Could not delete file from storage:', err); }
-      }
-      selectedFiles.splice(idx, 1);
-      renderFileList();
-    };
-    function uploadFile(fileEntry, file) {
-      const storagePath = `communication-images/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name}`;
-      const storageRef = ref(storage, storagePath);
-      const task = uploadBytesResumable(storageRef, file);
-      fileEntry.task = task;
-      fileEntry.storagePath = storagePath;
-      fileEntry.promise = new Promise((resolve) => {
-        task.on('state_changed',
-          (snapshot) => {
-            fileEntry.progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            renderFileList();
-          },
-          (error) => {
-            console.error('Upload failed:', error);
-            fileEntry.status = 'error';
-            renderFileList();
-            resolve(null);
-          },
-          async () => {
-            try {
-              const url = await getDownloadURL(task.snapshot.ref);
-              fileEntry.url = url;
-              fileEntry.status = 'done';
-              renderFileList();
-              resolve({ name: file.name, url, path: storagePath });
-            } catch (err) {
-              console.error('Could not get download URL:', err);
-              fileEntry.status = 'error';
-              renderFileList();
-              resolve(null);
-            }
-          }
-        );
-      });
-    }
-    uploadBox.addEventListener('click', () => imageUpload.click());
-    imageUpload.addEventListener('change', (e) => {
-      const files = Array.from(e.target.files);
-      if (files.length + selectedFiles.length > 5) {
-        alert('You can only upload up to 5 images.');
-        imageUpload.value = '';
-        return;
-      }
-      files.forEach(file => {
-        const fileEntry = {
-          id: Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-          name: file.name,
-          status: 'uploading',
-          progress: 0
-        };
-        selectedFiles.push(fileEntry);
-        uploadFile(fileEntry, file);
-      });
-      renderFileList();
-      imageUpload.value = ''; // allow re-selecting a file with the same name later
-    });
-    // Manager email lookup
-    const managerEmails = {
-      'Richard Wiecko': 'richard.wiecko@next-gen.uk',
-      'Scott Carson': 'scott.carson@next-gen.uk',
-      'Stuart Whyte': 'stuart.whyte@next-gen.uk',
-      'Thomas Green': 'thomas.green@next-gen.uk'
-    };
-    // EmailJS init
-    emailjs.init('ziLnha91scpGjFABh');
-    async function sendManagerEmail(managerName, engineerName, coachingPoint, date, jobNumber) {
-      const toEmail = managerEmails[managerName];
-      if (!toEmail) return;
-      await emailjs.send('service_8lgghpq', 'template_pv50ldd', {
-        manager_name: managerName,
-        to_email: toEmail,
-        engineer_name: engineerName,
-        coaching_point: coachingPoint,
-        date: date,
-        job_number: jobNumber,
-        comms_hub_url: 'https://ngu-green.vercel.app/communication-review.html'
-      });
-    }
-    // Form Submission
-    document.getElementById('submissionForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerText = 'Submitting...';
-      if (selectedFiles.some(f => f.status === 'uploading')) {
-        btn.innerText = 'Finishing image upload...';
-      }
-      const uploadResults = await Promise.all(selectedFiles.map(f => f.promise || Promise.resolve(null)));
-      const uploadedImages = uploadResults.filter(Boolean);
-      const data = {
-        engineerName: document.getElementById('engName').value,
-        date: document.getElementById('commDate').value,
-        jobNumber: document.getElementById('jobNumber').value,
-        manager: document.getElementById('managerName').value,
-        coachingPoint: document.getElementById('coachingPoint').value,
-        revisit: document.querySelector('input[name="revisit"]:checked').value,
-        managerComments: document.getElementById('managerComments').value,
-        images: uploadedImages
-      };
-      try {
-        await submitCommunication(data);
-        // Send email notification to manager
-        try {
-          await sendManagerEmail(data.manager, data.engineerName, data.coachingPoint, data.date, data.jobNumber);
-        } catch (emailErr) {
-          console.warn('Email notification failed (submission still saved):', emailErr);
-        }
-        alert('Communication submitted successfully!');
-        e.target.reset();
-        selectedFiles = [];
-        fileList.innerHTML = '';
-        loadTable();
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Submit Communication';
-      }
-    });
     function getStatusBadge(status) {
       if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
       if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
       if (status === 'Challenge closed') return '<span class="badge badge-closed">Challenge Closed</span>';
       return '<span class="badge badge-pending">Pending</span>';
     }
+    function getPushStatusBadge(pushStatus) {
+      if (pushStatus === 'Sent') return '<span class="badge badge-sent">Sent</span>';
+      return '<span class="badge" style="background: rgba(136,153,170,0.12); color: var(--text-muted);">Not Sent</span>';
+    }
+    // Guess the engineer's company email from their full name: firstname.lastname@next-gen.uk
+    // Strips apostrophes, accents, hyphens etc. since real addresses don't include them
+    // (e.g. "Barry O'Sullivan" -> "barry.osullivan@next-gen.uk")
+    function sanitizeForEmail(part) {
+      return part
+        .normalize('NFKD').replace(/[\u0300-\u036f]/g, '') // strip accents (e-acute -> e)
+        .replace(/[^a-z0-9]/gi, '') // strip anything that isn't a letter/number
+        .toLowerCase();
+    }
+    function guessEngineerEmail(fullName) {
+      if (!fullName) return '';
+      const parts = fullName.trim().split(/\s+/).filter(Boolean);
+      if (parts.length < 2) return '';
+      const first = sanitizeForEmail(parts[0]);
+      const last = sanitizeForEmail(parts[parts.length - 1]);
+      if (!first || !last) return '';
+      return `${first}.${last}@next-gen.uk`;
+    }
     async function loadTable() {
       const tbody = document.getElementById('tableBody');
       const comms = await getCommunications();
+      window._comms = comms;
       if (comms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
         return;
       }
       tbody.innerHTML = comms.map((c, i) => {
-        // Store the full record so the detail modal and image links can read it without huge inline HTML strings
-        window[`_comm_${i}`] = c;
-        const comment = c.managerComments || '';
+        window[`_commImgs_${i}`] = c.images || [];
         const imageLinks = (c.images || []).map((img, imgIdx) =>
-          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_comm_${i}'].images[${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${esc(img.name)}</a>`
+          `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${esc(img.name)}</a>`
         ).join('');
+        const comment = c.managerComments || '';
         return `
-          <tr style="cursor: pointer;" onclick="window.showDetail(${i})">
+          <tr>
             <td>${esc(c.date)}</td>
             <td>${esc(c.jobNumber) || '<span style="color:var(--text-muted)">-</span>'}</td>
             <td style="font-weight: 500;">${esc(c.engineerName)}</td>
+            <td>${esc(c.manager)}</td>
             <td>${esc(c.coachingPoint)}</td>
             <td class="comments-cell" title="${esc(comment)}">${esc(comment) || '<span style="color:var(--text-muted)">-</span>'}</td>
+            <td>${esc(c.revisit)}</td>
             <td>${getStatusBadge(c.status)}</td>
+            <td>${getPushStatusBadge(c.pushStatus)}</td>
             <td>${imageLinks || '<span style="color:var(--text-muted)">None</span>'}</td>
+            <td>
+              <button class="btn btn-outline push-btn" style="padding: 6px 12px; font-size: 12px;" data-id="${c.id}" data-name="${(c.engineerName || '').replace(/"/g, '&quot;')}">
+                Push to Engineer
+              </button>
+            </td>
           </tr>
         `;
       }).join('');
+      // Wire up push buttons (avoids inline-onclick breaking on names with quotes/apostrophes)
+      tbody.querySelectorAll('.push-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openPushModal(btn.dataset.id, btn.dataset.name);
+        });
+      });
     }
-    window.onload = () => {
-      document.getElementById('commDate').valueAsDate = new Date();
-      loadTable();
+    // Modal Logic
+    const pushModal = document.getElementById('pushModal');
+    let currentId = null;
+    function openPushModal(id, name) {
+      currentId = id;
+      document.getElementById('modalEngName').innerText = name;
+      const url = new URL('communication-engineer.html', window.location.href);
+      url.searchParams.set('id', id);
+      document.getElementById('shareLink').value = url.href;
+      document.getElementById('engineerEmail').value = guessEngineerEmail(name);
+      pushModal.classList.add('open');
+    }
+    window.closeModal = () => {
+      pushModal.classList.remove('open');
     };
+    async function markPushStatusSent() {
+      if (!currentId) return;
+      try {
+        await updateDoc(doc(db, "communication-submissions", currentId), { pushStatus: 'Sent' });
+        loadTable();
+      } catch (e) {
+        console.error('Could not update push status:', e);
+      }
+    }
+    window.copyLink = () => {
+      const link = document.getElementById('shareLink');
+      link.select();
+      document.execCommand('copy');
+      alert('Link copied to clipboard. You can now send it to the engineer.');
+      closeModal();
+    };
+    window.sendEmailToEngineer = async () => {
+      if (!emailjsReady) {
+        alert('Email sending isn\'t available right now (EmailJS failed to load). Please use Copy Link instead.');
+        return;
+      }
+      const email = document.getElementById('engineerEmail').value.trim();
+      if (!email) {
+        alert('Please enter the engineer\'s email address.');
+        return;
+      }
+      const comm = (window._comms || []).find(c => c.id === currentId);
+      if (!comm) return;
+      const btn = document.getElementById('sendEmailBtn');
+      btn.disabled = true;
+      btn.innerText = 'Sending...';
+      try {
+        await emailjs.send('service_8lgghpq', 'template_dvnz57i', {
+          engineer_name: comm.engineerName,
+          to_email: email,
+          coaching_point: comm.coachingPoint,
+          date: comm.date,
+          job_number: comm.jobNumber || '',
+          review_link: document.getElementById('shareLink').value
+        });
+        alert('Email sent to ' + email);
+        await markPushStatusSent();
+        closeModal();
+      } catch (e) {
+        console.error('Email send failed:', e);
+        alert('Could not send email. Please check the address or try Copy Link instead.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email to Engineer';
+      }
+    };
+    window.onload = loadTable;
   </script>
 </body>
 </html>
