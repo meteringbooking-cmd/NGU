@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Great Office Divide</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sauna-hot:#FF5A36;
+    --sauna-deep:#B3261E;
+    --sauna-cream:#F4E3C1;
+    --arctic-ice:#BFE9F2;
+    --arctic-deep:#0B3D59;
+    --arctic-white:#EAF7FB;
+    --ink:#1B1B1B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;font-family:'Space Grotesk',sans-serif;overflow-x:hidden;}
+  body{
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    background:var(--ink);
+  }
+  .stage{
+    position:relative;
+    display:flex;
+    flex:1;
+    min-height:640px;
+  }
+  .side{
+    position:relative;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:48px 24px;
+    overflow:hidden;
+  }
+  .sauna{
+    background:linear-gradient(180deg,var(--sauna-hot) 0%, var(--sauna-deep) 100%);
+    color:var(--sauna-cream);
+  }
+  .arctic{
+    background:linear-gradient(180deg,var(--arctic-white) 0%, var(--arctic-ice) 55%, var(--arctic-deep) 100%);
+    color:var(--arctic-deep);
+  }
+  .eyebrow{
+    font-size:13px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.85;
+    margin-bottom:10px;
+    font-weight:600;
+  }
+  h1.zone{
+    font-family:'Bungee',sans-serif;
+    font-size:clamp(34px,6vw,64px);
+    margin:0 0 14px;
+    line-height:1;
+  }
+  .sauna h1.zone{
+    text-shadow:0 0 18px rgba(255,120,60,.7);
+    animation:heatShimmer 2.4s ease-in-out infinite;
+  }
+  .arctic h1.zone{
+    text-shadow:0 2px 0 rgba(255,255,255,.6);
+  }
+  .sub{
+    font-size:16px;
+    max-width:340px;
+    margin:0 auto 26px;
+    opacity:.95;
+    font-weight:500;
+  }
+  .temp-badge{
+    font-family:'Bungee',sans-serif;
+    font-size:clamp(48px,9vw,88px);
+    line-height:1;
+    margin-bottom:6px;
+  }
+  .temp-label{
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    opacity:.8;
+    font-weight:600;
+  }
+  .roster{
+    margin-top:28px;
+    padding:14px 20px;
+    border-radius:14px;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:.02em;
+  }
+  .sauna .roster{
+    background:rgba(0,0,0,.22);
+    border:1px dashed rgba(244,227,193,.5);
+  }
+  .arctic .roster{
+    background:rgba(11,61,89,.08);
+    border:1px dashed rgba(11,61,89,.35);
+  }
+  @keyframes heatShimmer{
+    0%,100%{ transform: translateY(0) skewX(0deg); }
+    25%{ transform: translateY(-2px) skewX(.4deg); }
+    50%{ transform: translateY(1px) skewX(-.4deg); }
+    75%{ transform: translateY(-1px) skewX(.2deg); }
+  }
+
+  /* heat shimmer waves rising from bottom of sauna side */
+  .heat-wave{
+    position:absolute;
+    bottom:0; left:0; width:100%; height:100%;
+    background:repeating-linear-gradient(
+      to top,
+      rgba(255,255,255,.06) 0px,
+      rgba(255,255,255,0) 40px
+    );
+    filter: blur(2px);
+    animation: rise 3.2s linear infinite;
+    pointer-events:none;
+  }
+  @keyframes rise{
+    0%{ transform: translateY(0); opacity:.5; }
+    100%{ transform: translateY(-60px); opacity:.9; }
+  }
+
+  .flame{
+    position:absolute;
+    font-size:22px;
+    opacity:.55;
+    animation: flicker 1.6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes flicker{
+    0%,100%{ transform: scale(1) rotate(-2deg); opacity:.4; }
+    50%{ transform: scale(1.15) rotate(2deg); opacity:.8; }
+  }
+
+  .snowflake{
+    position:absolute;
+    top:-10%;
+    color:rgba(11,61,89,.55);
+    font-size:16px;
+    animation-name: fall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    pointer-events:none;
+  }
+  @keyframes fall{
+    0%{ transform: translateY(-10%) translateX(0) rotate(0deg); opacity:0; }
+    10%{ opacity:.9; }
+    100%{ transform: translateY(115%) translateX(20px) rotate(180deg); opacity:.2; }
+  }
+
+  .ac-unit{
+    position:absolute;
+    top:20px;
+    right:24px;
+    font-size:34px;
+    opacity:.8;
+    animation: hum 2s ease-in-out infinite;
+  }
+  @keyframes hum{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-3px); }
+  }
+
+  .divider{
+    position:absolute;
+    top:0; bottom:0; left:50%;
+    width:6px;
+    transform:translateX(-50%);
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--ink) 0px, var(--ink) 10px,
+      transparent 10px, transparent 20px
+    );
+    z-index:5;
+  }
+  .divider-tag{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) rotate(-4deg);
+    background:var(--ink);
+    color:#fff;
+    font-family:'Bungee',sans-serif;
+    font-size:13px;
+    letter-spacing:.08em;
+    padding:10px 16px;
+    border-radius:6px;
+    box-shadow:0 8px 20px rgba(0,0,0,.35);
+    z-index:6;
+    white-space:nowrap;
+  }
+
+  footer{
+    background:var(--ink);
+    color:#f4f1ea;
+    text-align:center;
+    padding:26px 20px 30px;
+    font-size:14px;
+  }
+  footer strong{
+    color:var(--sauna-hot);
+  }
+  footer .cold{
+    color:var(--arctic-ice);
+  }
+
+  .footprints{
+    position:absolute;
+    top:38%;
+    left:-40px;
+    width:120px;
+    font-size:15px;
+    letter-spacing:10px;
+    opacity:.5;
+    z-index:4;
+    animation: walk 4s ease-in-out infinite;
+  }
+  @keyframes walk{
+    0%,100%{ opacity:.35; }
+    50%{ opacity:.65; }
+  }
+
+  .comic-panel{
+    position:absolute;
+    top:16px;
+    left:20px;
+    display:flex;
+    gap:10px;
+    z-index:6;
+    max-width:78%;
+  }
+  .avatar{
+    flex-shrink:0;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:var(--arctic-deep);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    box-shadow:0 4px 10px rgba(0,0,0,.2);
+  }
+  .bubbles{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .bubble{
+    background:#fff;
+    color:var(--arctic-deep);
+    font-size:12.5px;
+    font-weight:600;
+    padding:8px 12px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,.12);
+    position:relative;
+    line-height:1.4;
+  }
+  .bubble.one{ border-bottom-left-radius:3px; }
+  .bubble.two{ border-bottom-left-radius:3px; align-self:flex-start; }
+  .bubble.three{
+    background:var(--sauna-hot);
+    color:#fff;
+    align-self:flex-start;
+    border-bottom-left-radius:3px;
+  }
+
+  @media (max-width: 720px){
+    .comic-panel{ position:static; margin:0 auto 18px; max-width:100%; padding:0 8px; }
+    .footprints{ display:none; }
+  }
+
+  @media (max-width: 720px){
+    .stage{ flex-direction:column; min-height:auto; }
+    .divider{ top:50%; left:0; right:0; width:100%; height:6px; transform:translateY(-50%); }
+    .divider-tag{ font-size:11px; padding:8px 12px; }
+    .side{ padding:56px 20px; }
+    .ac-unit{ top:14px; right:16px; font-size:26px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage">
+
+    <!-- SAUNA SIDE -->
+    <section class="side sauna">
+      <div class="heat-wave"></div>
+      <div class="flame" style="left:12%; top:22%;">🔥</div>
+      <div class="flame" style="left:78%; top:34%; animation-delay:.6s;">🔥</div>
+      <div class="flame" style="left:20%; top:70%; animation-delay:1.1s;">🔥</div>
+      <div class="flame" style="left:85%; top:75%; animation-delay:.3s;">🔥</div>
+
+      <div class="eyebrow">Zone A</div>
+      <h1 class="zone">Sauna Side</h1>
+      <p class="sub">Population: Barry. Humidity: biblical. Air quality: soup.</p>
+
+      <div class="temp-badge">94°F</div>
+      <div class="temp-label">and rising, apparently forever</div>
+
+      <div class="roster">🫠 currently melting solo</div>
+    </section>
+
+    <!-- DIVIDER -->
+    <div class="divider"></div>
+    <div class="divider-tag">THE GREAT DIVIDE</div>
+
+    <!-- ARCTIC SIDE -->
+    <section class="side arctic">
+      <div class="footprints">👣 👣 👣</div>
+      <div class="comic-panel">
+        <div class="avatar">🕶️</div>
+        <div class="avatar">🧣</div>
+        <div class="avatar">🕶️</div>
+        <div class="bubbles">
+          <div class="bubble one">Adele: "It's basically a sauna over there, not our problem."</div>
+          <div class="bubble two">Becky: "Race you to the AC vent!"</div>
+          <div class="bubble three">Adele: "Yeah, fuck that, Barry!"</div>
+        </div>
+      </div>
+      <div class="ac-unit">🧊</div>
+      <div class="snowflake" style="left:8%; animation-duration:6s;">❄️</div>
+      <div class="snowflake" style="left:28%; animation-duration:8s; animation-delay:1s;">❄️</div>
+      <div class="snowflake" style="left:52%; animation-duration:7s; animation-delay:2.4s;">❄️</div>
+      <div class="snowflake" style="left:70%; animation-duration:9s; animation-delay:.5s;">❄️</div>
+      <div class="snowflake" style="left:88%; animation-duration:6.5s; animation-delay:1.8s;">❄️</div>
+
+      <div class="eyebrow">Zone B</div>
+      <h1 class="zone">The Arctic</h1>
+      <p class="sub">Population: Adele Bennett &amp; Becky Johnson. Vibe: unbothered.</p>
+
+      <div class="temp-badge">61°F</div>
+      <div class="temp-label">crisp, comfortable, morally questionable</div>
+
+      <div class="roster">🕶️ sipping cold brew, feeling great</div>
+    </section>
+
+  </div>
+
+  <footer>
+    Filed under: <strong>things that happened at work today</strong> —
+    left in the sauna while <span class="cold">Adele &amp; Becky</span> defected to the AC. 33° of betrayal and counting. 🌡️
+  </footer>
+
+</body>
+</html>
