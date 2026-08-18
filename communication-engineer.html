@@ -329,9 +329,9 @@
       if (comm.images && comm.images.length > 0) {
         // Store images in global variable to avoid large strings in inline handlers
         window._currentCommImgs = comm.images;
-        document.getElementById('roImages').innerHTML = comm.images.map((img, idx) => 
-          `<a href="#" onclick="event.preventDefault(); window.openImage(window._currentCommImgs[${idx}].data);" style="color:var(--accent2); display:block; margin-bottom:5px;">📎 ${img.name}</a>`
-        ).join('');
+document.getElementById('roImages').innerHTML = comm.images.map((img, idx) => 
+  `<a href="#" onclick="event.preventDefault(); window.openImage(window._currentCommImgs[${idx}].url);" style="color:var(--accent2); display:block; margin-bottom:5px;">📎 ${img.name}</a>`
+).join('');
       } else {
         document.getElementById('roImagesContainer').style.display = 'none';
       }
