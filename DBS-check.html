@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGU - DBS Check Renewal</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Signature Pad -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #005EB8; --accent: #00A3E0;
+            --bg-dark: #0A1628; --bg-card: #1a2942; --bg-input: #0d1f3a;
+            --text-light: #f8fafc; --text-muted: #8b9bb4;
+            --border: rgba(0, 163, 224, 0.2);
+            --success: #10b981; --error: #ef4444; --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh; padding: 2rem 1.5rem;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(circle at 15% 20%, rgba(0,163,224,0.08) 0%, transparent 55%),
+                        radial-gradient(circle at 85% 75%, rgba(0,94,184,0.07) 0%, transparent 55%);
+            pointer-events: none; z-index: -1;
+        }
+
+        .logo { width: 140px; margin-bottom: 2rem; }
+        
+        .container {
+            width: 100%; max-width: 700px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        .page-header { text-align: center; margin-bottom: 2.5rem; }
+        .page-header h1 { font-size: 2rem; font-weight: 800; color: var(--accent); margin-bottom: 0.8rem; letter-spacing: -0.03em; }
+        .page-header p { color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; }
+
+        .form-section {
+            background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 1.8rem; margin-bottom: 1.5rem;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group:last-child { margin-bottom: 0; }
+        
+        label { display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.6rem; }
+        .required-asterisk { color: var(--accent); }
+
+        input[type="text"], input[type="date"], input[type="email"] {
+            width: 100%; padding: 0.9rem 1rem; background: var(--bg-input);
+            border: 2px solid var(--border); border-radius: 10px; color: var(--text-light);
+            font-size: 1rem; font-family: inherit; transition: all 0.2s; outline: none;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,163,224,0.15); }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
+
+        .radio-group { display: flex; flex-direction: column; gap: 0.8rem; }
+        .radio-option {
+            display: flex; align-items: center; gap: 0.8rem;
+            background: var(--bg-input); padding: 1rem; border-radius: 10px;
+            border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;
+        }
+        .radio-option:hover { border-color: var(--accent); background: rgba(0,163,224,0.05); }
+        .radio-option input[type="radio"] {
+            appearance: none; width: 20px; height: 20px; border: 2px solid var(--text-muted);
+            border-radius: 50%; outline: none; position: relative; cursor: pointer; transition: all 0.2s;
+        }
+        .radio-option input[type="radio"]:checked { border-color: var(--accent); }
+        .radio-option input[type="radio"]:checked::after {
+            content: ''; position: absolute; inset: 4px; background: var(--accent); border-radius: 50%;
+        }
+        .radio-option label { margin: 0; cursor: pointer; font-weight: 500; font-size: 0.95rem; }
+
+        .checkbox-option {
+            display: flex; align-items: center; gap: 0.8rem;
+            background: var(--bg-input); padding: 1rem; border-radius: 10px;
+            border: 2px solid var(--border); cursor: pointer; transition: all 0.2s;
+        }
+        .checkbox-option input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
+        .checkbox-option label { margin: 0; cursor: pointer; font-weight: 500; }
+
+        /* File Upload */
+        .upload-zone {
+            border: 2px dashed var(--border); border-radius: 12px; padding: 2rem 1rem;
+            text-align: center; cursor: pointer; transition: all 0.2s; position: relative; background: var(--bg-input);
+        }
+        .upload-zone:hover { border-color: var(--accent); background: rgba(0,163,224,0.05); }
+        .upload-zone.has-file { border-color: var(--success); border-style: solid; background: rgba(16,185,129,0.04); }
+        .upload-zone input[type="file"] { position: absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .upload-zone-label { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.2rem; }
+        .upload-zone-filename { font-size: 0.82rem; color: #6ee7b7; margin-top: 0.4rem; font-family: 'DM Mono', monospace; }
+
+        .dynamic-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+        .dynamic-item { display: flex; gap: 1rem; align-items: center; background: var(--bg-input); padding: 1rem; border-radius: 10px; border: 1px solid var(--border); }
+        .dynamic-item-content { flex: 1; display: flex; flex-direction: column; gap: 0.8rem; }
+        .btn-remove {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5; border-radius: 8px; padding: 0.5rem; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-remove:hover { background: rgba(239,68,68,0.2); border-color: var(--error); }
+        
+        .btn-add {
+            background: rgba(0,163,224,0.1); border: 2px dashed rgba(0,163,224,0.4);
+            color: var(--accent); border-radius: 10px; padding: 0.8rem;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%;
+        }
+        .btn-add:hover { background: rgba(0,163,224,0.15); border-color: var(--accent); }
+
+        .hidden { display: none !important; }
+
+        .info-box {
+            background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3);
+            border-radius: 10px; padding: 1.2rem; margin-bottom: 1.5rem; color: #93c5fd; font-size: 0.95rem; line-height: 1.5;
+        }
+
+        .info-box a { color: var(--accent); font-weight: bold; text-decoration: none; }
+        .info-box a:hover { text-decoration: underline; }
+
+        /* Signature */
+        .sig-wrap { position: relative; margin-top: 1rem; }
+        .sig-canvas {
+            width: 100%; height: 160px; border: 2px solid var(--border);
+            border-radius: 10px; background: var(--bg-input); cursor: crosshair; touch-action: none;
+        }
+        .btn-clear-sig {
+            position: absolute; top: 0.5rem; right: 0.5rem;
+            background: rgba(139,154,174,0.15); border: 1px solid var(--border);
+            color: var(--text-muted); border-radius: 6px; padding: 0.3rem 0.8rem;
+            font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-clear-sig:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white; border: none; border-radius: 12px; padding: 1rem 2rem;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+            width: 100%; margin-top: 2rem;
+        }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,163,224,0.35); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #successScreen { display: none; text-align: center; padding: 4rem 2rem; }
+        #successScreen h2 { color: #6ee7b7; font-size: 2rem; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+    <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+
+    <div class="container" id="mainForm">
+        <div class="page-header">
+            <h1>Basic DBS Check</h1>
+            <p>Your current DBS is due to expire. Due to the nature of accessing customers' properties, a Basic DBS (Disclosure and Barring Service) check is required.</p>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label>First Name <span class="required-asterisk">*</span></label>
+                <input type="text" id="firstName" required>
+            </div>
+            <div class="form-group">
+                <label>Last Name <span class="required-asterisk">*</span></label>
+                <input type="text" id="lastName" required>
+            </div>
+            
+            <div class="form-group" style="margin-top: 2rem;">
+                <label>Would you like NGU to arrange and process this on your behalf? <span class="required-asterisk">*</span></label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="nguProcess" value="yes" onchange="toggleSections()">
+                        <span>Yes, please complete the DBS check on my behalf</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="nguProcess" value="no" onchange="toggleSections()">
+                        <span>No, please provide me with the link and I will complete the form myself</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- NO PATH -->
+        <div id="sectionNo" class="hidden">
+            <div class="info-box">
+                Please complete the form yourself using this link:<br><br>
+                <a href="https://www.gov.uk/request-copy-criminal-record" target="_blank">https://www.gov.uk/request-copy-criminal-record</a>
+                <br><br>Once complete, please sign below to acknowledge this.
+            </div>
+        </div>
+
+        <!-- YES PATH -->
+        <div id="sectionYes" class="hidden">
+            <div class="info-box">
+                You have agreed for us to complete Your DBS Renewal on your behalf. Please provide the following information.
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Do you have a middle name?</label>
+                    <div class="radio-group" style="flex-direction: row;">
+                        <label class="radio-option"><input type="radio" name="hasMiddleName" value="yes" onchange="toggleMiddleName()"><span>Yes</span></label>
+                        <label class="radio-option"><input type="radio" name="hasMiddleName" value="no" onchange="toggleMiddleName()"><span>No</span></label>
+                    </div>
+                </div>
+                <div class="form-group hidden" id="middleNameGroup">
+                    <label>Middle Name <span class="required-asterisk">*</span></label>
+                    <input type="text" id="middleName">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Please confirm your National Insurance number <span class="required-asterisk">*</span></label>
+                    <input type="text" id="niNumber" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>Confirm your surname at birth <span class="required-asterisk">*</span></label>
+                    <input type="text" id="birthSurname">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Have you used any other names in the past?</label>
+                    <div class="radio-group" style="flex-direction: row;">
+                        <label class="radio-option"><input type="radio" name="hasPreviousNames" value="yes" onchange="togglePreviousNames()"><span>Yes</span></label>
+                        <label class="radio-option"><input type="radio" name="hasPreviousNames" value="no" onchange="togglePreviousNames()"><span>No</span></label>
+                    </div>
+                </div>
+                <div class="form-group hidden" id="previousNamesGroup">
+                    <label>Previous Names</label>
+                    <div id="previousNamesList" class="dynamic-list"></div>
+                    <button class="btn-add" onclick="addPreviousName()">+ Add Previous Name</button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Please upload a copy of your Driver's Licence <span class="required-asterisk">*</span></label>
+                    <div class="upload-zone" id="upload-driversLicence">
+                        <input type="file" id="file-driversLicence" accept="image/*,.pdf" onchange="handleFileSelect(this, 'upload-driversLicence')">
+                        <div class="upload-zone-label">Click or drag file to upload</div>
+                        <div class="upload-zone-filename" id="filename-driversLicence"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Address History</label>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Please enter your current address first, followed by any previous addresses. If the date you moved in is less than 5 years ago, please provide your previous addresses so that a full 5-year address history is provided.
+                    </p>
+                    <div id="addressesList" class="dynamic-list">
+                        <!-- Current address is mandatory, cannot be removed -->
+                        <div class="dynamic-item">
+                            <div class="dynamic-item-content">
+                                <input type="text" class="addr-line" placeholder="Address first line and Postcode (Current)" required>
+                                <div>
+                                    <label style="font-size: 0.8rem;">Date from (Moved in)</label>
+                                    <input type="date" class="addr-date" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-add" onclick="addAddress()">+ Add Previous Address</button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Do you have a passport?</label>
+                    <div class="radio-group" style="flex-direction: row;">
+                        <label class="radio-option"><input type="radio" name="hasPassport" value="yes" onchange="togglePassport()"><span>Yes</span></label>
+                        <label class="radio-option"><input type="radio" name="hasPassport" value="no" onchange="togglePassport()"><span>No</span></label>
+                    </div>
+                </div>
+                
+                <div id="passportYesGroup" class="form-group hidden" style="margin-top: 1.5rem;">
+                    <label>Please upload a picture of your Passport <span class="required-asterisk">*</span></label>
+                    <div class="upload-zone" id="upload-passport">
+                        <input type="file" id="file-passport" accept="image/*,.pdf" onchange="handleFileSelect(this, 'upload-passport')">
+                        <div class="upload-zone-label">Click or drag file to upload</div>
+                        <div class="upload-zone-filename" id="filename-passport"></div>
+                    </div>
+                </div>
+
+                <div id="passportNoGroup" class="hidden" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Please provide the following information instead:</p>
+                    <div class="form-group">
+                        <label>Date of Birth <span class="required-asterisk">*</span></label>
+                        <input type="date" id="dob">
+                    </div>
+                    <div class="form-group">
+                        <label>Birth Town <span class="required-asterisk">*</span></label>
+                        <input type="text" id="birthTown">
+                    </div>
+                    <div class="form-group">
+                        <label>Country of Birth <span class="required-asterisk">*</span></label>
+                        <input type="text" id="birthCountry">
+                    </div>
+                    <div class="form-group">
+                        <label>Nationality at birth <span class="required-asterisk">*</span></label>
+                        <input type="text" id="birthNationality">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label>Please upload ONE of the following:</label>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Birth Certificate OR Marriage/Civil partnership Certificate</p>
+                        
+                        <div class="upload-zone" id="upload-altCert">
+                            <input type="file" id="file-altCert" accept="image/*,.pdf" onchange="handleFileSelect(this, 'upload-altCert')">
+                            <div class="upload-zone-label">Click or drag file to upload</div>
+                            <div class="upload-zone-filename" id="filename-altCert"></div>
+                        </div>
+
+                        <label class="checkbox-option" style="margin-top: 1rem;">
+                            <input type="checkbox" id="noAltCert" onchange="toggleAltCert()">
+                            <span style="font-size: 0.9rem;">I am unable to provide any of the above</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIGNATURE (Always shown once a choice is made) -->
+        <div id="sectionSignature" class="form-section hidden">
+            <div class="form-group">
+                <label>Signature <span class="required-asterisk">*</span></label>
+                <div class="sig-wrap">
+                    <canvas id="sigCanvas" class="sig-canvas"></canvas>
+                    <button class="btn-clear-sig" onclick="signaturePad.clear()">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <button id="submitBtn" class="btn-submit hidden" onclick="submitDBSForm()">Submit Form</button>
+    </div>
+
+    <div class="container" id="successScreen">
+        <div class="success-icon">✅</div>
+        <h2>Submitted Successfully</h2>
+        <p>Thank you. Your DBS Check form has been submitted and securely recorded.</p>
+    </div>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+        authDomain: "oesperformance-a54c0.firebaseapp.com",
+        projectId: "oesperformance-a54c0",
+        storageBucket: "oesperformance-a54c0.firebasestorage.app",
+        messagingSenderId: "484894102454",
+        appId: "1:484894102454:web:17535ee497eac2d90d6717"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Initialize Signature Pad
+    const canvas = document.getElementById('sigCanvas');
+    const signaturePad = new SignaturePad(canvas, { backgroundColor: 'transparent', penColor: '#f8fafc' });
+    
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear();
+    }
+    window.addEventListener("resize", resizeCanvas);
+    setTimeout(resizeCanvas, 100);
+
+    // --- UI LOGIC ---
+    window.toggleSections = function() {
+        const choice = document.querySelector('input[name="nguProcess"]:checked')?.value;
+        document.getElementById('sectionNo').classList.toggle('hidden', choice !== 'no');
+        document.getElementById('sectionYes').classList.toggle('hidden', choice !== 'yes');
+        document.getElementById('sectionSignature').classList.remove('hidden');
+        document.getElementById('submitBtn').classList.remove('hidden');
+        setTimeout(resizeCanvas, 50);
+    };
+
+    window.toggleMiddleName = function() {
+        const choice = document.querySelector('input[name="hasMiddleName"]:checked')?.value;
+        document.getElementById('middleNameGroup').classList.toggle('hidden', choice !== 'yes');
+    };
+
+    window.togglePreviousNames = function() {
+        const choice = document.querySelector('input[name="hasPreviousNames"]:checked')?.value;
+        const group = document.getElementById('previousNamesGroup');
+        group.classList.toggle('hidden', choice !== 'yes');
+        if (choice === 'yes' && document.getElementById('previousNamesList').children.length === 0) {
+            addPreviousName(); // Add first one automatically
+        }
+    };
+
+    window.addPreviousName = function() {
+        const list = document.getElementById('previousNamesList');
+        const div = document.createElement('div');
+        div.className = 'dynamic-item';
+        div.innerHTML = `
+            <div class="dynamic-item-content">
+                <input type="text" class="prev-name-input" placeholder="Previous Name" required>
+            </div>
+            <button class="btn-remove" onclick="this.parentElement.remove()">X</button>
+        `;
+        list.appendChild(div);
+    };
+
+    window.addAddress = function() {
+        const list = document.getElementById('addressesList');
+        const div = document.createElement('div');
+        div.className = 'dynamic-item';
+        div.innerHTML = `
+            <div class="dynamic-item-content">
+                <input type="text" class="addr-line" placeholder="Address first line and Postcode (Previous)" required>
+                <div>
+                    <label style="font-size: 0.8rem;">Date from (Moved in)</label>
+                    <input type="date" class="addr-date" required>
+                </div>
+            </div>
+            <button class="btn-remove" onclick="this.parentElement.remove()">X</button>
+        `;
+        list.appendChild(div);
+    };
+
+    window.togglePassport = function() {
+        const choice = document.querySelector('input[name="hasPassport"]:checked')?.value;
+        document.getElementById('passportYesGroup').classList.toggle('hidden', choice !== 'yes');
+        document.getElementById('passportNoGroup').classList.toggle('hidden', choice !== 'no');
+    };
+
+    window.toggleAltCert = function() {
+        const isChecked = document.getElementById('noAltCert').checked;
+        const uploadZone = document.getElementById('upload-altCert');
+        const fileInput = document.getElementById('file-altCert');
+        
+        if (isChecked) {
+            uploadZone.style.opacity = '0.5';
+            fileInput.disabled = true;
+            fileInput.value = '';
+            document.getElementById('filename-altCert').textContent = '';
+            uploadZone.classList.remove('has-file');
+        } else {
+            uploadZone.style.opacity = '1';
+            fileInput.disabled = false;
+        }
+    };
+
+    window.handleFileSelect = function(input, zoneId) {
+        const zone = document.getElementById(zoneId);
+        const nameDiv = document.getElementById('filename-' + zoneId.split('-')[1]);
+        if (input.files && input.files[0]) {
+            nameDiv.textContent = input.files[0].name;
+            zone.classList.add('has-file');
+        } else {
+            nameDiv.textContent = '';
+            zone.classList.remove('has-file');
+        }
+    };
+
+    // --- SUBMISSION LOGIC ---
+    async function uploadFile(fileObj, path) {
+        if (!fileObj) return null;
+        const ext = fileObj.name.split('.').pop();
+        const safeName = fileObj.name.replace(/[^a-zA-Z0-9]/g, '_');
+        const uniqueId = Math.random().toString(36).substring(2, 9);
+        const fullPath = `${path}/${safeName}_${uniqueId}.${ext}`;
+        
+        const storageRef = ref(storage, fullPath);
+        await uploadBytes(storageRef, fileObj);
+        return await getDownloadURL(storageRef);
+    }
+
+    window.submitDBSForm = async function() {
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const nguProcess = document.querySelector('input[name="nguProcess"]:checked')?.value;
+        
+        if (!firstName || !lastName || !nguProcess) {
+            return alert("Please enter your First Name, Last Name, and select whether NGU should process your DBS.");
+        }
+
+        if (signaturePad.isEmpty()) {
+            return alert("Please provide your signature.");
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+
+        try {
+            const signatureData = signaturePad.toDataURL('image/png');
+            let data = {
+                firstName,
+                lastName,
+                nguProcessChoice: nguProcess,
+                signatureData,
+                submittedAt: serverTimestamp()
+            };
+
+            if (nguProcess === 'yes') {
+                // Collect Yes Path Data
+                const hasMiddleName = document.querySelector('input[name="hasMiddleName"]:checked')?.value;
+                const niNumber = document.getElementById('niNumber').value.trim().toUpperCase();
+                const birthSurname = document.getElementById('birthSurname').value.trim();
+                
+                if (!hasMiddleName) throw new Error("Please select whether you have a middle name.");
+                if (hasMiddleName === 'yes' && !document.getElementById('middleName').value.trim()) throw new Error("Please enter your middle name.");
+                if (!niNumber || !birthSurname) throw new Error("Please enter your NI Number and Birth Surname.");
+
+                const hasPreviousNames = document.querySelector('input[name="hasPreviousNames"]:checked')?.value;
+                if (!hasPreviousNames) throw new Error("Please specify if you have used previous names.");
+
+                let previousNames = [];
+                if (hasPreviousNames === 'yes') {
+                    const nameInputs = document.querySelectorAll('.prev-name-input');
+                    nameInputs.forEach(inp => { if(inp.value.trim()) previousNames.push(inp.value.trim()); });
+                    if (previousNames.length === 0) throw new Error("Please enter at least one previous name.");
+                }
+
+                // Addresses
+                let addresses = [];
+                const addrLines = document.querySelectorAll('.addr-line');
+                const addrDates = document.querySelectorAll('.addr-date');
+                for (let i = 0; i < addrLines.length; i++) {
+                    if (!addrLines[i].value.trim() || !addrDates[i].value) throw new Error("Please ensure all address fields and dates are filled.");
+                    addresses.push({ line: addrLines[i].value.trim(), dateFrom: addrDates[i].value });
+                }
+
+                // Drivers Licence
+                const dlFile = document.getElementById('file-driversLicence').files[0];
+                if (!dlFile) throw new Error("Please upload your Driver's Licence.");
+
+                // Passport
+                const hasPassport = document.querySelector('input[name="hasPassport"]:checked')?.value;
+                if (!hasPassport) throw new Error("Please specify if you have a passport.");
+
+                let passportFile = null;
+                let altCertFile = null;
+                let passportNoData = null;
+
+                if (hasPassport === 'yes') {
+                    passportFile = document.getElementById('file-passport').files[0];
+                    if (!passportFile) throw new Error("Please upload your Passport.");
+                } else {
+                    passportNoData = {
+                        dob: document.getElementById('dob').value,
+                        birthTown: document.getElementById('birthTown').value.trim(),
+                        birthCountry: document.getElementById('birthCountry').value.trim(),
+                        nationalityAtBirth: document.getElementById('birthNationality').value.trim(),
+                        unableToProvideCert: document.getElementById('noAltCert').checked
+                    };
+                    if (!passportNoData.dob || !passportNoData.birthTown || !passportNoData.birthCountry || !passportNoData.nationalityAtBirth) {
+                        throw new Error("Please complete the Date of Birth, Birth Town, Country, and Nationality fields.");
+                    }
+                    if (!passportNoData.unableToProvideCert) {
+                        altCertFile = document.getElementById('file-altCert').files[0];
+                        if (!altCertFile) throw new Error("Please upload a Birth or Marriage certificate, or check the 'unable to provide' box.");
+                    }
+                }
+
+                // Perform Uploads
+                btn.textContent = 'Uploading documents...';
+                const uploadPath = `dbs_documents/${lastName}_${firstName}_${Date.now()}`;
+                
+                const dlUrl = await uploadFile(dlFile, uploadPath);
+                const passportUrl = hasPassport === 'yes' ? await uploadFile(passportFile, uploadPath) : null;
+                const altCertUrl = (hasPassport === 'no' && altCertFile) ? await uploadFile(altCertFile, uploadPath) : null;
+
+                data = {
+                    ...data,
+                    hasMiddleName,
+                    middleName: hasMiddleName === 'yes' ? document.getElementById('middleName').value.trim() : null,
+                    niNumber,
+                    birthSurname,
+                    hasPreviousNames,
+                    previousNames,
+                    addresses,
+                    hasPassport,
+                    documents: {
+                        driversLicence: dlUrl,
+                        passport: passportUrl,
+                        altCertificate: altCertUrl
+                    }
+                };
+
+                if (hasPassport === 'no') {
+                    data.passportAlternatives = passportNoData;
+                }
+            }
+
+            btn.textContent = 'Saving form...';
+            await addDoc(collection(db, "DBS Check"), data);
+            
+            document.getElementById('mainForm').style.display = 'none';
+            document.getElementById('successScreen').style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            alert(error.message || "An error occurred while saving. Please try again.");
+            btn.disabled = false;
+            btn.textContent = 'Submit Form';
+        }
+    };
+</script>
+</body>
+</html>
