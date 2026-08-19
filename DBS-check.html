@@ -620,15 +620,20 @@
             }
 
             btn.textContent = 'Saving form...';
-            await addDoc(collection(db, "DBS Check"), data);
+            const docRef = await addDoc(collection(db, "DBS Check"), data);
             
             try {
                 btn.textContent = 'Sending notification...';
+                
+                // Construct link to a view portal
+                const submissionLink = window.location.origin + `/view-dbs.html?id=${docRef.id}`;
+
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
                     first_name: firstName,
                     last_name: lastName,
                     applicant_name: `${firstName} ${lastName}`,
-                    ngu_process: nguProcess === 'yes' ? 'Yes' : 'No'
+                    ngu_process: nguProcess === 'yes' ? 'Yes' : 'No',
+                    submission_link: submissionLink
                 });
             } catch (emailErr) {
                 console.error("EmailJS Error:", emailErr);
