@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGU - View DBS Submission</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #005EB8; --accent: #00A3E0;
+            --bg-dark: #0A1628; --bg-card: #1a2942;
+            --text-light: #f8fafc; --text-muted: #8b9bb4;
+            --border: rgba(0, 163, 224, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh; padding: 2rem 1.5rem;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container {
+            width: 100%; max-width: 800px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+
+        h1 { color: var(--accent); margin-bottom: 1.5rem; }
+        
+        .data-group {
+            background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+        }
+
+        .data-row { margin-bottom: 1rem; }
+        .data-row:last-child { margin-bottom: 0; }
+        .data-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .data-value { font-size: 1.05rem; font-weight: 500; }
+        .data-value a { color: #6ee7b7; text-decoration: none; }
+        .data-value a:hover { text-decoration: underline; }
+
+        .sig-img {
+            max-width: 100%; height: auto; border: 2px solid var(--border);
+            border-radius: 10px; background: rgba(0,0,0,0.2); padding: 10px;
+            margin-top: 10px;
+        }
+
+        .loading { text-align: center; font-size: 1.2rem; color: var(--accent); padding: 3rem; }
+    </style>
+</head>
+<body>
+
+    <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" style="width: 140px; margin-bottom: 2rem;">
+
+    <div class="container" id="content">
+        <div class="loading" id="loading">Loading DBS Submission...</div>
+        <div id="dbsDetails" style="display: none;"></div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+        authDomain: "oesperformance-a54c0.firebaseapp.com",
+        projectId: "oesperformance-a54c0",
+        storageBucket: "oesperformance-a54c0.firebasestorage.app",
+        messagingSenderId: "484894102454",
+        appId: "1:484894102454:web:17535ee497eac2d90d6717"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadData() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const docId = urlParams.get('id');
+
+        if (!docId) {
+            document.getElementById('loading').textContent = 'No submission ID provided in URL.';
+            return;
+        }
+
+        try {
+            const docSnap = await getDoc(doc(db, "DBS Check", docId));
+            if (!docSnap.exists()) {
+                document.getElementById('loading').textContent = 'Submission not found.';
+                return;
+            }
+
+            const data = docSnap.data();
+            renderData(data);
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dbsDetails').style.display = 'block';
+        } catch (e) {
+            console.error(e);
+            document.getElementById('loading').textContent = 'Error loading data.';
+        }
+    }
+
+    function renderData(data) {
+        let html = `<h1>DBS Check Submission</h1>`;
+
+        html += `
+            <div class="data-group">
+                <div class="data-row"><div class="data-label">Name</div><div class="data-value">${data.firstName} ${data.lastName}</div></div>
+                <div class="data-row"><div class="data-label">NGU Process</div><div class="data-value">${data.nguProcessChoice === 'yes' ? 'Yes, NGU process this' : 'No, Self process'}</div></div>
+                <div class="data-row"><div class="data-label">Submitted At</div><div class="data-value">${data.submittedAt ? data.submittedAt.toDate().toLocaleString('en-GB') : 'Unknown'}</div></div>
+            </div>
+        `;
+
+        if (data.nguProcessChoice === 'yes') {
+            html += `<div class="data-group"><h2>Identity Details</h2><br>`;
+            html += `<div class="data-row"><div class="data-label">Middle Name</div><div class="data-value">${data.middleName || 'None'}</div></div>`;
+            html += `<div class="data-row"><div class="data-label">National Insurance</div><div class="data-value">${data.niNumber}</div></div>`;
+            html += `<div class="data-row"><div class="data-label">Surname at Birth</div><div class="data-value">${data.birthSurname}</div></div>`;
+            
+            if (data.previousNames && data.previousNames.length > 0) {
+                html += `<div class="data-row"><div class="data-label">Previous Names</div><div class="data-value">${data.previousNames.join('<br>')}</div></div>`;
+            }
+            html += `</div>`;
+
+            if (data.addresses && data.addresses.length > 0) {
+                html += `<div class="data-group"><h2>Address History</h2><br>`;
+                data.addresses.forEach((addr, i) => {
+                    html += `<div class="data-row" style="margin-bottom: 15px;">
+                                <div class="data-label">Address ${i === 0 ? '(Current)' : '(Previous)'}</div>
+                                <div class="data-value">${addr.line} <br><span style="font-size:0.85em;color:var(--text-muted);">Moved in: ${addr.dateFrom}</span></div>
+                             </div>`;
+                });
+                html += `</div>`;
+            }
+
+            html += `<div class="data-group"><h2>Documents</h2><br>`;
+            if (data.documents?.driversLicence) {
+                html += `<div class="data-row"><div class="data-label">Driver's Licence</div><div class="data-value"><a href="${data.documents.driversLicence}" target="_blank">View Driver's Licence ?</a></div></div>`;
+            }
+            if (data.documents?.passport) {
+                html += `<div class="data-row"><div class="data-label">Passport</div><div class="data-value"><a href="${data.documents.passport}" target="_blank">View Passport ?</a></div></div>`;
+            }
+            if (data.documents?.altCertificate) {
+                html += `<div class="data-row"><div class="data-label">Alternative Certificate</div><div class="data-value"><a href="${data.documents.altCertificate}" target="_blank">View Certificate ?</a></div></div>`;
+            }
+            
+            if (data.passportAlternatives) {
+                html += `<div class="data-row"><div class="data-label">Date of Birth</div><div class="data-value">${data.passportAlternatives.dob}</div></div>`;
+                html += `<div class="data-row"><div class="data-label">Birth Town</div><div class="data-value">${data.passportAlternatives.birthTown}</div></div>`;
+                html += `<div class="data-row"><div class="data-label">Country of Birth</div><div class="data-value">${data.passportAlternatives.birthCountry}</div></div>`;
+                html += `<div class="data-row"><div class="data-label">Nationality</div><div class="data-value">${data.passportAlternatives.nationalityAtBirth}</div></div>`;
+                html += `<div class="data-row"><div class="data-label">No Certificate Provided</div><div class="data-value">${data.passportAlternatives.unableToProvideCert ? 'Yes' : 'No'}</div></div>`;
+            }
+            html += `</div>`;
+        }
+
+        html += `
+            <div class="data-group">
+                <div class="data-label">Signature</div>
+                ${data.signatureData ? `<img src="${data.signatureData}" class="sig-img">` : 'No signature'}
+            </div>
+        `;
+
+        document.getElementById('dbsDetails').innerHTML = html;
+    }
+
+    loadData();
+</script>
+</body>
+</html>
