@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Signature Pad -->
+    <!-- External Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
     <style>
         :root {
@@ -379,6 +380,11 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
+    // Initialize EmailJS
+    emailjs.init('ziLnha91scpGjFABh');
+    const EMAILJS_SERVICE_ID = 'service_b3nh4bo';
+    const EMAILJS_TEMPLATE_ID = 'template_r5vtkvn';
+
     // Initialize Signature Pad
     const canvas = document.getElementById('sigCanvas');
     const signaturePad = new SignaturePad(canvas, { backgroundColor: 'transparent', penColor: '#f8fafc' });
@@ -615,6 +621,19 @@
 
             btn.textContent = 'Saving form...';
             await addDoc(collection(db, "DBS Check"), data);
+            
+            try {
+                btn.textContent = 'Sending notification...';
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                    first_name: firstName,
+                    last_name: lastName,
+                    applicant_name: `${firstName} ${lastName}`,
+                    ngu_process: nguProcess === 'yes' ? 'Yes' : 'No'
+                });
+            } catch (emailErr) {
+                console.error("EmailJS Error:", emailErr);
+                // We don't want to stop the success screen if only the email fails
+            }
             
             document.getElementById('mainForm').style.display = 'none';
             document.getElementById('successScreen').style.display = 'block';
