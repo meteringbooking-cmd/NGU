@@ -43,10 +43,16 @@
       flex: 1 1 auto; width: 100%; margin: 0 auto; padding: 28px 32px;
       display: flex; flex-direction: column; min-height: 0;
     }
-    .grid-2 {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    /* Outer layout: Submit Communication (1/3) + Recent Submissions (2/3) */
+    .grid-main {
+      display: grid; grid-template-columns: 1fr 2fr; gap: 16px;
       flex: 1 1 auto; min-height: 0; align-items: stretch;
     }
+    /* Inner form row grid (e.g. Date / Job Number) stays evenly split */
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .card .grid-2 { flex: 0 0 auto; }
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 10px; padding: 24px 28px; position: relative; overflow: hidden;
@@ -64,7 +70,6 @@
     #submissionForm {
       display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow-y: auto;
     }
-    .grid-2 .grid-2 { flex: 0 0 auto; }
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
     .form-group:has(.form-textarea) { flex: 1 1 auto; min-height: 0; }
     .form-textarea { flex: 1 1 auto; }
@@ -96,6 +101,7 @@
       background: transparent; color: var(--text); border: 1px solid var(--border);
     }
     .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 4px; }
     .table-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
     table { width: 100%; border-collapse: collapse; }
     thead tr { border-bottom: 2px solid var(--accent); }
@@ -116,6 +122,8 @@
     .badge-accepted { background: rgba(74,222,128,0.12); color: var(--in-stock); }
     .badge-challenged { background: rgba(248,113,113,0.12); color: var(--out); }
     .badge-closed { background: rgba(71,200,255,0.12); color: var(--accent2); }
+    .badge-upheld { background: rgba(248,113,113,0.12); color: var(--out); }
+    .badge-nfa { background: rgba(71,200,255,0.12); color: var(--accent2); }
     .radio-group { display: flex; gap: 16px; }
     .radio-label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .upload-box {
@@ -151,7 +159,7 @@
       font-family: sans-serif; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
     @media (max-width: 900px) {
-      .grid-2 { grid-template-columns: 1fr; }
+      .grid-main { grid-template-columns: 1fr; }
       .page { overflow-y: auto; }
     }
   </style>
@@ -164,7 +172,7 @@
     </div>
   </header>
   <div class="page">
-    <div class="grid-2">
+    <div class="grid-main">
       <!-- Submission Form -->
       <div class="card">
         <div class="card-title">
@@ -251,14 +259,36 @@
                 <th>Engineer</th>
                 <th>Point</th>
                 <th>Status</th>
+                <th>Outcome</th>
                 <th>Images</th>
               </tr>
             </thead>
             <tbody id="tableBody">
-              <tr><td colspan="6" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
+              <tr><td colspan="7" style="text-align:center; color: var(--text-muted);">Loading...</td></tr>
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+  <!-- Office Outcome Modal -->
+  <div class="modal-overlay" id="outcomeModal">
+    <div class="modal">
+      <h3>Set Office Outcome</h3>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Outcome</label>
+          <select id="outcomeSelect" class="form-select">
+            <option value="Pending">Pending</option>
+            <option value="Upheld">Upheld</option>
+            <option value="Accepted">Accepted</option>
+            <option value="No Further Action">No Further Action</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="outcomeCancelBtn">Cancel</button>
+        <button type="button" class="btn" id="outcomeSaveBtn">Save Outcome</button>
       </div>
     </div>
   </div>
@@ -310,10 +340,42 @@
         return [];
       }
     }
+    async function setOutcome(id, newStatus) {
+      await updateDoc(doc(db, "communication-submissions", id), { status: newStatus });
+    }
     window.openImage = function(base64Str) {
       document.getElementById('imageModalImg').src = base64Str;
       document.getElementById('imageModal').classList.add('open');
     };
+    // Office Outcome modal handling
+    let currentOutcomeId = null;
+    window.openOutcomeModal = function(id, currentStatus) {
+      currentOutcomeId = id;
+      document.getElementById('outcomeSelect').value = currentStatus || 'Pending';
+      document.getElementById('outcomeModal').classList.add('open');
+    };
+    document.getElementById('outcomeCancelBtn').addEventListener('click', () => {
+      currentOutcomeId = null;
+      document.getElementById('outcomeModal').classList.remove('open');
+    });
+    document.getElementById('outcomeSaveBtn').addEventListener('click', async () => {
+      if (!currentOutcomeId) return;
+      const saveBtn = document.getElementById('outcomeSaveBtn');
+      const newStatus = document.getElementById('outcomeSelect').value;
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'Saving...';
+      try {
+        await setOutcome(currentOutcomeId, newStatus);
+        document.getElementById('outcomeModal').classList.remove('open');
+        currentOutcomeId = null;
+        loadTable();
+      } catch (err) {
+        alert('Error updating outcome: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'Save Outcome';
+      }
+    });
     // File Upload handling - uploads to Firebase Storage as soon as each file is selected
     const uploadBox = document.getElementById('uploadBox');
     const imageUpload = document.getElementById('imageUpload');
@@ -475,6 +537,8 @@
     });
     function getStatusBadge(status) {
       if (status === 'Accepted') return '<span class="badge badge-accepted">Accepted</span>';
+      if (status === 'Upheld') return '<span class="badge badge-upheld">Upheld</span>';
+      if (status === 'No Further Action') return '<span class="badge badge-nfa">No Further Action</span>';
       if (status === 'Challenged') return '<span class="badge badge-challenged">Challenged</span>';
       if (status === 'Challenge closed') return '<span class="badge badge-closed">Challenge Closed</span>';
       return '<span class="badge badge-pending">Pending</span>';
@@ -483,7 +547,7 @@
       const tbody = document.getElementById('tableBody');
       const comms = await getCommunications();
       if (comms.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-muted);">No submissions found.</td></tr>';
         return;
       }
       tbody.innerHTML = comms.map((c, i) => {
@@ -492,13 +556,21 @@
         const imageLinks = (c.images || []).map((img, imgIdx) =>
           `<a href="#" onclick="event.stopPropagation(); window.openImage(window['_commImgs_${i}'][${imgIdx}].url); return false;" style="color:var(--accent2);margin-right:5px;">📎 ${img.name}</a>`
         ).join('');
+        const status = c.status || 'Pending';
+        const outcomeCell = status === 'Pending'
+          ? `<button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation(); window.openOutcomeModal('${c.id}', '${status}')">Set Outcome</button>`
+          : `<span style="display:flex; align-items:center; gap:8px;">
+               ${getStatusBadge(status)}
+               <span onclick="event.stopPropagation(); window.openOutcomeModal('${c.id}', '${status}')" style="cursor:pointer; color: var(--accent2); font-family:'DM Mono',monospace; font-size:11px;">Change</span>
+             </span>`;
         return `
           <tr style="cursor: pointer;" onclick="alert('Manager: ${c.manager}\\nComments: ${c.managerComments}\\n\\nEng Comments: ${c.engineerComments || 'N/A'}\\nSignature: ${c.signature || 'N/A'}')">
             <td>${c.date}</td>
             <td>${c.jobNumber || '<span style="color:var(--text-muted)">-</span>'}</td>
             <td style="font-weight: 500;">${c.engineerName}</td>
             <td>${c.coachingPoint}</td>
-            <td>${getStatusBadge(c.status)}</td>
+            <td>${getStatusBadge(status)}</td>
+            <td>${outcomeCell}</td>
             <td>${imageLinks || '<span style="color:var(--text-muted)">None</span>'}</td>
           </tr>
         `;
