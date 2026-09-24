@@ -481,23 +481,23 @@ $('fileUpload').onchange = async (e) => {
 
   showLoad(true, 'Processing Excel file...');
   const reader = new FileReader();
-  
+
   reader.onload = async (evt) => {
     try {
       const data = new Uint8Array(evt.target.result);
       const workbook = XLSX.read(data, {type: 'array', cellDates: true});
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      
+
       const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-      
+
       const unmatchedNames = new Set();
       const savePromises = [];
       let newEntriesCount = 0;
 
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        if (!row || !row[0]) continue; 
+        if (!row || !row[0]) continue;
 
         const rawName = String(row[0]);
         const typeAbs = row[3];
@@ -549,7 +549,7 @@ $('fileUpload').onchange = async (e) => {
 
         let dailyHours = 0;
         if (gVal > 0) {
-          dailyHours = (gVal * 7.5) / workingDaysInRange.length; 
+          dailyHours = (gVal * 7.5) / workingDaysInRange.length;
         } else if (gVal === 0 && hVal > 0) {
           dailyHours = hVal / workingDaysInRange.length;
         }
@@ -575,17 +575,17 @@ $('fileUpload').onchange = async (e) => {
 
       await Promise.all(savePromises);
       showLoad(false);
-      
+
       if (newEntriesCount > 0) {
         toast(`Import complete. ${newEntriesCount} absences logged.`);
-        render(); 
+        render();
       } else {
         toast(`No new valid entries found.`);
       }
 
       if (unmatchedNames.size > 0) {
         const uList = Array.from(unmatchedNames).sort();
-        $('unmatchedList').innerHTML = uList.map(name => 
+        $('unmatchedList').innerHTML = uList.map(name =>
           `<div class="modal-ded-row"><span class="modal-ded-name">${esc(name)}</span></div>`
         ).join('');
         $('unmatchedModal').classList.add('show');
@@ -596,10 +596,10 @@ $('fileUpload').onchange = async (e) => {
       showLoad(false);
       toast('Error reading Excel file', true);
     }
-    
-    e.target.value = ''; 
+
+    e.target.value = '';
   };
-  
+
   reader.readAsArrayBuffer(file);
 };
 
@@ -627,7 +627,7 @@ async function loadAll() {
     snap.forEach(d => {
       const data = d.data();
       if (data._type === 'staff') {
-        staff.push({ id: d.id, name: data.name });
+        staff.push({ id: d.id, name: data.name, contract: data.contract || '' });
         entries[d.id] = {};
         if (data.nonEngineer === true) nonEngineers.add(d.id);
       }
@@ -658,7 +658,7 @@ async function loadAll() {
 
     console.log(`✓ Loaded ${staff.length} staff · ${nonEngineers.size} non-engineers`);
     toast(`Loaded ${staff.length} staff (${nonEngineers.size} non-engineer${nonEngineers.size!==1?'s':''})`);
-    
+
     // Once staff is ready, load the dynamic monthly data for clawbacks as well
     await loadMonth(vy, vm);
   } catch (e) {
@@ -752,7 +752,7 @@ async function saveClawback(sid, amount) {
   const pfx = `${vy}-${String(vm).padStart(2,'0')}`;
   const emp = staff.find(s => s.id === sid);
   const docId = `clawback_${nameSlug(emp ? emp.name : sid)}_${pfx}`;
-  
+
   try {
     await setDoc(doc(db, 'Establishment Report', docId), {
       _type:     'clawback',
@@ -848,7 +848,7 @@ function render() {
         </div>
       </div></td>
       <td class="col-clawback"><div class="td-clawback-inner">
-        ${isNonEng 
+        ${isNonEng
           ? `<span class="ded-exempt">—</span>`
           : `<input type="number" class="clawback-input" data-staff="${s.id}" value="${cb}" placeholder="0.00" step="0.01">`
         }
@@ -893,18 +893,18 @@ function render() {
 
   // Bind Events
   tbody.querySelectorAll('.cell-day[data-bh="0"]').forEach(c => c.addEventListener('click', onCell));
-  
+
   tbody.querySelectorAll('.clawback-input').forEach(inp => {
     inp.addEventListener('change', async (e) => {
       const sid = e.target.dataset.staff;
       const val = parseFloat(e.target.value) || 0;
       clawbacks[sid] = val;
-      
+
       // Update footer immediately without triggering a full re-render (preserves input focus state)
       const newClawbackTotal = getFilteredStaff().reduce((sum, m) => sum + (clawbacks[m.id] || 0), 0);
       const tfClawback = $('footerClawback');
       if (tfClawback) tfClawback.textContent = newClawbackTotal > 0 ? gbp(newClawbackTotal) : '—';
-      
+
       await saveClawback(sid, val);
     });
   });
@@ -1085,6 +1085,13 @@ function doExport() {
     alignment: A('left','center'),
     border: border(),
   });
+  // Contract column (column B) — matches the row colouring of the name cell
+  const contractStyle = (rowBg, hasDed, isNonEng) => ({
+    font:  font(9, false, '333333'),
+    fill:  fill(isNonEng ? NON_ENG_BG : hasDed ? GOLD_DED : rowBg),
+    alignment: A('left','center'),
+    border: border(),
+  });
   const dedStyle = (hasDed, isNonEng) => ({
     font:  font(9, hasDed, isNonEng ? NON_ENG_FG : hasDed ? RED_FG : '999999'),
     fill:  fill(isNonEng ? NON_ENG_BG : hasDed ? GOLD_DED : WHITE),
@@ -1131,13 +1138,14 @@ function doExport() {
   const viewLabel = engFilter === 'engineers' ? 'ENGINEERS ONLY' : 'ALL STAFF';
   const rows1 = [];
   rows1.push([ sc(`ESTABLISHMENT REPORT — ATTENDANCE GRID (${viewLabel})`, 's', titleStyle),
-    ...Array(2 + dayCols.length).fill(blank('60C4FF')) ]);
+    ...Array(3 + dayCols.length).fill(blank('60C4FF')) ]);
   rows1.push([ sc(`Period: ${period}  |  Generated: ${generated}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(2)}/hr  |  ⚙ = Non-engineer (exempt)`, 's', subStyle),
-    ...Array(2 + dayCols.length).fill(blank('1A4A7A')) ]);
-  rows1.push([ blank('EEEEEE'), ...Array(2 + dayCols.length).fill(blank('EEEEEE')) ]);
+    ...Array(3 + dayCols.length).fill(blank('1A4A7A')) ]);
+  rows1.push([ blank('EEEEEE'), ...Array(3 + dayCols.length).fill(blank('EEEEEE')) ]);
 
   const hdr3 = [
     sc('Staff Member', 's', hdrStyle('left')),
+    sc('Contract', 's', hdrStyle('left')),
     sc('Clawback (£)', 's', hdrStyle('right')),
     sc('Deduction (£)', 's', hdrStyle('right')),
   ];
@@ -1153,6 +1161,7 @@ function doExport() {
   rows1.push(hdr3);
 
   const hdr4 = [
+    sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
     sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
     sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
     sc('', 's', { fill:fill('1A4A7A'), border:border('thin','1A4A7A') }),
@@ -1180,6 +1189,7 @@ function doExport() {
     const nameDisplay = isNonEng ? `⚙ ${s.name}` : s.name;
     const dataRow = [
       sc(nameDisplay, 's', nameStyle(rowBg, hasDed, isNonEng)),
+      sc(s.contract || '—', 's', contractStyle(rowBg, hasDed, isNonEng)),
       isNonEng
         ? sc('—', 's', dedStyle(false, true))
         : cb > 0 ? nc(cb, '"£"#,##0.00', dedStyle(true, false)) : sc('—', 's', dedStyle(false, false)),
@@ -1203,11 +1213,10 @@ function doExport() {
       const st = e.status || 'In';
       const { bg, fg } = S_STYLE[st] || { bg:'FFFFFF', fg:'000000' };
       const abbr = STATUS_ABBR[st] || st.substring(0,2);
-      const rate = getHourlyRate(s.name);
       const label = (STATUSES.find(o=>o.code===st)?.deducts && e.hours > 0 && !isNonEng)
         ? `${abbr} ${e.hours}h`
         : abbr;
-      dataRow.push(sc(label, 's', { font:font(8,true,isNonEng ? fg : fg), fill:fill(isNonEng ? bg : bg), alignment:A(), border:border('thin','FFFFFF') }));
+      dataRow.push(sc(label, 's', { font:font(8,true,fg), fill:fill(bg), alignment:A(), border:border('thin','FFFFFF') }));
     });
     rows1.push(dataRow);
   });
@@ -1216,15 +1225,16 @@ function doExport() {
   const grandClawback = fil.reduce((a,s)=>a+(clawbacks[s.id]||0), 0);
   rows1.push([
     sc('TOTAL DEDUCTIONS (engineers only)', 's', totalStyle('left')),
+    blank(TOTAL_BG),
     nc(grandClawback, '"£"#,##0.00', totalStyle('right')),
     nc(grand, '"£"#,##0.00', totalStyle('right')),
     ...dayCols.map(() => blank(TOTAL_BG)),
   ]);
   rows1.push([ sc('† Bank Holiday  ⚙ Non-engineer (no pay deduction applied)', 's',
     { font:font(8,false,'777777'), fill:fill('EEEEEE'), alignment:A('left') }),
-    ...Array(2+dayCols.length).fill(blank('EEEEEE')) ]);
+    ...Array(3+dayCols.length).fill(blank('EEEEEE')) ]);
 
-  const ws1 = buildWS(rows1, [24, 12, 14, ...dayCols.map(() => 4.5)]);
+  const ws1 = buildWS(rows1, [24, 16, 12, 14, ...dayCols.map(() => 4.5)]);
 
   // ── Sheet 2: Deduction Summary ─────────────────────────────────────────
   const staffStats = fil.map(s => {
@@ -1238,16 +1248,17 @@ function doExport() {
         if (opt?.deducts && e.hours > 0) { hrs += e.hours; ev++; }
       });
     }
-    return { name:s.name, isNonEng, ev, hrs, cb:clawbacks[s.id]||0, total:staffTotal(s.id), rate:getHourlyRate(s.name) };
+    return { name:s.name, contract:s.contract||'', isNonEng, ev, hrs, cb:clawbacks[s.id]||0, total:staffTotal(s.id), rate:getHourlyRate(s.name) };
   }).sort((a,b) => b.total - a.total);
 
   const rows2 = [];
-  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF') ]);
+  rows2.push([ sc('PAYROLL DEDUCTION SUMMARY', 's', titleStyle), ...Array(7).fill(blank('60C4FF')) ]);
   rows2.push([ sc(`Period: ${period}  |  Default Rate: £${DEFAULT_HOURLY_RATE.toFixed(8)}/hr  |  * = custom rate`, 's', subStyle),
-    blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A') ]);
-  rows2.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
+    ...Array(7).fill(blank('1A4A7A')) ]);
+  rows2.push([ ...Array(8).fill(blank('EEEEEE')) ]);
   rows2.push([
     sc('Staff Member',    's', hdrStyle('left')),
+    sc('Contract',        's', hdrStyle('left')),
     sc('Type',            's', hdrStyle()),
     sc('Hourly Rate',     's', hdrStyle()),
     sc('Absence Events',  's', hdrStyle()),
@@ -1262,6 +1273,7 @@ function doExport() {
     const hasCustomRate = Math.abs(s.rate - DEFAULT_HOURLY_RATE) > 0.0001;
     rows2.push([
       sc(s.name, 's', nameStyle(rowBg, hasDed, s.isNonEng)),
+      sc(s.contract || '—', 's', contractStyle(rowBg, hasDed, s.isNonEng)),
       sc(s.isNonEng ? '⚙ Non-eng' : 'Engineer', 's', {
         font: font(8, false, s.isNonEng ? NON_ENG_FG : '445566'),
         fill: fill(s.isNonEng ? NON_ENG_BG : rowBg),
@@ -1290,6 +1302,7 @@ function doExport() {
     sc('TOTAL', 's', totalStyle('left')),
     sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
     sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
+    sc('', 's', { font:font(9,false,WHITE), fill:fill(TOTAL_BG), alignment:A(), border:thick_border() }),
     nc(staffStats.reduce((a,s)=>a+s.ev,0), '0', totalStyle()),
     nc(totHrs,   '0.00',        totalStyle()),
     nc(totCb,    '"£"#,##0.00', totalStyle('right')),
@@ -1297,19 +1310,19 @@ function doExport() {
   ]);
   rows2.push([ sc('* Custom hourly rate applied for this employee', 's',
     { font:font(8,false,'777777',true), fill:fill('EEEEEE'), alignment:A('left') }),
-    blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
+    ...Array(7).fill(blank('EEEEEE')) ]);
 
-  const ws2 = buildWS(rows2, [26, 12, 14, 16, 16, 14, 16]);
+  const ws2 = buildWS(rows2, [26, 16, 12, 14, 16, 16, 14, 16]);
 
   // ── Sheet 3: Deduction Events ──────────────────────────────────────────
   const rows3 = [];
-  rows3.push([ sc('DEDUCTION EVENTS — DETAILED LOG', 's', titleStyle),
-    blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF'), blank('60C4FF') ]);
+  rows3.push([ sc('DEDUCTION EVENTS — DETAILED LOG', 's', titleStyle), ...Array(6).fill(blank('60C4FF')) ]);
   rows3.push([ sc(`Period: ${period}  |  Engineers only — non-engineers are exempt from deductions`, 's', subStyle),
-    blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A'), blank('1A4A7A') ]);
-  rows3.push([ blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE'), blank('EEEEEE') ]);
+    ...Array(6).fill(blank('1A4A7A')) ]);
+  rows3.push([ ...Array(7).fill(blank('EEEEEE')) ]);
   rows3.push([
     sc('Staff Member', 's', hdrStyle('left')),
+    sc('Contract',     's', hdrStyle('left')),
     sc('Date',         's', hdrStyle()),
     sc('Day',          's', hdrStyle()),
     sc('Status',       's', hdrStyle()),
@@ -1335,6 +1348,7 @@ function doExport() {
 
       rows3.push([
         sc(s.name,   's', bodyStyle(rowBg,'left',true,'111111')),
+        sc(s.contract || '—', 's', bodyStyle(rowBg,'left',false,'333333')),
         sc(`${d}/${m}/${y}`, 's', bodyStyle(rowBg,'center',false,'444444')),
         sc(dayStr,   's', bodyStyle(rowBg,'center',false,'444444')),
         sc(e.status, 's', { font:font(9,true,sfg), fill:fill(sbg), alignment:A(), border:border('thin','FFFFFF') }),
@@ -1347,18 +1361,18 @@ function doExport() {
   if (!hasEvents) {
     rows3.push([ sc('No deductable events recorded this month.', 's',
       { font:font(9,false,'888888'), fill:fill(WHITE), alignment:A('left') }),
-      blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE), blank(WHITE) ]);
+      ...Array(6).fill(blank(WHITE)) ]);
   } else {
-    const allDed = rows3.slice(4).reduce((a,r) => a + (r[5]?.v || 0), 0);
-    const allHrs = rows3.slice(4).reduce((a,r) => a + (r[4]?.v || 0), 0);
-    rows3.push([ blank(TOTAL_BG), blank(TOTAL_BG), blank(TOTAL_BG),
+    const allDed = rows3.slice(4).reduce((a,r) => a + (r[6]?.v || 0), 0);
+    const allHrs = rows3.slice(4).reduce((a,r) => a + (r[5]?.v || 0), 0);
+    rows3.push([ blank(TOTAL_BG), blank(TOTAL_BG), blank(TOTAL_BG), blank(TOTAL_BG),
       sc('TOTAL', 's', totalStyle()),
       nc(allHrs,  '0.00',        totalStyle()),
       nc(allDed,  '"£"#,##0.00', totalStyle('right')),
     ]);
   }
 
-  const ws3 = buildWS(rows3, [26, 12, 14, 12, 14, 16]);
+  const ws3 = buildWS(rows3, [26, 16, 12, 14, 12, 14, 16]);
 
   const wb2 = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb2, ws1, 'Attendance Grid');
