@@ -419,11 +419,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh
           </label>
         </div>
         <div class="bh-preview" id="bhPreview" style="display:none;">
-          <div class="bh-preview-title">Remaining Bank Holidays this year</div>
+          <div class="bh-preview-title">Bank holidays this leave year (on top of allowance)</div>
           <div class="bh-preview-list" id="bhPreviewList"></div>
           <div class="bh-preview-count">
-            <span id="bhCount">0</span> bank holidays remaining from start date
-            — effective allowance <strong id="bhEffective">—</strong> days
+            <span id="bhCount">0</span> bank holidays from start date to <span id="bhYearEnd">—</span>
+            — total time off <strong id="bhEffective">—</strong> days (allowance + bank holidays)
           </div>
         </div>
         <div class="form-error" id="addFormError" style="display:none;"></div>
@@ -587,6 +587,20 @@ const isBH      = d => BANK_HOLIDAYS.has(d);
 const isWorkday = d => !isWkd(d) && !isBH(d);
 const dk = (y,m,d) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 const daysInMonth = (y,m) => new Date(y,m,0).getDate();
+// Normalise a date string (ISO or dd/mm/yyyy from CSVs) to YYYY-MM-DD
+function normDate(s){
+  if(!s) return '';
+  s=String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if(m){let y=+m[3]; if(y<100)y+=2000; return dk(y,+m[2],+m[1]);}
+  return '';
+}
+// Last day (31 March) of the April–March leave year containing dateStr
+function leaveYearEnd(dateStr){
+  const [y,m]=dateStr.split('-').map(Number);
+  return `${m>=4?y+1:y}-03-31`;
+}
 function getAllDatesInRange(aprilYear) {
   const dates = [];
   for (let m=4;m<=12;m++){const nd=daysInMonth(aprilYear,m);for(let d=1;d<=nd;d++)dates.push(dk(aprilYear,m,d));}
@@ -613,12 +627,12 @@ function computeInstances(entries, type, aprilYear) {
   flush();
   return instances;
 }
-function computeStats(empEntries, aprilYear) {
+function computeStats(empEntries, aprilYear, startDate='') {
   const allDates = getAllDatesInRange(aprilYear);
   let holDays=0,holHalf=0,bhDays=0,sickDays=0,aaupDays=0,aapDays=0;
   allDates.forEach(d=>{
     const isWD=isWorkday(d), isBHDay=isBH(d)&&!isWkd(d);
-    if(isBHDay){bhDays++;return;}
+    if(isBHDay){ if(!startDate||d>=startDate) bhDays++; return; }
     if(!isWD) return;
     const status=getStatus(empEntries[d]);
     if(!status) return;
@@ -630,7 +644,7 @@ function computeStats(empEntries, aprilYear) {
       case 'AAP':              aapDays++;  break;
     }
   });
-  const holTotal=holDays+holHalf*0.5+bhDays;
+  const holTotal=holDays+holHalf*0.5; // bank holidays are on top of the allowance
   return {
     holTotal,holDays,holHalf,bhDays,sickDays,aaupDays,aapDays,
     sickInst: computeInstances(empEntries,'sick',aprilYear),
@@ -716,7 +730,7 @@ async function loadAll(){
       const data=d.data();
       if(data._type==='staff'){
         staff.push({
-          id:d.id,name:data.name,createdAt:data.createdAt||'',
+          id:d.id,name:data.name,createdAt:data.createdAt||'',startDate:normDate(data.startDate),
           jobTitle:data.jobTitle||'',contract:data.contract||'',
           manager:data.manager||'',postcode:data.postcode||''
         });
@@ -726,7 +740,7 @@ async function loadAll(){
       }
       if(data._type==='archived'){
         archived.push({
-          id:d.id,name:data.name,createdAt:data.createdAt||'',archivedAt:data.archivedAt||'',leaveReason:data.leaveReason||'',
+          id:d.id,name:data.name,createdAt:data.createdAt||'',startDate:normDate(data.startDate),archivedAt:data.archivedAt||'',leaveReason:data.leaveReason||'',
           jobTitle:data.jobTitle||'',contract:data.contract||'',
           manager:data.manager||'',postcode:data.postcode||''
         });
@@ -788,7 +802,7 @@ async function confirmRestore(){
   try{
     await setDoc(doc(db,'Establishment Report',sid),{_type:'staff',archivedAt:null,leaveReason:null},{merge:true});
     archived=archived.filter(s=>s.id!==sid);
-    staff.push({id:emp.id,name:emp.name,createdAt:emp.createdAt,jobTitle:emp.jobTitle,contract:emp.contract,manager:emp.manager,postcode:emp.postcode});
+    staff.push({id:emp.id,name:emp.name,createdAt:emp.createdAt,startDate:emp.startDate,jobTitle:emp.jobTitle,contract:emp.contract,manager:emp.manager,postcode:emp.postcode});
     staff.sort((a,b)=>a.name.localeCompare(b.name));
     toast(`${emp.name} restored to active staff`);render();
   }catch(e){console.error(e);toast('Error restoring employee',true);}
@@ -831,20 +845,24 @@ function onStartDateChange(){
   const dateVal=$('addStartDate').value;
   const preview=$('bhPreview');
   if(!dateVal){preview.style.display='none';return;}
-  const remaining=ALL_BH_SORTED.filter(d=>d>=dateVal);
-  const allowance=parseFloat($('addAllowance').value)||25;
+  const yearEnd=leaveYearEnd(dateVal);
+  const remaining=ALL_BH_SORTED.filter(d=>d>=dateVal&&d<=yearEnd);
+  const v=parseFloat($('addAllowance').value);
+  const allowance=isNaN(v)?25:v;
   preview.style.display='flex';
   $('bhCount').textContent=remaining.length;
-  $('bhEffective').textContent=Math.max(0,allowance-remaining.length);
+  $('bhYearEnd').textContent=fmtDateShort(yearEnd);
+  $('bhEffective').textContent=allowance+remaining.length;
   $('bhPreviewList').innerHTML=remaining.length===0
-    ?'<span style="font-size:11px;color:var(--muted)">No bank holidays remaining in our records from this date.</span>'
+    ?'<span style="font-size:11px;color:var(--muted)">No bank holidays remaining in this leave year.</span>'
     :remaining.map(d=>`<span class="bh-chip" title="${d}">${bhName(d)} · ${fmtDateShort(d)}</span>`).join('');
 }
 async function submitAddEmp(){
   const name=$('addName').value.trim(),startDate=$('addStartDate').value;
   const jobTitle=$('addJobTitle').value.trim(),contract=$('addContract').value;
   const manager=$('addManager').value.trim(),postcode=$('addPostcode').value.trim();
-  const allowance=parseFloat($('addAllowance').value)||25;
+  const allowanceRaw=parseFloat($('addAllowance').value);
+  const allowance=isNaN(allowanceRaw)?25:allowanceRaw;
   const nonEngineer=$('addNonEngineer').checked;
   const errEl=$('addFormError');
   errEl.style.display='none';
@@ -858,7 +876,7 @@ async function submitAddEmp(){
       _type:'staff',name,startDate,jobTitle,contract,manager,postcode,
       holidayAllowance:allowance,nonEngineer,createdAt:new Date().toISOString()
     });
-    staff.push({id,name,createdAt:new Date().toISOString(),jobTitle,contract,manager,postcode});
+    staff.push({id,name,createdAt:new Date().toISOString(),startDate,jobTitle,contract,manager,postcode});
     allEntries[id]={};allowances[id]=allowance;
     if(nonEngineer)nonEngineers.add(id);else nonEngineers.delete(id);
     staff.sort((a,b)=>a.name.localeCompare(b.name));
@@ -936,8 +954,8 @@ function render(){
   }
 }
 function renderRow(emp,i,isArchived=false){
-  const stats=computeStats(allEntries[emp.id]||{},aprilYear);
-  const allowance=allowances[emp.id]||25;
+  const stats=computeStats(allEntries[emp.id]||{},aprilYear,emp.startDate);
+  const allowance=allowances[emp.id]??25;
   const isNonEng=nonEngineers.has(emp.id);
   const ini=emp.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
   const pct=allowance>0?Math.min(100,Math.round(stats.holTotal/allowance*100)):0;
@@ -1012,7 +1030,7 @@ function renderRow(emp,i,isArchived=false){
       <div class="stat-tags">
         ${stats.holDays>0?`<span class="tag hol" style="${isArchived?'opacity:.5':''}">H ${stats.holDays}d</span>`:''}
         ${stats.holHalf>0?`<span class="tag hol" style="${isArchived?'opacity:.5':''}">½H ${stats.holHalf}</span>`:''}
-        ${stats.bhDays>0?`<span class="tag bh" style="${isArchived?'opacity:.5':''}">BH ${stats.bhDays}d</span>`:''}
+        ${stats.bhDays>0?`<span class="tag bh" style="${isArchived?'opacity:.5':''}" title="Bank holidays — on top of allowance">+BH ${stats.bhDays}d</span>`:''}
       </div>
     </div>
     <div class="emp-cell stat-cell">
@@ -1068,7 +1086,7 @@ function bindRowEvents(emp,isArchived){
           await saveAllowance(emp.id,val);
           const si=document.getElementById(`save-ind-${emp.id}`);
           if(si){si.classList.add('show');setTimeout(()=>si.classList.remove('show'),1800);}
-          updateProgress(emp.id,computeStats(allEntries[emp.id]||{},aprilYear),val);
+          updateProgress(emp.id,computeStats(allEntries[emp.id]||{},aprilYear,emp.startDate),val);
         },600);
       });
       inp.addEventListener('click',e=>e.stopPropagation());
@@ -1139,7 +1157,7 @@ function renderSummary(fil){
   if(!fil.length){$('summaryStrip').innerHTML='';return;}
   let totHol=0,totAllowance=0,totSick=0,totAaup=0,totAap=0;
   fil.forEach(emp=>{
-    const s=computeStats(allEntries[emp.id]||{},aprilYear);
+    const s=computeStats(allEntries[emp.id]||{},aprilYear,emp.startDate);
     totHol+=s.holTotal;totAllowance+=(allowances[emp.id]??25);
     totSick+=s.sickDays;totAaup+=s.aaupDays;totAap+=s.aapDays;
   });
@@ -1147,15 +1165,15 @@ function renderSummary(fil){
   const remColor=totRem<0?'var(--red)':totRem===0?'var(--muted)':'var(--green)';
   $('summaryStrip').innerHTML=`
     <div class="sum-card c-total"><div class="sum-label">Active Staff</div><div class="sum-val">${fil.length}</div><div class="sum-sub">Apr ${aprilYear} – Mar ${aprilYear+1}</div></div>
-    <div class="sum-card c-hol"><div class="sum-label">Holiday Days Used</div><div class="sum-val">${totHol}</div><div class="sum-sub">of ${totAllowance} total allowance</div></div>
+    <div class="sum-card c-hol"><div class="sum-label">Holiday Days Used</div><div class="sum-val">${totHol}</div><div class="sum-sub">of ${totAllowance} total allowance (excl. BH)</div></div>
     <div class="sum-card c-hol"><div class="sum-label">Holidays Remaining</div><div class="sum-val" style="color:${remColor}">${totRem}</div><div class="sum-sub">${totRem>=0?'days still available':'days over allowance'}</div></div>
     <div class="sum-card c-sick"><div class="sum-label">Sick Days</div><div class="sum-val">${totSick}</div><div class="sum-sub">across active staff</div></div>
     <div class="sum-card c-aaup"><div class="sum-label">AAUP Days</div><div class="sum-val">${totAaup}</div><div class="sum-sub">unauthorised unpaid</div></div>
     <div class="sum-card c-aap"><div class="sum-label">AAP Days</div><div class="sum-val">${totAap}</div><div class="sum-sub">authorised absence</div></div>`;
 }
 function openDetail(emp){
-  const stats=computeStats(allEntries[emp.id]||{},aprilYear);
-  const allowance=allowances[emp.id]||25;
+  const stats=computeStats(allEntries[emp.id]||{},aprilYear,emp.startDate);
+  const allowance=allowances[emp.id]??25;
   const isArc=archived.some(a=>a.id===emp.id);
   const isNonEng=nonEngineers.has(emp.id);
   $('detailName').textContent=emp.name+(isArc?' (Archived)':'')+(isNonEng?' · Non-engineer':'');
@@ -1172,6 +1190,7 @@ function openDetail(emp){
       <span>${esc(emp.jobTitle||'No Title')} · ${esc(emp.contract||'No Contract')}</span>
       <span>Mgr: ${esc(emp.manager||'N/A')}</span>
       <span>PC: ${esc(emp.postcode||'N/A')}</span>
+      ${emp.startDate?`<span>Start: ${fmtDate(emp.startDate)}</span>`:''}
     </div>
     ${isNonEng?`<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--amber);margin-bottom:16px;">⚙ Non-engineer — excluded from the engineer holiday progress bar.</div>`:''}
     ${isArc?`<div style="background:rgba(120,120,120,.08);border:1px solid rgba(120,120,120,.2);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--muted);margin-bottom:16px;">📦 Archived — excluded from active totals. ${emp.leaveReason?`Reason: <strong>${esc(emp.leaveReason)}</strong>`:''}</div>`:''}
@@ -1184,7 +1203,7 @@ function openDetail(emp){
       <div class="detail-grid">
         <div class="detail-stat c-hol"><div class="detail-stat-label">Full Holidays</div><div class="detail-stat-val" style="color:var(--tag-hol-t)">${stats.holDays}</div><div class="detail-stat-sub">${stats.holInst.length} instance${stats.holInst.length!==1?'s':''}</div></div>
         <div class="detail-stat c-hol"><div class="detail-stat-label">Half-day Holidays</div><div class="detail-stat-val" style="color:var(--tag-hol-t)">${stats.holHalf}</div><div class="detail-stat-sub">${stats.holHalf*0.5} days counted</div></div>
-        <div class="detail-stat c-bh"><div class="detail-stat-label">Bank Holidays</div><div class="detail-stat-val" style="color:var(--tag-bh-t)">${stats.bhDays}</div><div class="detail-stat-sub">in this period</div></div>
+        <div class="detail-stat c-bh"><div class="detail-stat-label">Bank Holidays</div><div class="detail-stat-val" style="color:var(--tag-bh-t)">${stats.bhDays}</div><div class="detail-stat-sub">on top of allowance</div></div>
         <div class="detail-stat"><div class="detail-stat-label">Remaining</div><div class="detail-stat-val" style="color:${(allowance-stats.holTotal)<0?'var(--red)':'var(--green)'}">${allowance-stats.holTotal}</div><div class="detail-stat-sub">days left</div></div>
       </div>
     </div>
@@ -1257,7 +1276,7 @@ async function handleBulkUpload(e) {
           if(mgr) { updateData.manager = mgr; emp.manager = mgr; }
           if(sd) {
              updateData.startDate = sd;
-             emp.startDate = sd;
+             emp.startDate = normDate(sd) || sd;
           }
 
           if(Object.keys(updateData).length > 0) {
