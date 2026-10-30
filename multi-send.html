@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF Batch Mailer</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#fff; --ink:#1c1f24; --muted:#6b7280; --line:#e3e6eb;
+    --accent:#2f5bea; --accent-ink:#fff; --ok:#15803d; --warn:#b45309; --err:#b91c1c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14161a; --card:#1d2026; --ink:#e8eaee; --muted:#9aa1ad; --line:#2d3139;
+      --accent:#6d8cff; --accent-ink:#0d1020; --ok:#4ade80; --warn:#fbbf24; --err:#f87171; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  main{max-width:980px;margin:0 auto;padding:24px 16px 60px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+  input,textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+  textarea{min-height:80px;resize:vertical}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:.15s}
+  .drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+  .drop strong{display:block;font-size:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{border:0;border-radius:8px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+  .stats b{color:var(--ink)}
+  .batch{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+  .batch-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+  .pill{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+  .pill.ok{color:var(--ok);border-color:var(--ok)} .pill.err{color:var(--err);border-color:var(--err)}
+  .pill.warn{color:var(--warn);border-color:var(--warn)} .pill.busy{color:var(--accent);border-color:var(--accent)}
+  .files{margin:6px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+  .files li{display:flex;justify-content:space-between;gap:8px;padding:2px 0;word-break:break-all}
+  .files button{padding:0 6px;background:none;color:var(--err);font-weight:400}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px}
+  code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:12.5px}
+  .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:12px}
+  .bar>div{height:100%;width:0;background:var(--accent);transition:width .3s}
+  #log{font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;max-height:220px;overflow:auto;white-space:pre-wrap;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>PDF Batch Mailer</h1>
+  <p class="sub">Drop in your PDFs, choose how many go in each email, and send them through EmailJS.</p>
+
+  <section class="card">
+    <h2>1 · EmailJS settings</h2>
+    <div class="grid">
+      <div><label>Service ID</label><input id="serviceId" value="service_pyr23ok"></div>
+      <div><label>Public key</label><input id="publicKey" value="ziLnha91scpGjFABh"></div>
+      <div><label>Template ID</label><input id="templateId" value="template_lxuimwc"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2 · Email details</h2>
+    <div class="grid">
+      <div><label>Send to (to_email)</label><input id="toEmail" type="email" placeholder="someone@example.com"></div>
+      <div><label>From name (from_name)</label><input id="fromName" placeholder="Your name"></div>
+      <div><label>Subject (subject) — {batch} and {total} work here</label><input id="subject" value="Documents — part {batch} of {total}"></div>
+    </div>
+    <div style="margin-top:12px"><label>Message (message)</label><textarea id="message">Please find the attached PDFs.</textarea></div>
+  </section>
+
+  <section class="card">
+    <h2>3 · PDFs</h2>
+    <div class="drop" id="drop">
+      <strong>Drop PDFs here or click to choose</strong>
+      <span class="hint">You can add as many as you like, in several goes.</span>
+      <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="ghost" id="clearBtn" type="button">Clear all</button>
+      <div class="stats"><span>Files: <b id="fileCount">0</b></span><span>Total size: <b id="totalSize">0 KB</b></span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4 · Volume per email</h2>
+    <div class="grid">
+      <div><label>PDFs attached to each email</label><input id="perEmail" type="number" min="1" max="50" value="5"></div>
+      <div><label>Attachment parameter name</label><input id="paramBase" value="attachment"></div>
+      <div><label>Size warning per email (KB)</label><input id="limitKb" type="number" min="1" value="2048"></div>
+      <div><label>Pause between emails (ms)</label><input id="delayMs" type="number" min="0" value="1500"></div>
+    </div>
+    <p class="hint" id="paramHint"></p>
+  </section>
+
+  <section class="card">
+    <h2>5 · Send</h2>
+    <div class="row">
+      <button id="sendBtn" type="button">Send all emails</button>
+      <button class="ghost" id="stopBtn" type="button" disabled>Stop</button>
+      <button class="ghost" id="retryBtn" type="button" disabled>Retry failed</button>
+      <div class="stats"><span>Emails: <b id="batchCount">0</b></span><span>Sent: <b id="sentCount">0</b></span><span>Failed: <b id="failCount">0</b></span></div>
+    </div>
+    <div class="bar"><div id="bar"></div></div>
+    <div id="batches"></div>
+  </section>
+
+  <section class="card">
+    <h2>Log</h2>
+    <div id="log"></div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let files = [];          // File objects
+let batches = [];        // {files:[], status:'pending'|'sending'|'sent'|'failed', error}
+let stopRequested = false, running = false;
+
+const fmt = b => b < 1024*1024 ? (b/1024).toFixed(0)+' KB' : (b/1024/1024).toFixed(2)+' MB';
+const log = msg => { const t=new Date().toLocaleTimeString(); $('log').textContent = `[${t}] ${msg}\n` + $('log').textContent; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function paramNames(n){
+  const base = $('paramBase').value.trim() || 'attachment';
+  if (n === 1) return [base];
+  return Array.from({length:n}, (_,i)=> base + (i+1));
+}
+
+function addFiles(list){
+  const existing = new Set(files.map(f => f.name+'|'+f.size));
+  let added = 0;
+  for (const f of list){
+    const isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+    if (!isPdf) { log(`Skipped (not a PDF): ${f.name}`); continue; }
+    if (existing.has(f.name+'|'+f.size)) continue;
+    files.push(f); existing.add(f.name+'|'+f.size); added++;
+  }
+  files.sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true}));
+  log(`Added ${added} PDF(s).`);
+  rebuild();
+}
+
+function rebuild(){
+  if (running) return;
+  const per = Math.max(1, parseInt($('perEmail').value) || 1);
+  batches = [];
+  for (let i=0; i<files.length; i+=per) batches.push({files: files.slice(i,i+per), status:'pending'});
+  render();
+}
+
+function render(){
+  const per = Math.max(1, parseInt($('perEmail').value) || 1);
+  const limit = (parseInt($('limitKb').value) || 0) * 1024;
+  $('fileCount').textContent = files.length;
+  $('totalSize').textContent = fmt(files.reduce((s,f)=>s+f.size,0));
+  $('batchCount').textContent = batches.length;
+  $('sentCount').textContent = batches.filter(b=>b.status==='sent').length;
+  $('failCount').textContent = batches.filter(b=>b.status==='failed').length;
+  const done = batches.filter(b=>b.status==='sent'||b.status==='failed').length;
+  $('bar').style.width = batches.length ? (done/batches.length*100)+'%' : '0';
+  $('retryBtn').disabled = running || !batches.some(b=>b.status==='failed');
+  $('sendBtn').disabled = running || !batches.some(b=>b.status==='pending');
+
+  const names = paramNames(per);
+  $('paramHint').innerHTML = `Your EmailJS template needs ${names.length === 1 ? 'a variable attachment' : names.length + ' variable attachments'} with the parameter name${names.length>1?'s':''}: ` +
+    names.map(n=>`<code>${n}</code>`).join(' ') +
+    `. Set these up in EmailJS → your template → Attachments → Add attachment → “Variable Attachment”.`;
+
+  const wrap = $('batches'); wrap.innerHTML = '';
+  batches.forEach((b, bi) => {
+    const size = b.files.reduce((s,f)=>s+f.size,0);
+    const est = Math.ceil(size*4/3); // base64 overhead
+    const over = limit && est > limit;
+    const pill = {pending: over ? ['warn','Over size warning'] : ['','Ready'], sending:['busy','Sending…'], sent:['ok','Sent'], failed:['err','Failed']}[b.status];
+    const div = document.createElement('div'); div.className='batch';
+    div.innerHTML = `<div class="batch-head"><strong>Email ${bi+1} of ${batches.length}</strong>
+      <span class="stats"><span>${b.files.length} PDF(s) · ${fmt(size)} (~${fmt(est)} encoded)</span><span class="pill ${pill[0]}">${pill[1]}</span></span></div>
+      ${b.error ? `<div class="hint" style="color:var(--err)">${b.error}</div>` : ''}`;
+    const ul = document.createElement('ul'); ul.className='files';
+    b.files.forEach(f => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${f.name}</span>`;
+      if (!running && b.status==='pending'){
+        const x = document.createElement('button'); x.textContent='remove'; x.type='button';
+        x.onclick = () => { files = files.filter(z=>z!==f); rebuild(); };
+        li.appendChild(x);
+      }
+      ul.appendChild(li);
+    });
+    div.appendChild(ul); wrap.appendChild(div);
+  });
+}
+
+function toDataUrl(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+async function sendBatch(b, index, total){
+  const names = paramNames(Math.max(1, parseInt($('perEmail').value) || 1));
+  const fill = s => s.replace(/\{batch\}/g, index).replace(/\{total\}/g, total);
+  const params = {
+    to_email: $('toEmail').value.trim(),
+    from_name: $('fromName').value.trim(),
+    subject: fill($('subject').value),
+    message: fill($('message').value),
+    batch_number: index,
+    total_batches: total,
+    file_count: b.files.length,
+    file_names: b.files.map(f=>f.name).join('\n')
+  };
+  for (let i=0; i<b.files.length; i++) params[names[i]] = await toDataUrl(b.files[i]);
+  return emailjs.send($('serviceId').value.trim(), $('templateId').value.trim(), params, {publicKey: $('publicKey').value.trim()});
+}
+
+async function run(onlyStatus){
+  if (!$('toEmail').value.trim()) { alert('Add a "Send to" email address first.'); return; }
+  if (onlyStatus==='failed') batches.forEach(b=>{ if(b.status==='failed'){ b.status='pending'; b.error=''; } });
+  running = true; stopRequested = false;
+  $('stopBtn').disabled = false; lockInputs(true); render();
+  const delay = parseInt($('delayMs').value) || 0;
+  let first = true;
+  for (let i=0; i<batches.length; i++){
+    const b = batches[i];
+    if (b.status !== 'pending') continue;
+    if (stopRequested) { log('Stopped.'); break; }
+    if (!first) await sleep(delay);
+    first = false;
+    b.status='sending'; render();
+    try {
+      await sendBatch(b, i+1, batches.length);
+      b.status='sent'; log(`Email ${i+1} sent (${b.files.length} PDF(s)).`);
+    } catch (e) {
+      b.status='failed'; b.error = (e && (e.text || e.message)) ? `${e.status||''} ${e.text||e.message}` : 'Unknown error';
+      log(`Email ${i+1} failed: ${b.error}`);
+    }
+    render();
+  }
+  running = false; $('stopBtn').disabled = true; lockInputs(false); render();
+  log('Finished.');
+}
+
+function lockInputs(on){
+  ['perEmail','paramBase','fileInput','clearBtn'].forEach(id => $(id).disabled = on);
+}
+
+// Events
+const drop = $('drop');
+drop.onclick = () => !running && $('fileInput').click();
+$('fileInput').onchange = e => { addFiles(e.target.files); e.target.value=''; };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); if(!running) addFiles(e.dataTransfer.files); };
+$('clearBtn').onclick = () => { files=[]; rebuild(); };
+['perEmail','paramBase','limitKb'].forEach(id => $(id).addEventListener('input', rebuild));
+$('sendBtn').onclick = () => {
+  const n = batches.filter(b=>b.status==='pending').length;
+  if (confirm(`Send ${n} email(s) to ${$('toEmail').value.trim() || '(no address)'}?`)) run();
+};
+$('retryBtn').onclick = () => run('failed');
+$('stopBtn').onclick = () => { stopRequested = true; $('stopBtn').disabled = true; };
+render();
+</script>
+</body>
+</html>
