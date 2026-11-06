@@ -3,48 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NGU - Audit Review</title>
+<title>Audit Review</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --primary:#005EB8;--accent:#00A3E0;
-  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
-  --text-light:#f8fafc;--text-muted:#8b9bb4;
-  --border:rgba(0,163,224,0.2);
-  --grid:rgba(139,155,180,0.14);
-  --series-1:#3987e5;
-  --good:#0ca30c;--warning:#fab219;--serious:#ec835a;--critical:#d03b3b;
+  --accent:#2563eb;--accent-rgb:37,99,235;--primary:#1e4fc1;
+  --bg-dark:#f4f6f9;--bg-card:#ffffff;--bg-input:#ffffff;--bg-subtle:#f8fafc;
+  --text-light:#0f172a;--text-muted:#64748b;
+  --border:#dbe2ea;--border-soft:#edf1f5;
+  --success:#15803d;--error:#dc2626;--warning:#b45309;
+  --ok-text:#15803d;--err-text:#b91c1c;--warn-text:#92400e;--info-text:#1e40af;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 2px 8px rgba(15,23,42,.05);
+  --grid:#e9eef4;--series-1:#2a78d6;--good:#0ca30c;--warning:#fab219;--serious:#ec835a;--critical:#d03b3b;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 4rem}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 4rem}
 .topbar{max-width:1400px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .logo{width:120px}
 .nav{display:flex;gap:.5rem;flex-wrap:wrap}
 .nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
-.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(var(--accent-rgb),.1)}
 .wrap{max-width:1400px;margin:0 auto}
 .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
-.page-head h1{font-size:1.9rem;font-weight:800;color:var(--accent);letter-spacing:-.03em}
+.page-head h1{font-size:1.9rem;font-weight:800;color:var(--text-light);letter-spacing:-.03em}
 .page-head p{color:var(--text-muted);font-size:.92rem;margin-top:.3rem}
-.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:10px;padding:.65rem 1rem;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap}
-.btn:hover{box-shadow:0 6px 16px rgba(0,163,224,.3)}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:.65rem 1rem;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{box-shadow:0 6px 16px rgba(var(--accent-rgb),.3)}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:10px;padding:.6rem .9rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
 .actions{display:flex;gap:.5rem;flex-wrap:wrap}
 
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.2rem 1.3rem;box-shadow:0 8px 25px rgba(0,0,0,.25)}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.2rem 1.3rem;box-shadow:var(--shadow)}
 .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;margin-bottom:1.2rem;align-items:end}
 .filters label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.3rem}
 select,input[type=date],input[type=search]{width:100%;padding:.6rem .7rem;background:var(--bg-input);border:2px solid var(--border);border-radius:9px;color:var(--text-light);font-size:.9rem;font-family:inherit;outline:none}
 select:focus,input:focus{border-color:var(--accent)}
 select option{background:var(--bg-input)}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8)}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:.55}
 .chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:-.4rem 0 1.2rem}
-.chip{background:rgba(0,163,224,.12);border:1px solid var(--border);color:var(--text-light);border-radius:20px;padding:.25rem .7rem;font-size:.8rem;cursor:pointer}
+.chip{background:rgba(var(--accent-rgb),.12);border:1px solid var(--border);color:var(--text-light);border-radius:20px;padding:.25rem .7rem;font-size:.8rem;cursor:pointer}
 .chip:hover{border-color:var(--error,#ef4444)}
 
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.2rem}
@@ -66,10 +66,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8)}
 
 table{width:100%;border-collapse:collapse;font-size:.88rem}
 th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.6rem .6rem;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
-th.num,td.num{text-align:right;font-family:'DM Mono',monospace}
-td{padding:.6rem .6rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+th.num,td.num{text-align:right;font-family:'JetBrains Mono',monospace}
+td{padding:.6rem .6rem;border-bottom:1px solid var(--border-soft);vertical-align:middle}
 tbody tr{cursor:pointer}
-tbody tr:hover{background:rgba(0,163,224,.06)}
+tbody tr:hover{background:rgba(var(--accent-rgb),.06)}
 .table-wrap{overflow-x:auto;max-height:520px;overflow-y:auto}
 .table-wrap thead th{position:sticky;top:0;background:var(--bg-card);z-index:1}
 .status{display:inline-flex;align-items:center;gap:.35rem;font-weight:600;font-size:.82rem;white-space:nowrap}
@@ -83,7 +83,7 @@ tbody tr:hover{background:rgba(0,163,224,.06)}
 .loading{padding:3rem;text-align:center;color:var(--text-muted)}
 
 /* modal */
-.modal{position:fixed;inset:0;background:rgba(5,10,20,.75);display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;z-index:50;overflow-y:auto}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;z-index:50;overflow-y:auto}
 .modal.open{display:flex}
 .modal-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;max-width:900px;width:100%;padding:1.6rem}
 .modal-top{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1rem}
@@ -91,12 +91,12 @@ tbody tr:hover{background:rgba(0,163,224,.06)}
 .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.6rem 1rem;margin-bottom:1.2rem;font-size:.9rem}
 .meta div span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
 .qsec{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:1.2rem 0 .5rem}
-.qrow{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.9rem}
+.qrow{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--border-soft);font-size:.9rem}
 .qrow .ans{flex-shrink:0;max-width:45%;text-align:right}
 .qcomment{font-size:.85rem;color:var(--text-muted);margin:.2rem 0 .4rem;white-space:pre-wrap}
 .pics{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .6rem}
 .pics a img{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid var(--border);display:block}
-.feedback{white-space:pre-wrap;font-size:.9rem;background:rgba(0,0,0,.15);border-radius:10px;padding:.8rem;line-height:1.5}
+.feedback{white-space:pre-wrap;font-size:.9rem;background:var(--bg-subtle);border-radius:10px;padding:.8rem;line-height:1.5}
 .sigs{display:flex;gap:1rem;flex-wrap:wrap}
 .sigs img{background:var(--bg-input);border-radius:8px;border:1px solid var(--border);max-width:260px;height:110px;object-fit:contain}
 .nc-list{list-style:none;font-size:.9rem}
@@ -104,25 +104,39 @@ tbody tr:hover{background:rgba(0,163,224,.06)}
 
 @media (max-width:900px){.charts{grid-template-columns:1fr}}
 @media (max-width:600px){.page-head h1{font-size:1.5rem}.kpi .value{font-size:1.6rem}.logo{width:100px}.qrow{flex-direction:column;gap:.2rem}.qrow .ans{max-width:none;text-align:left}}
+
+/* shared header */
+.topbar{padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--text-light)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-mark svg{width:20px;height:20px}
+.brand-logo{max-height:38px;max-width:160px;object-fit:contain}
+.brand-text{display:flex;flex-direction:column;line-height:1.15}
+.brand-name{font-weight:700;font-size:1rem;letter-spacing:-.01em}
+.brand-company{font-size:.78rem;color:var(--text-muted)}
+.nav a{border-color:transparent!important;background:transparent}
+.nav a:hover{background:var(--bg-card)!important;border-color:var(--border)!important;color:var(--text-light)!important}
+.nav a.active{background:rgba(var(--accent-rgb),.1)!important;color:var(--accent)!important;border-color:transparent!important}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+<header class="topbar">
+  <a class="brand" href="auditing-homepage.html"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l2 2 4-4"/><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/></svg></span><span class="brand-text"><span class="brand-name" data-brand="appName">Compliance Audits</span><span class="brand-company" data-brand="companyName" hidden></span></span></a>
   <nav class="nav">
+    <a href="auditing-homepage.html">Home</a>
     <a href="audit-selection.html">New Audit</a>
     <a href="audit-review.html" class="active">Audit Review</a>
     <a href="question-review.html">Questions</a>
     <a href="addname.html">Lists</a>
   </nav>
-</div>
+</header>
 
 <div class="wrap">
   <div class="page-head">
     <div><h1>Audit Review</h1><p id="subtitle">Loading audits…</p></div>
     <div class="actions">
-      <button class="btn-ghost" id="refreshBtn">↻ Refresh</button>
-      <button class="btn" id="csvBtn">⬇ Export audits CSV</button>
+      <button class="btn-ghost" id="refreshBtn">Refresh</button>
+      <button class="btn" id="csvBtn">Export audits CSV</button>
     </div>
   </div>
 
@@ -181,7 +195,7 @@ tbody tr:hover{background:rgba(0,163,224,.06)}
   </div>
 
   <div class="card" style="margin-bottom:1.2rem">
-    <div class="section-head"><h3>Breakdown by <span id="dimLabel2">installer/engineer</span></h3><button class="btn-ghost" id="dimCsvBtn">⬇ Export breakdown CSV</button></div>
+    <div class="section-head"><h3>Breakdown by <span id="dimLabel2">installer/engineer</span></h3><button class="btn-ghost" id="dimCsvBtn">Export breakdown CSV</button></div>
     <div class="table-wrap"><table id="dimTable"></table></div>
   </div>
 
@@ -194,17 +208,12 @@ tbody tr:hover{background:rgba(0,163,224,.06)}
 <div class="modal" id="modal"><div class="modal-card" id="modalCard"></div></div>
 
 <script type="module">
+import { BRAND, FIREBASE_CONFIG, DEFAULT_LISTS as CONFIG_LISTS, applyBranding } from './audit-config.js';
+applyBranding('Audit Review');
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
-  authDomain: "oesperformance-a54c0.firebaseapp.com",
-  projectId: "oesperformance-a54c0",
-  storageBucket: "oesperformance-a54c0.firebasestorage.app",
-  messagingSenderId: "484894102454",
-  appId: "1:484894102454:web:17535ee497eac2d90d6717"
-};
+const firebaseConfig = FIREBASE_CONFIG;
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const SUBMISSIONS = 'Compliance Audit Submissions';
@@ -322,10 +331,10 @@ function renderKpis(){
 }
 
 /* ---------------------------------------------------------- CHARTS */
-Chart.defaults.font.family="'Work Sans', sans-serif";
-Chart.defaults.color='#8b9bb4';
-Chart.defaults.borderColor='rgba(139,155,180,0.14)';
-const tooltip = { backgroundColor:'#0d1f3a', borderColor:'rgba(0,163,224,0.35)', borderWidth:1, titleColor:'#f8fafc', bodyColor:'#f8fafc', padding:10, cornerRadius:8, displayColors:true, boxPadding:4 };
+Chart.defaults.font.family="'Inter', sans-serif";
+Chart.defaults.color='#64748b';
+Chart.defaults.borderColor='#e2e8f0';
+const tooltip = { backgroundColor:'#ffffff', borderColor:'#dbe2ea', borderWidth:1, titleColor:'#0f172a', bodyColor:'#334155', padding:10, cornerRadius:8, displayColors:true, boxPadding:4 };
 
 function makeChart(id,config){
   charts[id]?.destroy();
@@ -363,7 +372,7 @@ function renderOutcomes(){
   makeChart('cOutcome',{ type:'bar',
     data:{ labels:keys, datasets:[{ label:'Audits', data:keys.map(k=>counts[k]), backgroundColor:keys.map(k=>css(OUTCOME_COLOR[k]||'--series-1')), ...barBase }] },
     options:{ indexAxis:'y', maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ ...tooltip, callbacks:{ label:c=>` ${c.raw} audits (${pct(c.raw,VIEW.length)}%)` } } },
-      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 }, grid:{ color:css('--grid') } }, y:{ grid:{ display:false }, ticks:{ color:'#f8fafc' } } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 }, grid:{ color:css('--grid') } }, y:{ grid:{ display:false }, ticks:{ color:'#0f172a' } } },
       onClick:(e,els)=>{ if(els.length) setFilter('auditOutcome',keys[els[0].index]); } }
   });
 }
@@ -489,7 +498,7 @@ function openAudit(id){
     ${nc.length?`<div class="qsec">Detail of non-conformance</div>${nc.map(([k,items])=>`<div class="qcomment" style="color:var(--text-light);font-weight:600">${esc(NC_LABELS[k]||(a.labels||{})[k]||k)}</div><ul class="nc-list">${items.map(i=>`<li>• ${esc(i)}</li>`).join('')}</ul>`).join('')}`:''}
     ${fb.map(([l,v])=>`<div class="qsec">${l}</div><div class="feedback">${esc(v)}</div>`).join('')}
     ${a.signatures?`<div class="qsec">Signatures</div><div class="sigs">${Object.entries(a.signatures).map(([k,u])=>`<div><div class="qcomment">${k==='assessorSignature'?'Assessor':'Installer/Engineer'}</div><img src="${esc(u)}" alt="Signature"></div>`).join('')}</div>`:''}
-    <p class="muted" style="font-size:.75rem;margin-top:1.2rem;font-family:'DM Mono',monospace">Ref ${esc(a.id)}</p>`;
+    <p class="muted" style="font-size:.75rem;margin-top:1.2rem;font-family:'JetBrains Mono',monospace">Ref ${esc(a.id)}</p>`;
   $('modal').classList.add('open');
   $('closeModal').onclick=closeModal;
 }

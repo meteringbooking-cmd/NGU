@@ -3,42 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NGU - Audit Lists</title>
+<title>Audit Lists</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --primary:#005EB8;--accent:#00A3E0;
-  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
-  --text-light:#f8fafc;--text-muted:#8b9bb4;
-  --border:rgba(0,163,224,0.2);
-  --success:#10b981;--error:#ef4444;--warning:#f59e0b;
+  --accent:#2563eb;--accent-rgb:37,99,235;--primary:#1e4fc1;
+  --bg-dark:#f4f6f9;--bg-card:#ffffff;--bg-input:#ffffff;--bg-subtle:#f8fafc;
+  --text-light:#0f172a;--text-muted:#64748b;
+  --border:#dbe2ea;--border-soft:#edf1f5;
+  --success:#15803d;--error:#dc2626;--warning:#b45309;
+  --ok-text:#15803d;--err-text:#b91c1c;--warn-text:#92400e;--info-text:#1e40af;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 2px 8px rgba(15,23,42,.05);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 3rem}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 3rem}
 .topbar{max-width:1200px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .logo{width:120px}
 .nav{display:flex;gap:.5rem;flex-wrap:wrap}
 .nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
-.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(var(--accent-rgb),.1)}
 .wrap{max-width:1200px;margin:0 auto}
 .page-header{margin-bottom:1.5rem}
-.page-header h1{font-size:1.9rem;font-weight:800;color:var(--accent);letter-spacing:-.03em;margin-bottom:.4rem}
+.page-header h1{font-size:1.9rem;font-weight:800;color:var(--text-light);letter-spacing:-.03em;margin-bottom:.4rem}
 .page-header p{color:var(--text-muted);line-height:1.55;max-width:760px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem}
-.panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.3rem;display:flex;flex-direction:column;box-shadow:0 8px 25px rgba(0,0,0,.3);min-height:420px}
+.panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.3rem;display:flex;flex-direction:column;box-shadow:var(--shadow);min-height:420px}
 .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin-bottom:.3rem}
 .panel h2{font-size:1.1rem;font-weight:700}
-.count{font-family:'DM Mono',monospace;font-size:.8rem;color:var(--accent);background:rgba(0,163,224,.1);padding:.15rem .5rem;border-radius:6px}
+.count{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent);background:rgba(var(--accent-rgb),.1);padding:.15rem .5rem;border-radius:6px}
 .panel .hint{font-size:.8rem;color:var(--text-muted);margin-bottom:.9rem}
 .add-row{display:flex;gap:.5rem;margin-bottom:.6rem}
 input[type=text],textarea{width:100%;padding:.7rem .85rem;background:var(--bg-input);border:2px solid var(--border);border-radius:10px;color:var(--text-light);font-size:.95rem;font-family:inherit;outline:none;transition:all .2s}
-input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,163,224,.15)}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15)}
 textarea{min-height:90px;resize:vertical}
-.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:10px;padding:.7rem 1rem;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
-.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,163,224,.3)}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:.7rem 1rem;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(var(--accent-rgb),.3)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:.4rem .7rem;font-size:.8rem;cursor:pointer;font-family:inherit}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
@@ -47,31 +48,45 @@ textarea{min-height:90px;resize:vertical}
 .bulk .btn{margin-top:.5rem;width:100%}
 .tools{display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
 .search{margin-bottom:.6rem}
-.list{list-style:none;flex:1;overflow-y:auto;max-height:420px;border:1px solid rgba(255,255,255,.05);border-radius:10px;background:rgba(0,0,0,.15)}
-.list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.55rem .75rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:.92rem}
+.list{list-style:none;flex:1;overflow-y:auto;max-height:420px;border:1px solid var(--border-soft);border-radius:10px;background:var(--bg-subtle)}
+.list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.55rem .75rem;border-bottom:1px solid var(--border-soft);font-size:.92rem}
 .list li:last-child{border-bottom:none}
-.list li:hover{background:rgba(0,163,224,.05)}
+.list li:hover{background:rgba(var(--accent-rgb),.05)}
 .list .empty{color:var(--text-muted);justify-content:center;font-size:.85rem;padding:1.2rem}
-.rm{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:7px;width:28px;height:28px;cursor:pointer;flex-shrink:0;font-size:.85rem}
-.rm:hover{background:rgba(239,68,68,.25);border-color:var(--error)}
+.rm{background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:var(--err-text);border-radius:7px;width:28px;height:28px;cursor:pointer;flex-shrink:0;font-size:.85rem}
+.rm:hover{background:rgba(220,38,38,.25);border-color:var(--error)}
 .status{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(150%);background:var(--bg-card);border:1px solid var(--border);padding:.75rem 1.1rem;border-radius:12px;font-size:.9rem;font-weight:600;transition:transform .25s,opacity .25s;z-index:20;max-width:calc(100% - 2rem);opacity:0;pointer-events:none}
 .status.show{transform:translateX(-50%) translateY(0);opacity:1}
-.status.ok{border-color:var(--success);color:#6ee7b7}
-.status.err{border-color:var(--error);color:#fca5a5}
+.status.ok{border-color:var(--success);color:var(--ok-text)}
+.status.err{border-color:var(--error);color:var(--err-text)}
 .loading{color:var(--text-muted);padding:2rem;text-align:center}
 @media (max-width:600px){.page-header h1{font-size:1.5rem}.logo{width:100px}}
+
+/* shared header */
+.topbar{padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--text-light)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-mark svg{width:20px;height:20px}
+.brand-logo{max-height:38px;max-width:160px;object-fit:contain}
+.brand-text{display:flex;flex-direction:column;line-height:1.15}
+.brand-name{font-weight:700;font-size:1rem;letter-spacing:-.01em}
+.brand-company{font-size:.78rem;color:var(--text-muted)}
+.nav a{border-color:transparent!important;background:transparent}
+.nav a:hover{background:var(--bg-card)!important;border-color:var(--border)!important;color:var(--text-light)!important}
+.nav a.active{background:rgba(var(--accent-rgb),.1)!important;color:var(--accent)!important;border-color:transparent!important}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+<header class="topbar">
+  <a class="brand" href="auditing-homepage.html"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l2 2 4-4"/><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/></svg></span><span class="brand-text"><span class="brand-name" data-brand="appName">Compliance Audits</span><span class="brand-company" data-brand="companyName" hidden></span></span></a>
   <nav class="nav">
+    <a href="auditing-homepage.html">Home</a>
     <a href="audit-selection.html">New Audit</a>
     <a href="audit-review.html">Audit Review</a>
     <a href="question-review.html">Questions</a>
     <a href="addname.html" class="active">Lists</a>
   </nav>
-</div>
+</header>
 
 <div class="wrap">
   <div class="page-header">
@@ -84,29 +99,19 @@ textarea{min-height:90px;resize:vertical}
 <div class="status" id="status"></div>
 
 <script type="module">
+import { BRAND, FIREBASE_CONFIG, DEFAULT_LISTS as CONFIG_LISTS, applyBranding } from './audit-config.js';
+applyBranding('Audit Lists');
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
-  authDomain: "oesperformance-a54c0.firebaseapp.com",
-  projectId: "oesperformance-a54c0",
-  storageBucket: "oesperformance-a54c0.firebasestorage.app",
-  messagingSenderId: "484894102454",
-  appId: "1:484894102454:web:17535ee497eac2d90d6717"
-};
+const firebaseConfig = FIREBASE_CONFIG;
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const LISTS_COLLECTION = 'Compliance Audit Lists';
 
-// Defaults taken from the existing Cognito audit forms – used to seed an empty list.
-const DEFAULTS = {
-  engineers: ["Aaron Shepherd","Adam Williams","Alessandro Cilia","Alex Duff","Ali Cavan","Allan Grant","Andrew Wallace","Authur Bumhira","Bilal Amin","Billy McDonough","Bryan McCabe","Calum Ballingal","Chanda Kasama","Chris Stein","Chris Timm","Clayton Spink","Craig O'Sullivan","Craig Steel","Daniel Leahy","Daniel Nally","Daniel Sanders","David Flint","David Williams","David Wilson","Dinis Cruz","Duncan Cairncross","Geoff Pymm","George Chapman","Hamza Safwan","Harris Saleem","Herve Ntwali","Ian Dobson","Ivan Rivers","James Fox","James Mclean","James Stott","Jamie Longland","Jon Convery","Jonathan Chyla","Jonny Thompson","Jordan Gray","Jordan Morrison","Kris Armstrong","Lee Parkin","Lee Robinson","Logan Baff","Lukasz Holysz","Mark Lavelle","Martin Bailes","Matti Chalkowski","Medhi Khamseh","Michael Douglass","Michael Seaman","Michael Timm","Morris Dow","Muhammad Shahroze","Muhammad Zafar","Neil Burns","Neil Lockwood","Nick Griffiths","Owain Sigsworth","Paul Davidson","Paul Day","Pedro Magalhaes","Richard Lang","Ryan Beekawa","Ryan Clark","Sammim Miah","Samuel Appiah","Scott Coyle","Simon Morris","Stephen Lawless","Stuart Shaw","Syed Ali","Thomas Green","Tomas Anderson","Zafar Mahmood"],
-  contracts: ["SESM - OES","SESM - SP","SESM - EDF","Energise","IMSERV"],
-  lineManagers: ["Stuart Whyte","Scott Carson","Thomas Green","Richard Wiecko"],
-  auditors: ["Ricky Johnson","Thomas Green","Scott Carson","Stuart Whyte","Darren Cook","Richard Wiecko","Phil Banks"]
-};
+// Starting lists come from audit-config.js – used to seed an empty list.
+const DEFAULTS = CONFIG_LISTS;
 
 const LISTS = [
   { id:'engineers',    title:'Installers / Engineers', hint:'Used for "Installer/Engineer name".', placeholder:'e.g. Jane Smith' },
@@ -138,7 +143,7 @@ function buildPanels(){
       </div>
       <div class="tools">
         <button class="btn-ghost" data-bulk="${l.id}">Add several</button>
-        <button class="btn-ghost" data-defaults="${l.id}">Restore form defaults</button>
+        <button class="btn-ghost" data-defaults="${l.id}">Restore defaults</button>
       </div>
       <div class="bulk" id="bulk-${l.id}">
         <textarea id="bulkText-${l.id}" placeholder="One per line"></textarea>
@@ -161,7 +166,7 @@ function buildPanels(){
     const id=b.dataset.defaults;
     const missing=DEFAULTS[id].filter(d=>!(state[id]||[]).some(x=>x.toLowerCase()===d.toLowerCase()));
     if(!missing.length) return toast('All defaults are already in the list');
-    if(confirm(`Add ${missing.length} name(s) from the original Cognito form back into this list?`)) addItems(id,missing);
+    if(confirm(`Add ${missing.length} default entr${missing.length>1?'ies':'y'} (from audit-config.js) back into this list?`)) addItems(id,missing);
   });
 }
 
@@ -199,7 +204,7 @@ async function removeItem(id, value){
 
 buildPanels();
 
-// Live listeners; seed a list with the Cognito defaults the first time it is opened.
+// Live listeners; seed a list with the defaults the first time it is opened.
 LISTS.forEach(l=>{
   const ref=doc(db,LISTS_COLLECTION,l.id);
   getDoc(ref).then(snap=>{

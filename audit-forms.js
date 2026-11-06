@@ -1,7 +1,7 @@
-// Shared audit question definitions for the NGU compliance audit pages.
+// Shared audit question definitions for the compliance audit pages.
 // The live versions are stored in Firestore (collection FORMS_COLLECTION, one
 // document per audit type) and edited on question-review.html. The defaults
-// below are the original Cognito form questions, used until a type is saved.
+// below are the starting questions, used until a type is saved on the Questions page.
 
 export const FORMS_COLLECTION = 'Compliance Audit Forms';
 export const AUDIT_TYPES = ['Desktop', 'Post Completion', 'WIP'];

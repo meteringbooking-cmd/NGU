@@ -3,73 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NGU - Compliance Audit</title>
+<title>New Audit</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <style>
 :root{
-  --primary:#005EB8;--accent:#00A3E0;
-  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
-  --text-light:#f8fafc;--text-muted:#8b9bb4;
-  --border:rgba(0,163,224,0.2);
-  --success:#10b981;--error:#ef4444;--warning:#f59e0b;
+  --accent:#2563eb;--accent-rgb:37,99,235;--primary:#1e4fc1;
+  --bg-dark:#f4f6f9;--bg-card:#ffffff;--bg-input:#ffffff;--bg-subtle:#f8fafc;
+  --text-light:#0f172a;--text-muted:#64748b;
+  --border:#dbe2ea;--border-soft:#edf1f5;
+  --success:#15803d;--error:#dc2626;--warning:#b45309;
+  --ok-text:#15803d;--err-text:#b91c1c;--warn-text:#92400e;--info-text:#1e40af;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 2px 8px rgba(15,23,42,.05);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 4rem}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 4rem}
 .topbar{max-width:820px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .logo{width:120px}
 .nav{display:flex;gap:.5rem;flex-wrap:wrap}
 .nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
-.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(var(--accent-rgb),.1)}
 .container{max-width:820px;margin:0 auto}
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;box-shadow:var(--shadow)}
 .page-header{text-align:center;margin-bottom:2rem}
-.page-header h1{font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:.6rem;letter-spacing:-.03em}
+.page-header h1{font-size:2rem;font-weight:800;color:var(--text-light);margin-bottom:.6rem;letter-spacing:-.03em}
 .page-header p{color:var(--text-muted);line-height:1.6}
 .hidden{display:none!important}
 
 /* Selection */
 .type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
 .type-btn{background:var(--bg-input);border:2px solid var(--border);border-radius:14px;padding:1.6rem 1.2rem;text-align:left;color:var(--text-light);cursor:pointer;font-family:inherit;transition:all .2s}
-.type-btn:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,163,224,.18)}
-.type-icon{font-size:1.8rem;margin-bottom:.8rem;display:block}
+.type-btn:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 24px rgba(var(--accent-rgb),.18)}
+.type-icon{width:46px;height:46px;border-radius:12px;background:rgba(var(--accent-rgb),.1);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:.9rem}
 .type-btn strong{display:block;font-size:1.15rem;margin-bottom:.35rem}
 .type-btn span.desc{color:var(--text-muted);font-size:.88rem;line-height:1.45}
-.draft-banner{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;color:#fcd34d;font-size:.92rem}
+.draft-banner{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;color:var(--warn-text);font-size:.92rem}
 .draft-banner .acts{display:flex;gap:.5rem}
 
 /* Form */
 .form-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.form-top h2{font-size:1.45rem;font-weight:800;color:var(--accent);letter-spacing:-.02em}
-.badge{font-family:'DM Mono',monospace;font-size:.75rem;background:rgba(0,163,224,.12);color:var(--accent);padding:.25rem .6rem;border-radius:6px}
+.form-top h2{font-size:1.45rem;font-weight:800;color:var(--text-light);letter-spacing:-.02em}
+.badge{font-family:'JetBrains Mono',monospace;font-size:.75rem;background:rgba(var(--accent-rgb),.12);color:var(--accent);padding:.25rem .6rem;border-radius:6px}
 .form-intro{color:var(--text-muted);font-size:.92rem;line-height:1.5;margin:-0.8rem 0 1.5rem}
-.form-section{background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem}
+.form-section{background:var(--bg-subtle);border:1px solid var(--border-soft);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem}
 .section-title{font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:1.2rem}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 1rem}
 .form-group{margin-bottom:1.3rem}
 .form-group:last-child{margin-bottom:0}
 .two-col>.form-group,.two-col>.form-group:last-child{margin-bottom:1.3rem}
 .form-section>.two-col:last-child>.form-group{margin-bottom:0}
-.form-group.invalid label.q{color:#fca5a5}
+.form-group.invalid label.q{color:var(--err-text)}
 .form-group.invalid .pills,.form-group.invalid select,.form-group.invalid input,.form-group.invalid .sig-canvas{border-color:var(--error)!important}
 label.q{display:block;font-size:.95rem;font-weight:600;margin-bottom:.55rem;line-height:1.4}
 .req{color:var(--accent)}
 select,input[type=text],input[type=date],textarea{width:100%;padding:.85rem 1rem;background:var(--bg-input);border:2px solid var(--border);border-radius:10px;color:var(--text-light);font-size:1rem;font-family:inherit;outline:none;transition:all .2s}
-select:focus,input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,163,224,.15)}
+select:focus,input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15)}
 select option{background:var(--bg-input)}
 textarea{min-height:100px;resize:vertical}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:pointer}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}
 .pills{display:flex;flex-wrap:wrap;gap:.5rem;border:2px solid transparent;border-radius:12px}
 .pill{position:relative}
 .pill input{position:absolute;opacity:0;pointer-events:none}
 .pill span{display:block;padding:.65rem 1.05rem;background:var(--bg-input);border:2px solid var(--border);border-radius:10px;cursor:pointer;font-weight:500;font-size:.92rem;transition:all .15s;user-select:none}
 .pill span:hover{border-color:var(--accent)}
-.pill input:checked+span{border-color:var(--accent);background:rgba(0,163,224,.18);color:#fff}
-.pill input:checked+span.fail{border-color:var(--error);background:rgba(239,68,68,.15)}
-.pill input:checked+span.pass{border-color:var(--success);background:rgba(16,185,129,.15)}
+.pill input:checked+span{border-color:var(--accent);background:rgba(var(--accent-rgb),.1);color:var(--text-light);font-weight:600}
+.pill input:checked+span.fail{border-color:var(--error);background:rgba(220,38,38,.08);color:var(--err-text)}
+.pill input:checked+span.pass{border-color:var(--success);background:rgba(21,128,61,.08);color:var(--ok-text)}
 .pill input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
 .checks{display:flex;flex-direction:column;gap:.45rem}
 .check{display:flex;gap:.7rem;align-items:flex-start;background:var(--bg-input);padding:.7rem .9rem;border-radius:10px;border:1px solid var(--border);cursor:pointer;font-size:.92rem}
@@ -80,8 +81,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:poi
 
 /* Photos */
 .photo-actions{display:flex;gap:.5rem;flex-wrap:wrap}
-.photo-btn{display:inline-flex;align-items:center;gap:.4rem;background:rgba(0,163,224,.1);border:2px dashed rgba(0,163,224,.4);color:var(--accent);border-radius:10px;padding:.65rem 1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
-.photo-btn:hover{background:rgba(0,163,224,.18);border-color:var(--accent)}
+.photo-btn{display:inline-flex;align-items:center;gap:.4rem;background:rgba(var(--accent-rgb),.1);border:2px dashed rgba(var(--accent-rgb),.4);color:var(--accent);border-radius:10px;padding:.65rem 1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.photo-btn:hover{background:rgba(var(--accent-rgb),.18);border-color:var(--accent)}
 .photo-btn input{display:none}
 .thumbs{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.7rem}
 .thumb{position:relative;width:96px;height:96px;border-radius:10px;overflow:hidden;background:var(--bg-input);border:2px solid var(--border)}
@@ -89,10 +90,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:poi
 .thumb.done{border-color:var(--success)}
 .thumb.error{border-color:var(--error)}
 .thumb .bar{position:absolute;left:0;bottom:0;height:5px;background:var(--accent);transition:width .2s}
-.thumb .state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;background:rgba(10,22,40,.55);text-align:center;padding:.3rem}
+.thumb .state{position:absolute;inset:0;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;background:rgba(10,22,40,.55);text-align:center;padding:.3rem}
 .thumb.done .state{display:none}
 .thumb .x{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(10,22,40,.85);color:#fff;cursor:pointer;font-size:.75rem;line-height:22px}
-.thumb .retry{background:none;border:1px solid #fca5a5;color:#fca5a5;border-radius:6px;padding:.15rem .4rem;font-size:.7rem;cursor:pointer;margin-top:.25rem}
+.thumb .retry{background:none;border:1px solid var(--err-text);color:var(--err-text);border-radius:6px;padding:.15rem .4rem;font-size:.7rem;cursor:pointer;margin-top:.25rem}
 .thumb .tick{position:absolute;left:4px;bottom:4px;background:var(--success);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;display:flex;align-items:center;justify-content:center}
 
 /* Signature */
@@ -101,34 +102,48 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:poi
 .btn-clear-sig{position:absolute;top:.5rem;right:.5rem;background:rgba(139,154,174,.15);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:.3rem .8rem;font-size:.8rem;cursor:pointer}
 
 /* Buttons & footer */
-.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:12px;padding:.85rem 1.4rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
-.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,163,224,.35)}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:.85rem 1.4rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(var(--accent-rgb),.35)}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:10px;padding:.6rem 1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit}
 .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
 .btn-submit{width:100%;margin-top:1rem;padding:1rem;font-size:1.1rem}
 .upload-note{text-align:center;color:var(--text-muted);font-size:.85rem;margin-top:.7rem;min-height:1.2em}
-.saved-note{font-size:.78rem;color:var(--text-muted);font-family:'DM Mono',monospace}
+.saved-note{font-size:.78rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace}
 
 #successScreen{text-align:center;padding:3rem 1.5rem}
-#successScreen .icon{font-size:3rem;margin-bottom:1rem}
-#successScreen h2{color:#6ee7b7;font-size:1.8rem;margin-bottom:.8rem}
+#successScreen .icon{color:var(--success);margin-bottom:1rem;display:flex;justify-content:center}
+#successScreen h2{color:var(--ok-text);font-size:1.8rem;margin-bottom:.8rem}
 #successScreen p{color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6}
-.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(160%);background:var(--bg-card);border:1px solid var(--error);color:#fca5a5;padding:.8rem 1.2rem;border-radius:12px;font-weight:600;font-size:.9rem;transition:transform .25s,opacity .25s;z-index:30;max-width:calc(100% - 2rem);text-align:center;opacity:0;pointer-events:none}
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(160%);background:var(--bg-card);border:1px solid var(--error);color:var(--err-text);padding:.8rem 1.2rem;border-radius:12px;font-weight:600;font-size:.9rem;transition:transform .25s,opacity .25s;z-index:30;max-width:calc(100% - 2rem);text-align:center;opacity:0;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 @media (max-width:640px){.card{padding:1.3rem}.two-col{grid-template-columns:1fr}.page-header h1{font-size:1.6rem}.form-section{padding:1.1rem}.logo{width:100px}}
+
+/* shared header */
+.topbar{padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:var(--text-light)}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-mark svg{width:20px;height:20px}
+.brand-logo{max-height:38px;max-width:160px;object-fit:contain}
+.brand-text{display:flex;flex-direction:column;line-height:1.15}
+.brand-name{font-weight:700;font-size:1rem;letter-spacing:-.01em}
+.brand-company{font-size:.78rem;color:var(--text-muted)}
+.nav a{border-color:transparent!important;background:transparent}
+.nav a:hover{background:var(--bg-card)!important;border-color:var(--border)!important;color:var(--text-light)!important}
+.nav a.active{background:rgba(var(--accent-rgb),.1)!important;color:var(--accent)!important;border-color:transparent!important}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+<header class="topbar">
+  <a class="brand" href="auditing-homepage.html"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l2 2 4-4"/><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/></svg></span><span class="brand-text"><span class="brand-name" data-brand="appName">Compliance Audits</span><span class="brand-company" data-brand="companyName" hidden></span></span></a>
   <nav class="nav">
+    <a href="auditing-homepage.html">Home</a>
     <a href="audit-selection.html" class="active">New Audit</a>
     <a href="audit-review.html">Audit Review</a>
     <a href="question-review.html">Questions</a>
     <a href="addname.html">Lists</a>
   </nav>
-</div>
+</header>
 
 <div class="container">
   <!-- STEP 1: choose audit type -->
@@ -146,15 +161,15 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:poi
     </div>
     <div class="type-grid">
       <button class="type-btn" data-type="Desktop">
-        <span class="type-icon">🖥️</span><strong>Desktop</strong>
+        <span class="type-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><strong>Desktop</strong>
         <span class="desc">Remote quality check of completed work using the job photographs and records.</span>
       </button>
       <button class="type-btn" data-type="Post Completion">
-        <span class="type-icon">✅</span><strong>Post Completion</strong>
+        <span class="type-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></span><strong>Post Completion</strong>
         <span class="desc">On-site or investigation audit of an installation after the job is complete.</span>
       </button>
       <button class="type-btn" data-type="WIP">
-        <span class="type-icon">🦺</span><strong>Work In Progress</strong>
+        <span class="type-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.8-.6-.6-2.8z"/></svg></span><strong>Work In Progress</strong>
         <span class="desc">On-site assessment or observation of an installer while the job is being carried out.</span>
       </button>
     </div>
@@ -173,7 +188,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:poi
   </div>
 
   <div class="card hidden" id="successScreen">
-    <div class="icon">✅</div>
+    <div class="icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></div>
     <h2>Audit Submitted</h2>
     <p id="successText"></p>
     <button class="btn" id="anotherBtn">Start another audit</button>
@@ -182,19 +197,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:poi
 <div class="toast" id="toast"></div>
 
 <script type="module">
+import { BRAND, FIREBASE_CONFIG, DEFAULT_LISTS as CONFIG_LISTS, applyBranding } from './audit-config.js';
+applyBranding('New Audit');
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getStorage, ref, uploadBytesResumable, uploadString, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 import { FORMS_COLLECTION, OUTCOMES, defaultForm, condMet, isFailAnswer, isScored, validateForm } from './audit-forms.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
-  authDomain: "oesperformance-a54c0.firebaseapp.com",
-  projectId: "oesperformance-a54c0",
-  storageBucket: "oesperformance-a54c0.firebasestorage.app",
-  messagingSenderId: "484894102454",
-  appId: "1:484894102454:web:17535ee497eac2d90d6717"
-};
+const firebaseConfig = FIREBASE_CONFIG;
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
@@ -202,19 +212,14 @@ const storage = getStorage(app);
 const SUBMISSIONS = 'Compliance Audit Submissions';
 const LISTS_COLLECTION = 'Compliance Audit Lists';
 const STORAGE_ROOT = 'compliance_audits';
-const DRAFT_KEY = 'ngu_compliance_audit_draft_v1';
+const DRAFT_KEY = 'compliance_audit_draft_v1';
 
-const DEFAULT_LISTS = {
-  engineers: ["Aaron Shepherd","Adam Williams","Alessandro Cilia","Alex Duff","Ali Cavan","Allan Grant","Andrew Wallace","Authur Bumhira","Bilal Amin","Billy McDonough","Bryan McCabe","Calum Ballingal","Chanda Kasama","Chris Stein","Chris Timm","Clayton Spink","Craig O'Sullivan","Craig Steel","Daniel Leahy","Daniel Nally","Daniel Sanders","David Flint","David Williams","David Wilson","Dinis Cruz","Duncan Cairncross","Geoff Pymm","George Chapman","Hamza Safwan","Harris Saleem","Herve Ntwali","Ian Dobson","Ivan Rivers","James Fox","James Mclean","James Stott","Jamie Longland","Jon Convery","Jonathan Chyla","Jonny Thompson","Jordan Gray","Jordan Morrison","Kris Armstrong","Lee Parkin","Lee Robinson","Logan Baff","Lukasz Holysz","Mark Lavelle","Martin Bailes","Matti Chalkowski","Medhi Khamseh","Michael Douglass","Michael Seaman","Michael Timm","Morris Dow","Muhammad Shahroze","Muhammad Zafar","Neil Burns","Neil Lockwood","Nick Griffiths","Owain Sigsworth","Paul Davidson","Paul Day","Pedro Magalhaes","Richard Lang","Ryan Beekawa","Ryan Clark","Sammim Miah","Samuel Appiah","Scott Coyle","Simon Morris","Stephen Lawless","Stuart Shaw","Syed Ali","Thomas Green","Tomas Anderson","Zafar Mahmood"],
-  contracts: ["SESM - OES","SESM - SP","SESM - EDF","Energise","IMSERV"],
-  lineManagers: ["Stuart Whyte","Scott Carson","Thomas Green","Richard Wiecko"],
-  auditors: ["Ricky Johnson","Thomas Green","Scott Carson","Stuart Whyte","Darren Cook","Richard Wiecko","Phil Banks"]
-};
+const DEFAULT_LISTS = CONFIG_LISTS;
 let LISTS = { ...DEFAULT_LISTS };
 
 /* ------------------------------------------------------------------
    QUESTIONS – loaded per audit type from Firestore (edited on
-   question-review.html); falls back to the original Cognito questions.
+   question-review.html); falls back to the default questions in audit-forms.js.
 ------------------------------------------------------------------- */
 function headerSection(category){
   return { id:'details', title:'Audit Details', fixed:true, items:[
@@ -232,9 +237,9 @@ function headerSection(category){
 const HEADER_KEYS = ['installerEngineerName','contract','lineManager','installationDate','jobReference','auditedBy','auditType','auditOutcome'];
 
 const CATEGORIES = {
-  'Desktop':         { title:'Desktop Audit', formType:'post-completion', intro:'Quality assurance assessment of work completed by an NGU installer, carried out remotely.' },
-  'Post Completion': { title:'Post Completion Audit', formType:'post-completion', intro:'Quality assurance assessment of work that has been completed by an NGU installer.' },
-  'WIP':             { title:'Work In Progress Audit', formType:'wip', intro:'Record of an onsite assessment or observation carried out on an NGU installer.' }
+  'Desktop':         { title:'Desktop Audit', formType:'post-completion', intro:'Quality assurance assessment of work completed by an installer, carried out remotely using job photographs and records.' },
+  'Post Completion': { title:'Post Completion Audit', formType:'post-completion', intro:'Quality assurance assessment of work that has been completed by an installer.' },
+  'WIP':             { title:'Work In Progress Audit', formType:'wip', intro:'Record of an onsite assessment or observation carried out on an installer while the job is in progress.' }
 };
 const FORM_DEFS = {};   // category -> { sections, version, updatedAtISO }
 async function loadFormDef(category){
@@ -337,8 +342,8 @@ function fieldHtml(f){
 function photoHtml(p,req=''){
   return `<label class="q">${esc(p.label)}${req}</label>
     <div class="photo-actions">
-      <label class="photo-btn">📷 Take photo<input type="file" accept="image/*" capture="environment" data-photo="${p.key}"></label>
-      <label class="photo-btn">🖼️ Upload<input type="file" accept="image/*" multiple data-photo="${p.key}"></label>
+      <label class="photo-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h3l2-3h8l2 3h3v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg> Take photo<input type="file" accept="image/*" capture="environment" data-photo="${p.key}"></label>
+      <label class="photo-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg> Upload<input type="file" accept="image/*" multiple data-photo="${p.key}"></label>
     </div>
     <div class="thumbs" id="thumbs-${p.key}"></div>`;
 }
@@ -364,7 +369,7 @@ function renderForm(){
   sigPads={};
   document.querySelectorAll('.sig-canvas').forEach(c=>{
     const key=c.id.replace('sig-','');
-    sigPads[key]=new SignaturePad(c,{ backgroundColor:'rgba(0,0,0,0)', penColor:'#f8fafc' });
+    sigPads[key]=new SignaturePad(c,{ backgroundColor:'rgba(0,0,0,0)', penColor:'#0f172a' });
     sigPads[key].addEventListener('endStroke',()=>clearInvalid(c));
   });
   document.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>sigPads[b.dataset.clear].clear());
@@ -653,6 +658,13 @@ $('draftDiscard').onclick=()=>{ if(confirm('Discard the unfinished audit?')){ cl
 window.addEventListener('beforeunload',e=>{ if(current && pendingCounts().up){ e.preventDefault(); e.returnValue=''; } });
 
 showDraftBanner();
+// Links such as audit-selection.html?type=WIP open that audit straight away
+// (unless there is an unfinished audit on this device, which is offered first).
+const linkedType=new URLSearchParams(location.search).get('type');
+if(CATEGORIES[linkedType]){
+  const d=loadDraft();
+  if(!(d && (Object.keys(d.values||{}).length || Object.keys(d.photos||{}).length))) openForm(newDraft(linkedType));
+}
 </script>
 </body>
 </html>
