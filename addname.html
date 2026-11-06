@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGU - Audit Lists</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#005EB8;--accent:#00A3E0;
+  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
+  --text-light:#f8fafc;--text-muted:#8b9bb4;
+  --border:rgba(0,163,224,0.2);
+  --success:#10b981;--error:#ef4444;--warning:#f59e0b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 3rem}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+.topbar{max-width:1200px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.logo{width:120px}
+.nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.wrap{max-width:1200px;margin:0 auto}
+.page-header{margin-bottom:1.5rem}
+.page-header h1{font-size:1.9rem;font-weight:800;color:var(--accent);letter-spacing:-.03em;margin-bottom:.4rem}
+.page-header p{color:var(--text-muted);line-height:1.55;max-width:760px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem}
+.panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.3rem;display:flex;flex-direction:column;box-shadow:0 8px 25px rgba(0,0,0,.3);min-height:420px}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin-bottom:.3rem}
+.panel h2{font-size:1.1rem;font-weight:700}
+.count{font-family:'DM Mono',monospace;font-size:.8rem;color:var(--accent);background:rgba(0,163,224,.1);padding:.15rem .5rem;border-radius:6px}
+.panel .hint{font-size:.8rem;color:var(--text-muted);margin-bottom:.9rem}
+.add-row{display:flex;gap:.5rem;margin-bottom:.6rem}
+input[type=text],textarea{width:100%;padding:.7rem .85rem;background:var(--bg-input);border:2px solid var(--border);border-radius:10px;color:var(--text-light);font-size:.95rem;font-family:inherit;outline:none;transition:all .2s}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,163,224,.15)}
+textarea{min-height:90px;resize:vertical}
+.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:10px;padding:.7rem 1rem;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,163,224,.3)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:.4rem .7rem;font-size:.8rem;cursor:pointer;font-family:inherit}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.bulk{display:none;margin-bottom:.6rem}
+.bulk.open{display:block}
+.bulk .btn{margin-top:.5rem;width:100%}
+.tools{display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
+.search{margin-bottom:.6rem}
+.list{list-style:none;flex:1;overflow-y:auto;max-height:420px;border:1px solid rgba(255,255,255,.05);border-radius:10px;background:rgba(0,0,0,.15)}
+.list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.55rem .75rem;border-bottom:1px solid rgba(255,255,255,.04);font-size:.92rem}
+.list li:last-child{border-bottom:none}
+.list li:hover{background:rgba(0,163,224,.05)}
+.list .empty{color:var(--text-muted);justify-content:center;font-size:.85rem;padding:1.2rem}
+.rm{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:7px;width:28px;height:28px;cursor:pointer;flex-shrink:0;font-size:.85rem}
+.rm:hover{background:rgba(239,68,68,.25);border-color:var(--error)}
+.status{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(150%);background:var(--bg-card);border:1px solid var(--border);padding:.75rem 1.1rem;border-radius:12px;font-size:.9rem;font-weight:600;transition:transform .25s,opacity .25s;z-index:20;max-width:calc(100% - 2rem);opacity:0;pointer-events:none}
+.status.show{transform:translateX(-50%) translateY(0);opacity:1}
+.status.ok{border-color:var(--success);color:#6ee7b7}
+.status.err{border-color:var(--error);color:#fca5a5}
+.loading{color:var(--text-muted);padding:2rem;text-align:center}
+@media (max-width:600px){.page-header h1{font-size:1.5rem}.logo{width:100px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+  <nav class="nav">
+    <a href="audit-selection.html">New Audit</a>
+    <a href="audit-review.html">Audit Review</a>
+    <a href="question-review.html">Questions</a>
+    <a href="addname.html" class="active">Lists</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="page-header">
+    <h1>Audit Lists</h1>
+    <p>Manage the names and contracts offered in the audit forms. Changes save straight away and appear in the dropdowns the next time an audit is opened.</p>
+  </div>
+  <div class="grid" id="grid"><div class="loading">Loading lists…</div></div>
+</div>
+
+<div class="status" id="status"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+  authDomain: "oesperformance-a54c0.firebaseapp.com",
+  projectId: "oesperformance-a54c0",
+  storageBucket: "oesperformance-a54c0.firebasestorage.app",
+  messagingSenderId: "484894102454",
+  appId: "1:484894102454:web:17535ee497eac2d90d6717"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const LISTS_COLLECTION = 'Compliance Audit Lists';
+
+// Defaults taken from the existing Cognito audit forms – used to seed an empty list.
+const DEFAULTS = {
+  engineers: ["Aaron Shepherd","Adam Williams","Alessandro Cilia","Alex Duff","Ali Cavan","Allan Grant","Andrew Wallace","Authur Bumhira","Bilal Amin","Billy McDonough","Bryan McCabe","Calum Ballingal","Chanda Kasama","Chris Stein","Chris Timm","Clayton Spink","Craig O'Sullivan","Craig Steel","Daniel Leahy","Daniel Nally","Daniel Sanders","David Flint","David Williams","David Wilson","Dinis Cruz","Duncan Cairncross","Geoff Pymm","George Chapman","Hamza Safwan","Harris Saleem","Herve Ntwali","Ian Dobson","Ivan Rivers","James Fox","James Mclean","James Stott","Jamie Longland","Jon Convery","Jonathan Chyla","Jonny Thompson","Jordan Gray","Jordan Morrison","Kris Armstrong","Lee Parkin","Lee Robinson","Logan Baff","Lukasz Holysz","Mark Lavelle","Martin Bailes","Matti Chalkowski","Medhi Khamseh","Michael Douglass","Michael Seaman","Michael Timm","Morris Dow","Muhammad Shahroze","Muhammad Zafar","Neil Burns","Neil Lockwood","Nick Griffiths","Owain Sigsworth","Paul Davidson","Paul Day","Pedro Magalhaes","Richard Lang","Ryan Beekawa","Ryan Clark","Sammim Miah","Samuel Appiah","Scott Coyle","Simon Morris","Stephen Lawless","Stuart Shaw","Syed Ali","Thomas Green","Tomas Anderson","Zafar Mahmood"],
+  contracts: ["SESM - OES","SESM - SP","SESM - EDF","Energise","IMSERV"],
+  lineManagers: ["Stuart Whyte","Scott Carson","Thomas Green","Richard Wiecko"],
+  auditors: ["Ricky Johnson","Thomas Green","Scott Carson","Stuart Whyte","Darren Cook","Richard Wiecko","Phil Banks"]
+};
+
+const LISTS = [
+  { id:'engineers',    title:'Installers / Engineers', hint:'Used for "Installer/Engineer name".', placeholder:'e.g. Jane Smith' },
+  { id:'contracts',    title:'Contracts',              hint:'Used for "Contract".',                placeholder:'e.g. SESM - OES' },
+  { id:'lineManagers', title:'Line Managers',          hint:'Used for "Line Manager".',            placeholder:'e.g. Stuart Whyte' },
+  { id:'auditors',     title:'Auditors',               hint:'Used for "Audited by".',              placeholder:'e.g. Ricky Johnson' }
+];
+
+const state = {};
+const filters = {};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => s.trim().replace(/\s+/g,' ');
+
+let statusTimer;
+function toast(msg, kind='ok'){
+  const el=$('status'); el.textContent=msg; el.className='status show '+kind;
+  clearTimeout(statusTimer); statusTimer=setTimeout(()=>el.className='status',2600);
+}
+
+function buildPanels(){
+  $('grid').innerHTML = LISTS.map(l=>`
+    <section class="panel" id="panel-${l.id}">
+      <div class="panel-head"><h2>${l.title}</h2><span class="count" id="count-${l.id}">0</span></div>
+      <p class="hint">${l.hint}</p>
+      <div class="add-row">
+        <input type="text" id="input-${l.id}" placeholder="${esc(l.placeholder)}" autocomplete="off">
+        <button class="btn" data-add="${l.id}">Add</button>
+      </div>
+      <div class="tools">
+        <button class="btn-ghost" data-bulk="${l.id}">Add several</button>
+        <button class="btn-ghost" data-defaults="${l.id}">Restore form defaults</button>
+      </div>
+      <div class="bulk" id="bulk-${l.id}">
+        <textarea id="bulkText-${l.id}" placeholder="One per line"></textarea>
+        <button class="btn" data-bulkadd="${l.id}">Add all</button>
+      </div>
+      <input type="text" class="search" id="search-${l.id}" placeholder="Search…" autocomplete="off">
+      <ul class="list" id="list-${l.id}"><li class="empty">Loading…</li></ul>
+    </section>`).join('');
+
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addItems(b.dataset.add,[$('input-'+b.dataset.add).value]));
+  LISTS.forEach(l=>{
+    $('input-'+l.id).addEventListener('keydown',e=>{ if(e.key==='Enter') addItems(l.id,[e.target.value]); });
+    $('search-'+l.id).addEventListener('input',e=>{ filters[l.id]=e.target.value.toLowerCase(); render(l.id); });
+  });
+  document.querySelectorAll('[data-bulk]').forEach(b=>b.onclick=()=>$('bulk-'+b.dataset.bulk).classList.toggle('open'));
+  document.querySelectorAll('[data-bulkadd]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.bulkadd; addItems(id,$('bulkText-'+id).value.split(/\r?\n|,/)).then(ok=>{ if(ok){ $('bulkText-'+id).value=''; $('bulk-'+id).classList.remove('open'); } });
+  });
+  document.querySelectorAll('[data-defaults]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.defaults;
+    const missing=DEFAULTS[id].filter(d=>!(state[id]||[]).some(x=>x.toLowerCase()===d.toLowerCase()));
+    if(!missing.length) return toast('All defaults are already in the list');
+    if(confirm(`Add ${missing.length} name(s) from the original Cognito form back into this list?`)) addItems(id,missing);
+  });
+}
+
+function render(id){
+  const items=[...(state[id]||[])].sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base'}));
+  const f=filters[id]||'';
+  const shown=f?items.filter(i=>i.toLowerCase().includes(f)):items;
+  $('count-'+id).textContent=items.length;
+  $('list-'+id).innerHTML = shown.length
+    ? shown.map(i=>`<li><span>${esc(i)}</span><button class="rm" title="Remove" data-rm="${esc(i)}">✕</button></li>`).join('')
+    : `<li class="empty">${items.length?'No matches':'Nothing added yet'}</li>`;
+  $('list-'+id).querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removeItem(id,b.dataset.rm));
+}
+
+async function addItems(id, raw){
+  const existing=(state[id]||[]).map(x=>x.toLowerCase());
+  const seen=new Set();
+  const items=raw.map(norm).filter(Boolean).filter(v=>{const k=v.toLowerCase(); if(existing.includes(k)||seen.has(k)) return false; seen.add(k); return true;});
+  if(!items.length){ toast(raw.some(r=>norm(r))?'Already in the list':'Type a name first','err'); return false; }
+  try{
+    await setDoc(doc(db,LISTS_COLLECTION,id),{ items:arrayUnion(...items), updatedAt:serverTimestamp() },{ merge:true });
+    $('input-'+id).value='';
+    toast(items.length===1?`Added ${items[0]}`:`Added ${items.length} entries`);
+    return true;
+  }catch(e){ console.error(e); toast('Could not save – check your connection','err'); return false; }
+}
+
+async function removeItem(id, value){
+  if(!confirm(`Remove "${value}"?\n\nExisting audit records keep this name; it just won't be offered in new audits.`)) return;
+  try{
+    await updateDoc(doc(db,LISTS_COLLECTION,id),{ items:arrayRemove(value), updatedAt:serverTimestamp() });
+    toast(`Removed ${value}`);
+  }catch(e){ console.error(e); toast('Could not remove – check your connection','err'); }
+}
+
+buildPanels();
+
+// Live listeners; seed a list with the Cognito defaults the first time it is opened.
+LISTS.forEach(l=>{
+  const ref=doc(db,LISTS_COLLECTION,l.id);
+  getDoc(ref).then(snap=>{
+    if(!snap.exists()) return setDoc(ref,{ items:DEFAULTS[l.id], updatedAt:serverTimestamp() });
+  }).catch(e=>console.error(e));
+  onSnapshot(ref, snap=>{
+    state[l.id]=snap.exists()?(snap.data().items||[]):[];
+    render(l.id);
+  }, err=>{ console.error(err); $('list-'+l.id).innerHTML='<li class="empty">Could not load this list</li>'; });
+});
+</script>
+</body>
+</html>

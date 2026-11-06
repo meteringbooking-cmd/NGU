@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGU - Audit Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --primary:#005EB8;--accent:#00A3E0;
+  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
+  --text-light:#f8fafc;--text-muted:#8b9bb4;
+  --border:rgba(0,163,224,0.2);
+  --grid:rgba(139,155,180,0.14);
+  --series-1:#3987e5;
+  --good:#0ca30c;--warning:#fab219;--serious:#ec835a;--critical:#d03b3b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 4rem}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+.topbar{max-width:1400px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.logo{width:120px}
+.nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.wrap{max-width:1400px;margin:0 auto}
+.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.page-head h1{font-size:1.9rem;font-weight:800;color:var(--accent);letter-spacing:-.03em}
+.page-head p{color:var(--text-muted);font-size:.92rem;margin-top:.3rem}
+.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:10px;padding:.65rem 1rem;font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{box-shadow:0 6px 16px rgba(0,163,224,.3)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:10px;padding:.6rem .9rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.2rem 1.3rem;box-shadow:0 8px 25px rgba(0,0,0,.25)}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.7rem;margin-bottom:1.2rem;align-items:end}
+.filters label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.3rem}
+select,input[type=date],input[type=search]{width:100%;padding:.6rem .7rem;background:var(--bg-input);border:2px solid var(--border);border-radius:9px;color:var(--text-light);font-size:.9rem;font-family:inherit;outline:none}
+select:focus,input:focus{border-color:var(--accent)}
+select option{background:var(--bg-input)}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8)}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:-.4rem 0 1.2rem}
+.chip{background:rgba(0,163,224,.12);border:1px solid var(--border);color:var(--text-light);border-radius:20px;padding:.25rem .7rem;font-size:.8rem;cursor:pointer}
+.chip:hover{border-color:var(--error,#ef4444)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.2rem}
+.kpi .label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+.kpi .value{font-size:2rem;font-weight:800;margin-top:.3rem;letter-spacing:-.02em}
+.kpi .sub{font-size:.8rem;color:var(--text-muted);margin-top:.15rem}
+
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem;margin-bottom:1.2rem}
+.chart-card h3{font-size:1rem;font-weight:700}
+.chart-card .desc{font-size:.8rem;color:var(--text-muted);margin:.2rem 0 .8rem}
+.chart-box{position:relative;height:280px}
+.chart-box.tall{height:360px}
+.chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;flex-wrap:wrap}
+.chart-head select{width:auto;min-width:170px}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:var(--text-muted);margin-bottom:.5rem}
+.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:.35rem;background:var(--c);vertical-align:-1px}
+.empty-chart{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.9rem}
+.span-2{grid-column:1/-1}
+
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.6rem .6rem;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th.num,td.num{text-align:right;font-family:'DM Mono',monospace}
+td{padding:.6rem .6rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:rgba(0,163,224,.06)}
+.table-wrap{overflow-x:auto;max-height:520px;overflow-y:auto}
+.table-wrap thead th{position:sticky;top:0;background:var(--bg-card);z-index:1}
+.status{display:inline-flex;align-items:center;gap:.35rem;font-weight:600;font-size:.82rem;white-space:nowrap}
+.status::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--c)}
+.bar-cell{display:flex;align-items:center;gap:.5rem;justify-content:flex-end}
+.minibar{width:70px;height:6px;border-radius:3px;background:rgba(139,155,180,.2);overflow:hidden}
+.minibar i{display:block;height:100%;background:var(--series-1);border-radius:3px}
+.muted{color:var(--text-muted)}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+.section-head h3{font-size:1rem;font-weight:700}
+.loading{padding:3rem;text-align:center;color:var(--text-muted)}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(5,10,20,.75);display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;z-index:50;overflow-y:auto}
+.modal.open{display:flex}
+.modal-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;max-width:900px;width:100%;padding:1.6rem}
+.modal-top{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:1rem}
+.modal-top h2{font-size:1.35rem;color:var(--accent)}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.6rem 1rem;margin-bottom:1.2rem;font-size:.9rem}
+.meta div span{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+.qsec{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin:1.2rem 0 .5rem}
+.qrow{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.9rem}
+.qrow .ans{flex-shrink:0;max-width:45%;text-align:right}
+.qcomment{font-size:.85rem;color:var(--text-muted);margin:.2rem 0 .4rem;white-space:pre-wrap}
+.pics{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .6rem}
+.pics a img{width:110px;height:110px;object-fit:cover;border-radius:8px;border:2px solid var(--border);display:block}
+.feedback{white-space:pre-wrap;font-size:.9rem;background:rgba(0,0,0,.15);border-radius:10px;padding:.8rem;line-height:1.5}
+.sigs{display:flex;gap:1rem;flex-wrap:wrap}
+.sigs img{background:var(--bg-input);border-radius:8px;border:1px solid var(--border);max-width:260px;height:110px;object-fit:contain}
+.nc-list{list-style:none;font-size:.9rem}
+.nc-list li{padding:.3rem 0}
+
+@media (max-width:900px){.charts{grid-template-columns:1fr}}
+@media (max-width:600px){.page-head h1{font-size:1.5rem}.kpi .value{font-size:1.6rem}.logo{width:100px}.qrow{flex-direction:column;gap:.2rem}.qrow .ans{max-width:none;text-align:left}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+  <nav class="nav">
+    <a href="audit-selection.html">New Audit</a>
+    <a href="audit-review.html" class="active">Audit Review</a>
+    <a href="question-review.html">Questions</a>
+    <a href="addname.html">Lists</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="page-head">
+    <div><h1>Audit Review</h1><p id="subtitle">Loading audits…</p></div>
+    <div class="actions">
+      <button class="btn-ghost" id="refreshBtn">↻ Refresh</button>
+      <button class="btn" id="csvBtn">⬇ Export audits CSV</button>
+    </div>
+  </div>
+
+  <div class="card filters" id="filters">
+    <div><label for="fFrom">Audited from</label><input type="date" id="fFrom"></div>
+    <div><label for="fTo">Audited to</label><input type="date" id="fTo"></div>
+    <div><label for="fCategory">Audit type</label><select id="fCategory" data-dim="auditCategory"></select></div>
+    <div><label for="fEngineer">Installer/Engineer</label><select id="fEngineer" data-dim="installerEngineerName"></select></div>
+    <div><label for="fContract">Contract</label><select id="fContract" data-dim="contract"></select></div>
+    <div><label for="fManager">Line manager</label><select id="fManager" data-dim="lineManager"></select></div>
+    <div><label for="fAuditor">Auditor</label><select id="fAuditor" data-dim="auditedBy"></select></div>
+    <div><label for="fOutcome">Outcome</label><select id="fOutcome" data-dim="auditOutcome"></select></div>
+    <div><button class="btn-ghost" id="clearBtn" style="width:100%">Clear filters</button></div>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="kpis">
+    <div class="card kpi"><div class="label">Audits</div><div class="value" id="kTotal">–</div><div class="sub" id="kTotalSub"></div></div>
+    <div class="card kpi"><div class="label">Pass rate</div><div class="value" id="kPass">–</div><div class="sub" id="kPassSub"></div></div>
+    <div class="card kpi"><div class="label">Avg compliance score</div><div class="value" id="kScore">–</div><div class="sub">Checks passed ÷ checks answered</div></div>
+    <div class="card kpi"><div class="label">Category 1 fails</div><div class="value" id="kCat1">–</div><div class="sub" id="kCat1Sub"></div></div>
+    <div class="card kpi"><div class="label">Failed checks</div><div class="value" id="kFails">–</div><div class="sub" id="kFailsSub"></div></div>
+  </div>
+
+  <div class="charts">
+    <div class="card chart-card">
+      <h3>Audits per month</h3><p class="desc">By audit date, split by outcome</p>
+      <div class="legend"><span style="--c:var(--good)">Pass</span><span style="--c:var(--critical)">Fail / referral</span></div>
+      <div class="chart-box"><canvas id="cMonthly"></canvas></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Outcomes</h3><p class="desc">Number of audits by result</p>
+      <div class="chart-box"><canvas id="cOutcome"></canvas></div>
+    </div>
+    <div class="card chart-card span-2">
+      <div class="chart-head">
+        <div><h3>Pass rate by <span id="dimLabel">installer/engineer</span></h3><p class="desc">Click a bar or a row below to filter to it</p></div>
+        <select id="dimSelect">
+          <option value="installerEngineerName">Installer/Engineer</option>
+          <option value="contract">Contract</option>
+          <option value="lineManager">Line manager</option>
+          <option value="auditedBy">Auditor</option>
+          <option value="auditCategory">Audit type</option>
+        </select>
+      </div>
+      <div class="chart-box tall"><canvas id="cDim"></canvas></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Most failed checks</h3><p class="desc">Questions answered as a non-conformance</p>
+      <div class="chart-box tall"><canvas id="cQuestions"></canvas></div>
+    </div>
+    <div class="card chart-card">
+      <h3>Most recorded non-conformances</h3><p class="desc">Category 1–3 items ticked on post completion audits</p>
+      <div class="chart-box tall"><canvas id="cNC"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.2rem">
+    <div class="section-head"><h3>Breakdown by <span id="dimLabel2">installer/engineer</span></h3><button class="btn-ghost" id="dimCsvBtn">⬇ Export breakdown CSV</button></div>
+    <div class="table-wrap"><table id="dimTable"></table></div>
+  </div>
+
+  <div class="card">
+    <div class="section-head"><h3>Audits</h3><input type="search" id="search" placeholder="Search job ref, name…" style="max-width:260px"></div>
+    <div class="table-wrap"><table id="auditTable"></table></div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="modal-card" id="modalCard"></div></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+  authDomain: "oesperformance-a54c0.firebaseapp.com",
+  projectId: "oesperformance-a54c0",
+  storageBucket: "oesperformance-a54c0.firebasestorage.app",
+  messagingSenderId: "484894102454",
+  appId: "1:484894102454:web:17535ee497eac2d90d6717"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const SUBMISSIONS = 'Compliance Audit Submissions';
+const LISTS_COLLECTION = 'Compliance Audit Lists';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+const OUTCOME_COLOR = { 'Pass':'--good', 'Category 3 fail':'--warning', 'Category 2 fail':'--serious', 'Referral':'--serious', 'Category 1 fail':'--critical' };
+const OUTCOME_ORDER = ['Pass','Category 3 fail','Category 2 fail','Category 1 fail','Referral'];
+const DIM_LABELS = { installerEngineerName:'installer/engineer', contract:'contract', lineManager:'line manager', auditedBy:'auditor', auditCategory:'audit type' };
+const NC_LABELS = { cat1Gas:'Cat 1 · Gas', cat1Electric:'Cat 1 · Electric', cat2Gas:'Cat 2 · Gas', cat2Electric:'Cat 2 · Electric', cat3Gas:'Cat 3 · Gas', cat3Electric:'Cat 3 · Electric' };
+const FILTER_IDS = ['fCategory','fEngineer','fContract','fManager','fAuditor','fOutcome'];
+const LIST_FOR = { fEngineer:'engineers', fContract:'contracts', fManager:'lineManagers', fAuditor:'auditors' };
+
+let ALL = [];          // all audits
+let VIEW = [];         // filtered
+let LISTS = {};
+let charts = {};
+let dim = 'installerEngineerName';
+let auditSort = { key:'date', dir:-1 };
+let dimSort = { key:'audits', dir:-1 };
+
+/* ---------------------------------------------------------- LOAD */
+function auditDate(a){
+  if(a.submittedAt?.toDate) return a.submittedAt.toDate();
+  if(a.submittedAtISO) return new Date(a.submittedAtISO);
+  return null;
+}
+const ymd = d => d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '';
+const fmtDate = d => d ? d.toLocaleDateString('en-GB',{ day:'2-digit', month:'short', year:'numeric' }) : '';
+
+async function load(){
+  $('subtitle').textContent='Loading audits…';
+  try{
+    const [snap] = await Promise.all([
+      getDocs(collection(db,SUBMISSIONS)),
+      ...['engineers','contracts','lineManagers','auditors'].map(async id=>{
+        try{ const s=await getDoc(doc(db,LISTS_COLLECTION,id)); LISTS[id]=s.exists()?(s.data().items||[]):[]; }catch{ LISTS[id]=[]; }
+      })
+    ]);
+    ALL = snap.docs.map(d=>{ const a={ id:d.id, ...d.data() }; a._date=auditDate(a); a._ymd=ymd(a._date); return a; });
+    buildFilterOptions();
+    apply();
+  }catch(e){
+    console.error(e);
+    $('subtitle').textContent='Could not load audits – check your connection and refresh.';
+  }
+}
+
+function buildFilterOptions(){
+  FILTER_IDS.forEach(fid=>{
+    const sel=$(fid); const key=sel.dataset.dim; const prev=sel.value;
+    const vals=new Set(ALL.map(a=>a[key]).filter(Boolean));
+    (LISTS[LIST_FOR[fid]]||[]).forEach(v=>vals.add(v));
+    let opts=[...vals];
+    if(key==='auditOutcome') opts.sort((a,b)=>OUTCOME_ORDER.indexOf(a)-OUTCOME_ORDER.indexOf(b));
+    else opts.sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base'}));
+    sel.innerHTML=`<option value="">All</option>`+opts.map(o=>`<option${o===prev?' selected':''}>${esc(o)}</option>`).join('');
+  });
+}
+
+/* ---------------------------------------------------------- FILTER */
+function currentFilters(){
+  const f={ from:$('fFrom').value, to:$('fTo').value };
+  FILTER_IDS.forEach(id=>{ f[$(id).dataset.dim]=$(id).value; });
+  return f;
+}
+function apply(){
+  const f=currentFilters();
+  VIEW = ALL.filter(a=>{
+    if(f.from && a._ymd < f.from) return false;
+    if(f.to && a._ymd > f.to) return false;
+    for(const id of FILTER_IDS){ const k=$(id).dataset.dim; if(f[k] && a[k]!==f[k]) return false; }
+    return true;
+  });
+  renderChips(f);
+  renderKpis(); renderMonthly(); renderOutcomes(); renderDim(); renderQuestions(); renderNC(); renderAuditTable();
+  $('subtitle').textContent = ALL.length ? `Showing ${VIEW.length} of ${ALL.length} audits` : 'No audits have been submitted yet';
+}
+function renderChips(f){
+  const chips=[];
+  if(f.from) chips.push(['fFrom','From '+f.from]);
+  if(f.to) chips.push(['fTo','To '+f.to]);
+  FILTER_IDS.forEach(id=>{ const v=$(id).value; if(v) chips.push([id,v]); });
+  $('chips').innerHTML=chips.map(([id,l])=>`<span class="chip" data-chip="${id}" title="Remove filter">${esc(l)} ✕</span>`).join('');
+  $('chips').querySelectorAll('[data-chip]').forEach(c=>c.onclick=()=>{ $(c.dataset.chip).value=''; apply(); });
+}
+function setFilter(key,value){
+  const id=FILTER_IDS.find(i=>$(i).dataset.dim===key); if(!id) return;
+  if(![...$(id).options].some(o=>o.value===value)) $(id).insertAdjacentHTML('beforeend',`<option>${esc(value)}</option>`);
+  $(id).value=value; apply(); window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ---------------------------------------------------------- KPIs */
+const pct = (n,d) => d ? Math.round(n/d*1000)/10 : null;
+function renderKpis(){
+  const n=VIEW.length;
+  const passes=VIEW.filter(a=>a.auditOutcome==='Pass').length;
+  const scores=VIEW.map(a=>a.complianceScore).filter(s=>typeof s==='number');
+  const cat1=VIEW.filter(a=>a.auditOutcome==='Category 1 fail').length;
+  const fails=VIEW.reduce((t,a)=>t+(a.failCount||0),0);
+  const checks=VIEW.reduce((t,a)=>t+(a.totalChecked||0),0);
+  const byCat=c=>VIEW.filter(a=>a.auditCategory===c).length;
+  $('kTotal').textContent=n;
+  $('kTotalSub').textContent=n?`Desktop ${byCat('Desktop')} · Post comp ${byCat('Post Completion')} · WIP ${byCat('WIP')}`:'';
+  $('kPass').textContent=n?pct(passes,n)+'%':'–';
+  $('kPassSub').textContent=n?`${passes} passed, ${n-passes} not passed`:'';
+  $('kScore').textContent=scores.length?(Math.round(scores.reduce((a,b)=>a+b,0)/scores.length*10)/10)+'%':'–';
+  $('kCat1').textContent=n?cat1:'–';
+  $('kCat1Sub').textContent=n?`${pct(cat1,n)}% of audits`:'';
+  $('kFails').textContent=n?fails:'–';
+  $('kFailsSub').textContent=checks?`of ${checks} checks answered`:'';
+}
+
+/* ---------------------------------------------------------- CHARTS */
+Chart.defaults.font.family="'Work Sans', sans-serif";
+Chart.defaults.color='#8b9bb4';
+Chart.defaults.borderColor='rgba(139,155,180,0.14)';
+const tooltip = { backgroundColor:'#0d1f3a', borderColor:'rgba(0,163,224,0.35)', borderWidth:1, titleColor:'#f8fafc', bodyColor:'#f8fafc', padding:10, cornerRadius:8, displayColors:true, boxPadding:4 };
+
+function makeChart(id,config){
+  charts[id]?.destroy();
+  const canvas=$(id); const box=canvas.parentElement;
+  box.querySelector('.empty-chart')?.remove();
+  const hasData=config.data.datasets.some(d=>d.data.some(v=>v));
+  if(!hasData){ canvas.style.display='none'; box.insertAdjacentHTML('beforeend','<div class="empty-chart">No data for the current filters</div>'); return; }
+  canvas.style.display='';
+  charts[id]=new Chart(canvas,config);
+}
+const barBase = { borderRadius:4, borderSkipped:'start', maxBarThickness:28, borderWidth:0 };
+
+function renderMonthly(){
+  const months={};
+  VIEW.forEach(a=>{ if(!a._date) return; const k=a._ymd.slice(0,7); (months[k] ||= { pass:0, fail:0 }); a.auditOutcome==='Pass'?months[k].pass++:months[k].fail++; });
+  const keys=Object.keys(months).sort();
+  // fill gaps so the time axis is continuous
+  const filled=[];
+  if(keys.length){ let [y,m]=keys[0].split('-').map(Number); const [ey,em]=keys.at(-1).split('-').map(Number);
+    while(y<ey||(y===ey&&m<=em)){ filled.push(`${y}-${String(m).padStart(2,'0')}`); m++; if(m>12){m=1;y++;} } }
+  const labels=filled.map(k=>new Date(k+'-01').toLocaleDateString('en-GB',{ month:'short', year:'2-digit' }));
+  makeChart('cMonthly',{ type:'bar',
+    data:{ labels, datasets:[
+      { label:'Pass', data:filled.map(k=>months[k]?.pass||0), backgroundColor:css('--good'), ...barBase, borderColor:css('--bg-card'), borderWidth:{ top:2 } },
+      { label:'Fail / referral', data:filled.map(k=>months[k]?.fail||0), backgroundColor:css('--critical'), ...barBase }
+    ]},
+    options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ ...tooltip, mode:'index', intersect:false } },
+      scales:{ x:{ stacked:true, grid:{ display:false } }, y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 }, grid:{ color:css('--grid') } } } }
+  });
+}
+
+function renderOutcomes(){
+  const counts={}; VIEW.forEach(a=>{ const o=a.auditOutcome||'Unknown'; counts[o]=(counts[o]||0)+1; });
+  const keys=Object.keys(counts).sort((a,b)=>{ const ia=OUTCOME_ORDER.indexOf(a), ib=OUTCOME_ORDER.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
+  makeChart('cOutcome',{ type:'bar',
+    data:{ labels:keys, datasets:[{ label:'Audits', data:keys.map(k=>counts[k]), backgroundColor:keys.map(k=>css(OUTCOME_COLOR[k]||'--series-1')), ...barBase }] },
+    options:{ indexAxis:'y', maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ ...tooltip, callbacks:{ label:c=>` ${c.raw} audits (${pct(c.raw,VIEW.length)}%)` } } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 }, grid:{ color:css('--grid') } }, y:{ grid:{ display:false }, ticks:{ color:'#f8fafc' } } },
+      onClick:(e,els)=>{ if(els.length) setFilter('auditOutcome',keys[els[0].index]); } }
+  });
+}
+
+function dimRows(){
+  const g={};
+  VIEW.forEach(a=>{
+    const k=a[dim]||'(blank)';
+    const r=(g[k] ||= { name:k, audits:0, passes:0, scoreSum:0, scoreN:0, failedChecks:0, cat1:0, last:null });
+    r.audits++; if(a.auditOutcome==='Pass') r.passes++;
+    if(typeof a.complianceScore==='number'){ r.scoreSum+=a.complianceScore; r.scoreN++; }
+    r.failedChecks+=a.failCount||0; if(a.auditOutcome==='Category 1 fail') r.cat1++;
+    if(a._date && (!r.last || a._date>r.last)) r.last=a._date;
+  });
+  return Object.values(g).map(r=>({ ...r, passRate:pct(r.passes,r.audits), avgScore:r.scoreN?Math.round(r.scoreSum/r.scoreN*10)/10:null }));
+}
+
+function renderDim(){
+  $('dimLabel').textContent=$('dimLabel2').textContent=DIM_LABELS[dim];
+  const rows=dimRows();
+  const top=[...rows].sort((a,b)=>b.audits-a.audits||a.name.localeCompare(b.name)).slice(0,25).sort((a,b)=>a.passRate-b.passRate||b.audits-a.audits);
+  makeChart('cDim',{ type:'bar',
+    data:{ labels:top.map(r=>r.name), datasets:[{ label:'Pass rate', data:top.map(r=>r.passRate), backgroundColor:css('--series-1'), ...barBase, minBarLength:3 }] },
+    options:{ maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ ...tooltip, callbacks:{ label:c=>{ const r=top[c.dataIndex]; return [` Pass rate ${r.passRate}%`, ` ${r.passes} of ${r.audits} audits passed`, r.avgScore!=null?` Avg score ${r.avgScore}%`:'' ].filter(Boolean); } } } },
+      scales:{ y:{ min:0, max:100, ticks:{ callback:v=>v+'%' }, grid:{ color:css('--grid') } }, x:{ grid:{ display:false }, ticks:{ autoSkip:false, maxRotation:60, minRotation:0 } } },
+      onClick:(e,els)=>{ if(els.length) setFilter(dim,top[els[0].index].name); } }
+  });
+  renderDimTable(rows);
+}
+
+function renderDimTable(rows){
+  const cols=[['name','Name',false],['audits','Audits',true],['passes','Passed',true],['passRate','Pass rate',true],['avgScore','Avg score',true],['failedChecks','Failed checks',true],['cat1','Cat 1 fails',true],['last','Last audit',false]];
+  const s=dimSort; rows.sort((a,b)=>{ const x=a[s.key], y=b[s.key]; if(x==null) return 1; if(y==null) return -1; return (x>y?1:x<y?-1:0)*s.dir; });
+  $('dimTable').innerHTML=`<thead><tr>${cols.map(([k,l,n])=>`<th class="${n?'num':''}" data-sort="${k}">${l}${s.key===k?(s.dir>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead>
+    <tbody>${rows.length?rows.map(r=>`<tr data-name="${esc(r.name)}">
+      <td>${esc(r.name)}</td><td class="num">${r.audits}</td><td class="num">${r.passes}</td>
+      <td class="num"><div class="bar-cell">${r.passRate}%<span class="minibar"><i style="width:${r.passRate}%"></i></span></div></td>
+      <td class="num">${r.avgScore!=null?r.avgScore+'%':'–'}</td><td class="num">${r.failedChecks}</td><td class="num">${r.cat1}</td>
+      <td class="muted">${fmtDate(r.last)}</td></tr>`).join(''):'<tr><td colspan="8" class="muted" style="text-align:center;padding:1.5rem">No audits for the current filters</td></tr>'}</tbody>`;
+  $('dimTable').querySelectorAll('th[data-sort]').forEach(th=>th.onclick=()=>{ const k=th.dataset.sort; dimSort={ key:k, dir:dimSort.key===k?-dimSort.dir:(k==='name'?1:-1) }; renderDimTable(dimRows()); });
+  $('dimTable').querySelectorAll('tbody tr[data-name]').forEach(tr=>tr.onclick=()=>setFilter(dim,tr.dataset.name));
+}
+
+function renderQuestions(){
+  // grouped by question reference, labelled with the most recent wording
+  const g={};
+  VIEW.forEach(a=>(a.questions||[]).forEach(q=>{
+    if(q.result!=='pass' && q.result!=='fail') return;
+    const r=(g[q.key||q.question] ||= { fail:0, total:0, label:q.question, at:0 });
+    r.total++; if(q.result==='fail') r.fail++;
+    const t=a._date?.getTime()||0; if(t>=r.at){ r.at=t; r.label=q.question; }
+  }));
+  const top=Object.values(g).filter(r=>r.fail).sort((a,b)=>b.fail-a.fail).slice(0,10).map(r=>[r.label,r]);
+  const short=s=>s.length>48?s.slice(0,46)+'…':s;
+  makeChart('cQuestions',{ type:'bar',
+    data:{ labels:top.map(([q])=>short(q)), datasets:[{ label:'Times failed', data:top.map(([,r])=>r.fail), backgroundColor:css('--series-1'), ...barBase }] },
+    options:{ indexAxis:'y', maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ ...tooltip, callbacks:{ title:c=>top[c[0].dataIndex][0], label:c=>{ const r=top[c.dataIndex][1]; return ` Failed ${r.fail} of ${r.total} times (${pct(r.fail,r.total)}%)`; } } } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 }, grid:{ color:css('--grid') } }, y:{ grid:{ display:false } } } }
+  });
+}
+
+function renderNC(){
+  const g={};
+  VIEW.forEach(a=>Object.entries(a.nonConformances||{}).forEach(([k,items])=>items.forEach(i=>{ const key=`${NC_LABELS[k]||(a.labels||{})[k]||k} – ${i}`; g[key]=(g[key]||0)+1; })));
+  const top=Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const short=s=>s.length>52?s.slice(0,50)+'…':s;
+  makeChart('cNC',{ type:'bar',
+    data:{ labels:top.map(([k])=>short(k)), datasets:[{ label:'Times recorded', data:top.map(([,v])=>v), backgroundColor:css('--series-1'), ...barBase }] },
+    options:{ indexAxis:'y', maintainAspectRatio:false, plugins:{ legend:{ display:false }, tooltip:{ ...tooltip, callbacks:{ title:c=>top[c[0].dataIndex][0], label:c=>` Recorded ${c.raw} times` } } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 }, grid:{ color:css('--grid') } }, y:{ grid:{ display:false } } } }
+  });
+}
+
+/* ---------------------------------------------------------- AUDIT TABLE */
+function statusHtml(o){ return `<span class="status" style="--c:var(${OUTCOME_COLOR[o]||'--series-1'})">${esc(o||'–')}</span>`; }
+function renderAuditTable(){
+  const q=$('search').value.trim().toLowerCase();
+  let rows=VIEW.filter(a=>!q || [a.jobReference,a.installerEngineerName,a.contract,a.lineManager,a.auditedBy,a.auditOutcome,a.auditCategory].join(' ').toLowerCase().includes(q));
+  const val={ date:a=>a._date?.getTime()||0, cat:a=>a.auditCategory||'', job:a=>a.jobReference||'', eng:a=>a.installerEngineerName||'', contract:a=>a.contract||'', auditor:a=>a.auditedBy||'', outcome:a=>a.auditOutcome||'', score:a=>a.complianceScore??-1 };
+  const s=auditSort; rows.sort((a,b)=>{ const x=val[s.key](a), y=val[s.key](b); return (x>y?1:x<y?-1:0)*s.dir; });
+  const cols=[['date','Audited'],['cat','Type'],['job','Job ref'],['eng','Installer/Engineer'],['contract','Contract'],['auditor','Auditor'],['outcome','Outcome'],['score','Score']];
+  $('auditTable').innerHTML=`<thead><tr>${cols.map(([k,l])=>`<th class="${k==='score'?'num':''}" data-sort="${k}">${l}${s.key===k?(s.dir>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead>
+    <tbody>${rows.length?rows.map(a=>`<tr data-id="${a.id}">
+      <td>${fmtDate(a._date)}</td><td>${esc(a.auditCategory)}</td><td>${esc(a.jobReference)}</td><td>${esc(a.installerEngineerName)}</td>
+      <td>${esc(a.contract)}</td><td>${esc(a.auditedBy)}</td><td>${statusHtml(a.auditOutcome)}</td>
+      <td class="num">${a.complianceScore!=null?a.complianceScore+'%':'–'}</td></tr>`).join(''):'<tr><td colspan="8" class="muted" style="text-align:center;padding:1.5rem">No audits match</td></tr>'}</tbody>`;
+  $('auditTable').querySelectorAll('th[data-sort]').forEach(th=>th.onclick=()=>{ const k=th.dataset.sort; auditSort={ key:k, dir:auditSort.key===k?-auditSort.dir:(k==='date'||k==='score'?-1:1) }; renderAuditTable(); });
+  $('auditTable').querySelectorAll('tbody tr[data-id]').forEach(tr=>tr.onclick=()=>openAudit(tr.dataset.id));
+}
+
+/* ---------------------------------------------------------- DETAIL */
+function openAudit(id){
+  const a=ALL.find(x=>x.id===id); if(!a) return;
+  const photoFor=q=>(q.photos||[]).map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Audit photo" loading="lazy"></a>`).join('');
+  // follow-up photos not attached to a scored question (e.g. evidence photos)
+  const qKeys=new Set((a.questions||[]).flatMap(q=>q.photos||[]));
+  const extraPhotos=Object.values(a.photos||{}).flatMap(p=>p.files.filter(f=>!qKeys.has(f.url)).map(f=>({ ...f, label:p.question||p.label })));
+  let sec=''; const qHtml=(a.questions||[]).map(q=>{
+    const head=q.section!==sec?`<div class="qsec">${esc(sec=q.section)}</div>`:'';
+    return `${head}<div class="qrow"><span>${esc(q.question)}</span><span class="ans">${statusHtml(q.answer).replace(/--c:var\([^)]*\)/, `--c:var(${q.result==='fail'?'--critical':q.result==='pass'?'--good':'--series-1'})`)}</span></div>${q.comment?`<div class="qcomment">${esc(q.comment)}</div>`:''}${q.photos?.length?`<div class="pics">${photoFor(q)}</div>`:''}`;
+  }).join('');
+  const nc=Object.entries(a.nonConformances||{});
+  const ans=a.answers||{};
+  const fbKeys={ positivesFeedback:'Positives / feedback', nonConformanceFeedback:'Non-conformance feedback', coachingAgreed:'Coaching or support agreed', hazardsIdentified:'Hazards identified' };
+  const commented=new Set((a.questions||[]).map(q=>q.comment).filter(Boolean));
+  const fb=Object.entries(fbKeys).map(([k,l])=>[(a.labels||{})[k]||l, ans[k]]);
+  Object.entries(a.labels||{}).forEach(([k,l])=>{ if(!fbKeys[k] && typeof ans[k]==='string' && ans[k] && !commented.has(ans[k])) fb.push([l,ans[k]]); });
+  fb.splice(0,fb.length,...fb.filter(([,v])=>v));
+  $('modalCard').innerHTML=`
+    <div class="modal-top"><div><h2>${esc(a.auditCategory)} audit · ${esc(a.jobReference)}</h2><div class="muted" style="margin-top:.3rem">${statusHtml(a.auditOutcome)} ${a.totalChecked?` · ${a.passCount}/${a.totalChecked} checks passed (${a.complianceScore}%)`:''}</div></div><button class="btn-ghost" id="closeModal">Close ✕</button></div>
+    <div class="meta">
+      <div><span>Installer/Engineer</span>${esc(a.installerEngineerName)}</div>
+      <div><span>Contract</span>${esc(a.contract)}</div>
+      <div><span>Line manager</span>${esc(a.lineManager)}</div>
+      <div><span>Audited by</span>${esc(a.auditedBy)}</div>
+      <div><span>Audit type</span>${esc(a.auditType||a.auditCategory)}</div>
+      <div><span>Installation date</span>${a.installationDate?fmtDate(new Date(a.installationDate)):'–'}</div>
+      <div><span>Audited</span>${a._date?a._date.toLocaleString('en-GB',{ day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }):'–'}</div>
+      <div><span>Meters</span>Electric: ${esc(a.electricMeterInstalled||'–')} · Gas: ${esc(a.gasMeterInstalled||'–')}</div>
+    </div>
+    ${qHtml}
+    ${extraPhotos.length?`<div class="qsec">Other photographs</div>${extraPhotos.map(p=>`<div class="qcomment">${esc(p.label)}</div><div class="pics"><a href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" alt="" loading="lazy"></a></div>`).join('')}`:''}
+    ${nc.length?`<div class="qsec">Detail of non-conformance</div>${nc.map(([k,items])=>`<div class="qcomment" style="color:var(--text-light);font-weight:600">${esc(NC_LABELS[k]||(a.labels||{})[k]||k)}</div><ul class="nc-list">${items.map(i=>`<li>• ${esc(i)}</li>`).join('')}</ul>`).join('')}`:''}
+    ${fb.map(([l,v])=>`<div class="qsec">${l}</div><div class="feedback">${esc(v)}</div>`).join('')}
+    ${a.signatures?`<div class="qsec">Signatures</div><div class="sigs">${Object.entries(a.signatures).map(([k,u])=>`<div><div class="qcomment">${k==='assessorSignature'?'Assessor':'Installer/Engineer'}</div><img src="${esc(u)}" alt="Signature"></div>`).join('')}</div>`:''}
+    <p class="muted" style="font-size:.75rem;margin-top:1.2rem;font-family:'DM Mono',monospace">Ref ${esc(a.id)}</p>`;
+  $('modal').classList.add('open');
+  $('closeModal').onclick=closeModal;
+}
+function closeModal(){ $('modal').classList.remove('open'); }
+$('modal').onclick=e=>{ if(e.target.id==='modal') closeModal(); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+/* ---------------------------------------------------------- CSV */
+function csvCell(v){ if(v==null) return ''; v=Array.isArray(v)?v.join('; '):String(v); return /[",\n\r]/.test(v)?`"${v.replace(/"/g,'""')}"`:v; }
+function download(name,rows){
+  const csv='﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{ type:'text/csv;charset=utf-8' }));
+  const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+const stamp=()=>new Date().toISOString().slice(0,10);
+
+$('csvBtn').onclick=()=>{
+  if(!VIEW.length) return alert('No audits match the current filters.');
+  // one column per question (in first-seen order), plus comment + photo columns
+  // one column per question reference, headed with its most recent wording
+  const qCols=[]; const seen=new Map();
+  VIEW.slice().sort((a,b)=>(a._date||0)-(b._date||0)).forEach(a=>(a.questions||[]).forEach(q=>{
+    if(!seen.has(q.key)){ const c={ ...q }; seen.set(q.key,c); qCols.push(c); } else Object.assign(seen.get(q.key),{ section:q.section, question:q.question });
+  }));
+  const ncKeys=Object.keys(NC_LABELS); const ncNames={ ...NC_LABELS };
+  VIEW.forEach(a=>Object.keys(a.nonConformances||{}).forEach(k=>{ if(!ncKeys.includes(k)){ ncKeys.push(k); ncNames[k]=(a.labels||{})[k]||k; } }));
+  const head=['Audit ID','Audited (date)','Audit category','Audit type','Installer/Engineer','Contract','Line manager','Audited by','Installation date','Job reference','Outcome','Checks passed','Checks failed','Compliance score %','Electric meter installed','Gas meter installed',
+    ...qCols.flatMap(q=>[`${q.section}: ${q.question}`]),
+    ...ncKeys.map(k=>ncNames[k]),
+    'Comments (missing photos / issues)','Positives / feedback','Non-conformance feedback','Coaching agreed','Hazards identified','Photo links'];
+  const rows=VIEW.slice().sort((a,b)=>(b._date||0)-(a._date||0)).map(a=>{
+    const byKey=Object.fromEntries((a.questions||[]).map(q=>[q.key,q]));
+    const ans=a.answers||{};
+    const comments=(a.questions||[]).filter(q=>q.comment).map(q=>`${q.question}: ${q.comment}`);
+    const commented=new Set((a.questions||[]).map(q=>q.comment).filter(Boolean));
+    const known=['positivesFeedback','nonConformanceFeedback','coachingAgreed','hazardsIdentified'];
+    Object.entries(a.labels||{}).forEach(([k,l])=>{ const v=ans[k]; if(v && typeof v==='string' && !known.includes(k) && !commented.has(v)) comments.push(`${l}: ${v}`); });
+    if(!a.labels){ if(ans.elecPPEIssues) comments.push('Electric PPE: '+ans.elecPPEIssues); if(ans.gasPPEIssues) comments.push('Gas PPE: '+ans.gasPPEIssues); }
+    const photos=Object.values(a.photos||{}).flatMap(p=>p.files.map(f=>f.url));
+    return [a.id, a._date?a._date.toLocaleString('en-GB'):'', a.auditCategory, a.auditType, a.installerEngineerName, a.contract, a.lineManager, a.auditedBy, a.installationDate, a.jobReference, a.auditOutcome, a.passCount, a.failCount, a.complianceScore, a.electricMeterInstalled, a.gasMeterInstalled,
+      ...qCols.map(q=>byKey[q.key]?.answer||''),
+      ...ncKeys.map(k=>(a.nonConformances||{})[k]||''),
+      comments, ans.positivesFeedback, ans.nonConformanceFeedback, ans.coachingAgreed, ans.hazardsIdentified, photos.join(' ')];
+  });
+  download(`compliance-audits-${stamp()}.csv`,[head,...rows]);
+};
+$('dimCsvBtn').onclick=()=>{
+  const rows=dimRows().sort((a,b)=>b.audits-a.audits);
+  if(!rows.length) return alert('No audits match the current filters.');
+  download(`compliance-audits-by-${DIM_LABELS[dim].replace(/[^a-z]+/g,'-')}-${stamp()}.csv`,[
+    [DIM_LABELS[dim].replace(/^./,c=>c.toUpperCase()),'Audits','Passed','Pass rate %','Avg compliance score %','Failed checks','Category 1 fails','Last audit'],
+    ...rows.map(r=>[r.name,r.audits,r.passes,r.passRate,r.avgScore,r.failedChecks,r.cat1,r.last?ymd(r.last):''])
+  ]);
+};
+
+/* ---------------------------------------------------------- WIRING */
+['fFrom','fTo',...FILTER_IDS].forEach(id=>$(id).addEventListener('change',apply));
+$('clearBtn').onclick=()=>{ ['fFrom','fTo',...FILTER_IDS].forEach(id=>$(id).value=''); apply(); };
+$('dimSelect').onchange=e=>{ dim=e.target.value; renderDim(); };
+$('search').addEventListener('input',renderAuditTable);
+$('refreshBtn').onclick=load;
+
+load();
+</script>
+</body>
+</html>

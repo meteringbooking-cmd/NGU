@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGU - Audit Questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#005EB8;--accent:#00A3E0;
+  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
+  --text-light:#f8fafc;--text-muted:#8b9bb4;
+  --border:rgba(0,163,224,0.2);
+  --success:#10b981;--error:#ef4444;--warning:#f59e0b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 6rem}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+.topbar{max-width:1000px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.logo{width:120px}
+.nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.wrap{max-width:1000px;margin:0 auto}
+.page-header h1{font-size:1.9rem;font-weight:800;color:var(--accent);letter-spacing:-.03em;margin-bottom:.4rem}
+.page-header p{color:var(--text-muted);line-height:1.55;max-width:760px;margin-bottom:1.3rem}
+.hidden{display:none!important}
+
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}
+.tab{background:var(--bg-card);border:2px solid var(--border);color:var(--text-muted);border-radius:12px;padding:.7rem 1.1rem;font-weight:700;font-size:.95rem;cursor:pointer;font-family:inherit;position:relative}
+.tab.active{border-color:var(--accent);color:var(--text-light);background:rgba(0,163,224,.12)}
+.tab .dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--warning);position:absolute;top:6px;right:6px}
+.tab.dirty .dot{display:block}
+
+.toolbar{position:sticky;top:0;z-index:20;background:rgba(10,22,40,.94);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:14px;padding:.8rem 1rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.toolbar .info{font-size:.85rem;color:var(--text-muted)}
+.toolbar .info strong{color:var(--warning)}
+.toolbar .acts{display:flex;gap:.5rem;flex-wrap:wrap}
+
+.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:10px;padding:.65rem 1.1rem;font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s}
+.btn:hover:not(:disabled){box-shadow:0 6px 16px rgba(0,163,224,.3)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:9px;padding:.5rem .8rem;font-size:.84rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-ghost:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn-ghost:disabled{opacity:.35;cursor:not-allowed}
+.btn-ghost.danger:hover{border-color:var(--error);color:#fca5a5}
+.icon-btn{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:.85rem;flex-shrink:0;font-family:inherit}
+.icon-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.icon-btn.danger:hover:not(:disabled){border-color:var(--error);color:#fca5a5}
+.icon-btn:disabled{opacity:.3;cursor:not-allowed}
+.add-btn{background:rgba(0,163,224,.08);border:2px dashed rgba(0,163,224,.35);color:var(--accent);border-radius:10px;padding:.6rem .9rem;font-size:.86rem;font-weight:600;cursor:pointer;font-family:inherit}
+.add-btn:hover{background:rgba(0,163,224,.15);border-color:var(--accent)}
+
+input[type=text],textarea,select{width:100%;padding:.6rem .75rem;background:var(--bg-input);border:2px solid var(--border);border-radius:9px;color:var(--text-light);font-size:.92rem;font-family:inherit;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--bg-input)}
+textarea{resize:vertical;min-height:60px}
+.fixed-note{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:12px;padding:1rem 1.1rem;color:#93c5fd;font-size:.88rem;line-height:1.5;margin-bottom:1.2rem}
+.fixed-note a{color:var(--accent)}
+
+.section{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.1rem;margin-bottom:1.1rem;box-shadow:0 8px 25px rgba(0,0,0,.25)}
+.sec-head{display:flex;gap:.5rem;align-items:center;margin-bottom:.6rem}
+.sec-head input{font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--accent)}
+.sec-cond{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.85rem;color:var(--text-muted);margin-bottom:.9rem}
+.cond{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.85rem;color:var(--text-muted)}
+.cond select{width:auto;min-width:0;max-width:340px;padding:.4rem .55rem;font-size:.84rem}
+.cond .vals{display:flex;gap:.35rem;flex-wrap:wrap}
+.mini-check{display:inline-flex;align-items:center;gap:.3rem;background:var(--bg-input);border:1px solid var(--border);border-radius:7px;padding:.25rem .5rem;font-size:.8rem;color:var(--text-light);cursor:pointer}
+.mini-check input{accent-color:var(--accent)}
+
+.items{display:flex;flex-direction:column;gap:.5rem}
+.item{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);border-radius:12px}
+.item.open{border-color:var(--accent)}
+.item-row{display:flex;align-items:center;gap:.6rem;padding:.65rem .75rem;cursor:pointer}
+.item-num{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--text-muted);width:1.6rem;flex-shrink:0;text-align:right}
+.item-main{flex:1;min-width:0}
+.item-label{font-size:.93rem;font-weight:600;line-height:1.35}
+.badges{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+.badge{font-size:.7rem;font-weight:700;padding:.12rem .45rem;border-radius:5px;background:rgba(139,155,180,.15);color:var(--text-muted)}
+.badge.photo{background:rgba(0,163,224,.15);color:var(--accent)}
+.badge.req{background:rgba(245,158,11,.14);color:#fcd34d}
+.badge.fail{background:rgba(239,68,68,.14);color:#fca5a5}
+.item-acts{display:flex;gap:.3rem;flex-shrink:0}
+.editor{border-top:1px solid rgba(255,255,255,.06);padding:1rem;display:flex;flex-direction:column;gap:1rem}
+.field-label{display:block;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:.35rem}
+.row{display:flex;gap:.5rem;align-items:center}
+.toggle{display:inline-flex;align-items:center;gap:.45rem;font-size:.86rem;cursor:pointer;color:var(--text-light);white-space:nowrap}
+.toggle input{width:16px;height:16px;accent-color:var(--accent)}
+.toggle.fail input{accent-color:var(--error)}
+.answers,.followups,.groups{display:flex;flex-direction:column;gap:.45rem}
+.answer{display:flex;gap:.5rem;align-items:center}
+.answer input[type=text]{flex:1}
+.fu{background:rgba(0,163,224,.05);border:1px solid var(--border);border-radius:10px;padding:.75rem;display:flex;flex-direction:column;gap:.55rem}
+.fu-head{display:flex;gap:.5rem;align-items:center}
+.fu-type{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);white-space:nowrap}
+.group{background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:10px;padding:.75rem;display:flex;flex-direction:column;gap:.55rem}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap}
+.add-menu{position:relative;display:inline-block}
+.menu{position:absolute;left:0;top:calc(100% + 6px);background:var(--bg-card);border:1px solid var(--accent);border-radius:12px;padding:.4rem;min-width:270px;z-index:15;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.menu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text-light);padding:.55rem .7rem;border-radius:8px;font-family:inherit;font-size:.88rem;cursor:pointer}
+.menu button:hover{background:rgba(0,163,224,.12)}
+.menu button small{display:block;color:var(--text-muted);font-size:.76rem}
+.sec-foot{margin-top:.7rem}
+.key{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--text-muted)}
+
+.errors{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.4);border-radius:12px;padding:.9rem 1.1rem;margin-bottom:1rem;color:#fca5a5;font-size:.88rem}
+.errors ul{margin:.4rem 0 0 1.1rem}
+.status{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(150%);background:var(--bg-card);border:1px solid var(--border);padding:.75rem 1.1rem;border-radius:12px;font-size:.9rem;font-weight:600;transition:transform .25s,opacity .25s;z-index:40;max-width:calc(100% - 2rem);opacity:0;pointer-events:none}
+.status.show{transform:translateX(-50%) translateY(0);opacity:1}
+.status.ok{border-color:var(--success);color:#6ee7b7}
+.status.err{border-color:var(--error);color:#fca5a5}
+.loading{color:var(--text-muted);padding:2rem;text-align:center}
+@media (max-width:640px){.page-header h1{font-size:1.5rem}.logo{width:100px}.item-row{flex-wrap:wrap}.item-acts{width:100%;justify-content:flex-end}.cond select{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+  <nav class="nav">
+    <a href="audit-selection.html">New Audit</a>
+    <a href="audit-review.html">Audit Review</a>
+    <a href="question-review.html" class="active">Questions</a>
+    <a href="addname.html">Lists</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <div class="page-header">
+    <h1>Audit Questions</h1>
+    <p>Add, remove, edit and reorder the questions and photo requests for each audit type. Changes go live for new audits when you press <strong>Save changes</strong>. Audits already submitted keep the questions they were answered with.</p>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="toolbar">
+    <div class="info" id="info">Loading…</div>
+    <div class="acts">
+      <button class="btn-ghost" id="copyBtn">Copy from…</button>
+      <button class="btn-ghost danger" id="resetBtn">Reset to original</button>
+      <button class="btn-ghost" id="discardBtn" disabled>Discard changes</button>
+      <button class="btn" id="saveBtn" disabled>Save changes</button>
+    </div>
+  </div>
+
+  <div class="errors hidden" id="errors"></div>
+
+  <div class="fixed-note">
+    <strong>Always asked first:</strong> Installer/Engineer, Contract, Line Manager, Installation date, Job reference, Audited by and Audit outcome<span id="fixedExtra"></span>. Manage those names on the <a href="addname.html">Lists</a> page.
+  </div>
+
+  <div id="editor"><div class="loading">Loading questions…</div></div>
+  <button class="add-btn" id="addSectionBtn" style="width:100%;margin-top:.3rem">+ Add section</button>
+</div>
+
+<div class="status" id="status"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { FORMS_COLLECTION, AUDIT_TYPES, OUTCOMES, defaultForm, conditionSources, optionLabels, newKey, validateForm } from './audit-forms.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+  authDomain: "oesperformance-a54c0.firebaseapp.com",
+  projectId: "oesperformance-a54c0",
+  storageBucket: "oesperformance-a54c0.firebasestorage.app",
+  messagingSenderId: "484894102454",
+  appId: "1:484894102454:web:17535ee497eac2d90d6717"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const TYPE_NAMES = { 'Desktop':'Desktop', 'Post Completion':'Post Completion', 'WIP':'Work In Progress' };
+const ITEM_TYPES = { choice:'Multiple choice', text:'Short answer', textarea:'Comment box', photo:'Photo request', checkgroup:'Checklist', signature:'Signature' };
+
+const forms = {};       // working copies
+const saved = {};       // JSON of last saved/loaded version
+const meta = {};        // { updatedAtISO, version, isDefault }
+let type = 'Desktop';
+const open = new Set(); // expanded item keys
+let menuOpen = null;
+
+let statusTimer;
+function toast(msg, kind='ok'){ const el=$('status'); el.textContent=msg; el.className='status show '+kind; clearTimeout(statusTimer); statusTimer=setTimeout(()=>el.className='status',2800); }
+const form = () => forms[type];
+const dirty = t => JSON.stringify(forms[t]) !== saved[t];
+
+/* ------------------------------------------------------------------ LOAD */
+async function load(){
+  await Promise.all(AUDIT_TYPES.map(async t=>{
+    try{
+      const snap=await getDoc(doc(db,FORMS_COLLECTION,t));
+      if(snap.exists() && Array.isArray(snap.data().sections)){
+        const d=snap.data(); forms[t]={ sections:d.sections }; meta[t]={ updatedAtISO:d.updatedAtISO, version:d.version||1, isDefault:false };
+      } else { forms[t]=defaultForm(t); meta[t]={ isDefault:true, version:0 }; }
+    }catch(e){ console.error(e); forms[t]=defaultForm(t); meta[t]={ isDefault:true, version:0, loadError:true }; }
+    saved[t]=JSON.stringify(forms[t]);
+  }));
+  renderTabs(); render();
+}
+
+/* ------------------------------------------------------------------ RENDER */
+function renderTabs(){
+  $('tabs').innerHTML=AUDIT_TYPES.map(t=>`<button class="tab${t===type?' active':''}${dirty(t)?' dirty':''}" data-tab="${esc(t)}">${esc(TYPE_NAMES[t])}<span class="dot"></span></button>`).join('');
+  $('tabs').querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ type=b.dataset.tab; open.clear(); $('errors').classList.add('hidden'); renderTabs(); render(); });
+}
+
+function updateToolbar(){
+  const d=dirty(type), m=meta[type]||{};
+  const nQ=form().sections.reduce((n,s)=>n+s.items.length,0);
+  const nP=form().sections.reduce((n,s)=>n+s.items.reduce((k,it)=>k+(it.type==='photo'?1:0)+(it.followUps||[]).filter(f=>f.type==='photo').length,0),0);
+  let state = m.loadError ? 'Could not reach the database – showing the original questions' :
+    m.isDefault ? 'Using the original Cognito questions (not yet saved)' :
+    `Last saved ${m.updatedAtISO?new Date(m.updatedAtISO).toLocaleString('en-GB',{ day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }):''} · version ${m.version}`;
+  $('info').innerHTML=`${d?'<strong>Unsaved changes</strong> · ':''}${form().sections.length} sections · ${nQ} questions · ${nP} photo requests<br>${esc(state)}`;
+  $('saveBtn').disabled=!d; $('discardBtn').disabled=!d;
+  $('tabs').querySelector(`[data-tab="${CSS.escape(type)}"]`)?.classList.toggle('dirty',d);
+  $('fixedExtra').textContent = type==='Post Completion' ? ', plus Audit type (site / investigation)' : '';
+}
+
+function condHtml(cond, sources, path, allowAlways=true){
+  const src=sources.find(s=>s.key===cond?.key);
+  const selKey=src?cond.key:'';
+  return `<div class="cond" data-cond="${path}">
+    <span>Show</span>
+    <select data-cond-key>
+      ${allowAlways?`<option value=""${!selKey?' selected':''}>always</option>`:''}
+      ${sources.map(s=>`<option value="${esc(s.key)}"${s.key===selKey?' selected':''}>only when “${esc(s.label.length>60?s.label.slice(0,58)+'…':s.label)}”</option>`).join('')}
+    </select>
+    ${src?`<select data-cond-op><option value="in"${cond.op!=='notIn'?' selected':''}>is</option><option value="notIn"${cond.op==='notIn'?' selected':''}>is not</option></select>
+      <span class="vals">${src.options.map(o=>`<label class="mini-check"><input type="checkbox" data-cond-val value="${esc(o)}"${(cond.values||[]).includes(o)?' checked':''}>${esc(o)}</label>`).join('')}</span>`:''}
+  </div>`;
+}
+
+function badgesHtml(it){
+  const b=[`<span class="badge">${ITEM_TYPES[it.type]||it.type}</span>`];
+  if(it.required) b.push('<span class="badge req">Required</span>');
+  if(it.type==='choice'){
+    const fails=(it.options||[]).filter(o=>o.fail).map(o=>o.label);
+    if(fails.length) b.push(`<span class="badge fail">Fail: ${esc(fails.join(' / '))}</span>`);
+    const ph=(it.followUps||[]).filter(f=>f.type==='photo').length, tx=(it.followUps||[]).filter(f=>f.type==='text').length;
+    if(ph) b.push(`<span class="badge photo">📷 ${ph} photo request${ph>1?'s':''}</span>`);
+    if(tx) b.push(`<span class="badge">💬 ${tx} comment box${tx>1?'es':''}</span>`);
+  }
+  if(it.type==='checkgroup') b.push(`<span class="badge">${(it.groups||[]).reduce((n,g)=>n+g.options.length,0)} items</span>`);
+  return b.join('');
+}
+
+function itemEditorHtml(it, si, ii){
+  const p=`${si}.${ii}`;
+  const secOpts=form().sections.map((s,i)=>`<option value="${i}"${i===si?' selected':''}>${esc(s.title||'Section '+(i+1))}</option>`).join('');
+  let body=`<div><label class="field-label">${it.type==='photo'?'Photo request':it.type==='signature'?'Signature label':it.type==='checkgroup'?'Checklist heading':'Question'}</label>
+    <textarea rows="2" data-bind="label" data-p="${p}">${esc(it.label)}</textarea></div>
+    <div class="row" style="flex-wrap:wrap;gap:1rem">
+      ${it.type!=='checkgroup'?`<label class="toggle"><input type="checkbox" data-bind="required" data-p="${p}"${it.required?' checked':''}> Must be answered</label>`:''}
+      <span class="row" style="gap:.4rem;font-size:.86rem;color:var(--text-muted)">Section <select data-move-section data-p="${p}" style="width:auto">${secOpts}</select></span>
+      <span class="key" title="Internal reference used in reports">ref: ${esc(it.key)}</span>
+    </div>`;
+
+  if(it.type==='choice'){
+    body+=`<div><label class="field-label">Answers <span style="text-transform:none;letter-spacing:0;font-weight:500">— tick “fail” for answers that count as a non-conformance</span></label>
+      <div class="answers">${it.options.map((o,oi)=>`<div class="answer">
+        <input type="text" value="${esc(o.label)}" data-opt-label data-p="${p}" data-o="${oi}" placeholder="Answer">
+        <label class="toggle fail"><input type="checkbox" data-opt-fail data-p="${p}" data-o="${oi}"${o.fail?' checked':''}> Fail</label>
+        <button class="icon-btn" data-act="optUp" data-p="${p}" data-o="${oi}" title="Move up"${oi===0?' disabled':''}>↑</button>
+        <button class="icon-btn danger" data-act="optDel" data-p="${p}" data-o="${oi}" title="Remove answer"${it.options.length<=2?' disabled':''}>✕</button>
+      </div>`).join('')}</div>
+      <div class="btn-row" style="margin-top:.5rem"><button class="btn-ghost" data-act="optAdd" data-p="${p}">+ Add answer</button></div></div>
+    <div><label class="field-label">Photo requests &amp; comment boxes</label>
+      <div class="followups">${(it.followUps||[]).map((f,fi)=>`<div class="fu">
+        <div class="fu-head"><span class="fu-type">${f.type==='photo'?'📷 Photo request':'💬 Comment box'}</span>
+          <input type="text" value="${esc(f.label)}" data-fu-label data-p="${p}" data-f="${fi}" placeholder="${f.type==='photo'?'e.g. Photograph of non-conformance':'e.g. Please give details'}">
+          <button class="icon-btn danger" data-act="fuDel" data-p="${p}" data-f="${fi}" title="Remove">✕</button></div>
+        <div class="cond"><span>Ask when the answer is</span><span class="vals">${it.options.map(o=>`<label class="mini-check"><input type="checkbox" data-fu-when data-p="${p}" data-f="${fi}" value="${esc(o.label)}"${(f.when||[]).includes(o.label)?' checked':''}>${esc(o.label)}</label>`).join('')}</span>
+          <label class="toggle" style="margin-left:auto"><input type="checkbox" data-fu-req data-p="${p}" data-f="${fi}"${f.required?' checked':''}> Must be provided</label></div>
+      </div>`).join('')||'<div class="key" style="font-size:.82rem">None – the auditor just picks an answer.</div>'}</div>
+      <div class="btn-row" style="margin-top:.5rem"><button class="btn-ghost" data-act="fuAdd" data-kind="photo" data-p="${p}">+ Photo request</button><button class="btn-ghost" data-act="fuAdd" data-kind="text" data-p="${p}">+ Comment box</button></div></div>`;
+  }
+
+  if(it.type==='checkgroup'){
+    const sources=conditionSources(form(),type,si+1).filter(s=>s.key!==it.key);
+    body+=`<div><label class="field-label">Groups</label><div class="groups">${(it.groups||[]).map((g,gi)=>`<div class="group">
+        <div class="row"><input type="text" value="${esc(g.label)}" data-grp-label data-p="${p}" data-g="${gi}" placeholder="Group name e.g. Gas">
+          <button class="icon-btn danger" data-act="grpDel" data-p="${p}" data-g="${gi}" title="Remove group"${it.groups.length<=1?' disabled':''}>✕</button></div>
+        ${condHtml(g.showIf,sources,`g:${p}:${gi}`)}
+        <div><label class="field-label">Items (one per line)</label><textarea rows="${Math.min(12,Math.max(3,g.options.length+1))}" data-grp-opts data-p="${p}" data-g="${gi}">${esc(g.options.join('\n'))}</textarea></div>
+      </div>`).join('')}</div>
+      <div class="btn-row" style="margin-top:.5rem"><button class="btn-ghost" data-act="grpAdd" data-p="${p}">+ Add group</button></div></div>`;
+  }
+  return `<div class="editor">${body}</div>`;
+}
+
+function render(){
+  const f=form();
+  const html=f.sections.map((s,si)=>{
+    const sources=conditionSources(f,type,si);
+    return `<div class="section" data-s="${si}">
+      <div class="sec-head">
+        <input type="text" value="${esc(s.title)}" data-sec-title data-s="${si}" placeholder="Section title">
+        <button class="icon-btn" data-act="secUp" data-s="${si}" title="Move section up"${si===0?' disabled':''}>↑</button>
+        <button class="icon-btn" data-act="secDown" data-s="${si}" title="Move section down"${si===f.sections.length-1?' disabled':''}>↓</button>
+        <button class="icon-btn danger" data-act="secDel" data-s="${si}" title="Delete section">🗑</button>
+      </div>
+      <div class="sec-cond">${condHtml(s.showIf,sources,`s:${si}`)}</div>
+      <div class="items">${s.items.map((it,ii)=>{
+        const isOpen=open.has(it.key);
+        return `<div class="item${isOpen?' open':''}" data-key="${esc(it.key)}">
+          <div class="item-row" data-act="toggle" data-p="${si}.${ii}">
+            <span class="item-num">${ii+1}</span>
+            <div class="item-main"><div class="item-label" id="lbl-${esc(it.key)}">${esc(it.label)||'<span class="key">(no text yet)</span>'}</div><div class="badges" id="bdg-${esc(it.key)}">${badgesHtml(it)}</div></div>
+            <div class="item-acts">
+              <button class="icon-btn" data-act="itemUp" data-p="${si}.${ii}" title="Move up"${ii===0?' disabled':''}>↑</button>
+              <button class="icon-btn" data-act="itemDown" data-p="${si}.${ii}" title="Move down"${ii===s.items.length-1?' disabled':''}>↓</button>
+              <button class="icon-btn" data-act="itemDup" data-p="${si}.${ii}" title="Duplicate">⧉</button>
+              <button class="icon-btn danger" data-act="itemDel" data-p="${si}.${ii}" title="Delete">🗑</button>
+            </div>
+          </div>
+          ${isOpen?itemEditorHtml(it,si,ii):''}
+        </div>`;
+      }).join('')||'<div class="key" style="padding:.6rem">No questions in this section yet.</div>'}</div>
+      <div class="sec-foot add-menu">
+        <button class="add-btn" data-act="menu" data-s="${si}">+ Add question</button>
+        ${menuOpen===si?`<div class="menu">
+          <button data-act="add" data-kind="ynPhoto" data-s="${si}">Yes / No + photo on “No”<small>Fail on No, asks for a photograph</small></button>
+          <button data-act="add" data-kind="yn" data-s="${si}">Yes / No<small>Fail on No</small></button>
+          <button data-act="add" data-kind="choice" data-s="${si}">Multiple choice<small>Your own list of answers</small></button>
+          <button data-act="add" data-kind="photo" data-s="${si}">Photo request<small>Just asks for photographs</small></button>
+          <button data-act="add" data-kind="textarea" data-s="${si}">Comment box<small>Free text</small></button>
+          <button data-act="add" data-kind="checkgroup" data-s="${si}">Checklist<small>Tick-boxes, e.g. non-conformance items</small></button>
+          <button data-act="add" data-kind="signature" data-s="${si}">Signature</button>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  $('editor').innerHTML=html||'<div class="loading">No sections – add one below.</div>';
+  updateToolbar();
+}
+
+/* ------------------------------------------------------------------ MODEL HELPERS */
+const itemAt = p => { const [si,ii]=p.split('.').map(Number); return form().sections[si].items[ii]; };
+const allItems = () => form().sections.flatMap(s=>s.items);
+const allKeys = () => { const k=new Set(['auditOutcome']); allItems().forEach(it=>{ k.add(it.key); (it.followUps||[]).forEach(f=>k.add(f.key)); (it.groups||[]).forEach(g=>k.add(g.key)); }); return k; };
+const uniqueKey = prefix => { const used=allKeys(); let k; do{ k=newKey(prefix); }while(used.has(k)); return k; };
+function eachCond(cb){ form().sections.forEach(s=>{ if(s.showIf) cb(s.showIf,s,'section'); s.items.forEach(it=>(it.groups||[]).forEach(g=>{ if(g.showIf) cb(g.showIf,g,'group'); })); }); }
+function usersOf(key){ const u=[]; eachCond((c,o,kind)=>{ if(c.key===key) u.push(kind==='section'?`section “${o.title}”`:`checklist group “${o.label}”`); }); return u; }
+
+function newItem(kind){
+  const key=uniqueKey('q');
+  switch(kind){
+    case 'ynPhoto': return { type:'choice', key, label:'', required:true, options:[{label:'Yes',fail:false},{label:'No - upload photograph',fail:true}], followUps:[{ type:'photo', key:key+'_photo', label:'Photograph of non-conformance', when:['No - upload photograph'] }] };
+    case 'yn': return { type:'choice', key, label:'', required:true, options:[{label:'Yes',fail:false},{label:'No',fail:true}], followUps:[] };
+    case 'choice': return { type:'choice', key, label:'', required:true, options:[{label:'Option 1',fail:false},{label:'Option 2',fail:false}], followUps:[] };
+    case 'photo': return { type:'photo', key, label:'', required:false };
+    case 'textarea': return { type:'textarea', key, label:'', required:false };
+    case 'checkgroup': return { type:'checkgroup', key, label:'', groups:[{ key:uniqueKey('g'), label:'Items', options:[] }] };
+    case 'signature': return { type:'signature', key, label:'Signature', required:true };
+  }
+}
+
+function changed(rerender=true){ if(rerender) render(); else updateToolbar(); $('errors').classList.add('hidden'); }
+function refreshSummary(it){ const l=$('lbl-'+it.key); if(l) l.innerHTML=esc(it.label)||'<span class="key">(no text yet)</span>'; const b=$('bdg-'+it.key); if(b) b.innerHTML=badgesHtml(it); }
+
+/* ------------------------------------------------------------------ EVENTS */
+$('editor').addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]'); if(!t || t.disabled) return;
+  const act=t.dataset.act, p=t.dataset.p, si=+t.dataset.s;
+  const f=form();
+  if(act!=='toggle') e.stopPropagation();
+  switch(act){
+    case 'toggle': { if(e.target.closest('.item-acts')) return; const it=itemAt(p); open.has(it.key)?open.delete(it.key):open.add(it.key); menuOpen=null; return render(); }
+    case 'menu': menuOpen = menuOpen===si?null:si; return render();
+    case 'add': { const it=newItem(t.dataset.kind); f.sections[si].items.push(it); open.add(it.key); menuOpen=null; changed();
+      setTimeout(()=>document.querySelector(`.item[data-key="${CSS.escape(it.key)}"] textarea`)?.focus(),30); return; }
+    case 'secUp': case 'secDown': { const j=act==='secUp'?si-1:si+1; [f.sections[si],f.sections[j]]=[f.sections[j],f.sections[si]]; return changed(); }
+    case 'secDel': {
+      const s=f.sections[si]; const used=s.items.flatMap(it=>usersOf(it.key).filter(u=>!u.includes(`“${s.title}”`)));
+      if(!confirm(`Delete the section “${s.title||'untitled'}” and its ${s.items.length} question(s)?${used.length?`\n\nNote: ${used.join(', ')} depend on a question in this section and will then always show.`:''}`)) return;
+      s.items.forEach(it=>clearCondsFor(it.key)); f.sections.splice(si,1); return changed(); }
+  }
+  if(!p) return;
+  const [psi,pii]=p.split('.').map(Number); const sec=f.sections[psi]; const it=sec.items[pii];
+  switch(act){
+    case 'itemUp': case 'itemDown': { const j=act==='itemUp'?pii-1:pii+1; [sec.items[pii],sec.items[j]]=[sec.items[j],sec.items[pii]]; return changed(); }
+    case 'itemDup': { const c=clone(it); c.key=uniqueKey('q'); (c.followUps||[]).forEach(fu=>fu.key=uniqueKey(c.key)); (c.groups||[]).forEach(g=>g.key=uniqueKey('g')); c.label=it.label+' (copy)'; sec.items.splice(pii+1,0,c); open.add(c.key); return changed(); }
+    case 'itemDel': {
+      const used=usersOf(it.key);
+      if(!confirm(`Delete “${it.label||'this question'}”?${used.length?`\n\nIt controls when ${used.join(', ')} show${used.length>1?'':'s'} – that will then always show.`:''}\n\nPast audits keep their answers.`)) return;
+      clearCondsFor(it.key); sec.items.splice(pii,1); open.delete(it.key); return changed(); }
+    case 'optAdd': it.options.push({ label:`Option ${it.options.length+1}`, fail:false }); return changed();
+    case 'optUp': { const o=+t.dataset.o; [it.options[o-1],it.options[o]]=[it.options[o],it.options[o-1]]; return changed(); }
+    case 'optDel': { const o=+t.dataset.o; const lbl=it.options[o].label; it.options.splice(o,1);
+      (it.followUps||[]).forEach(fu=>fu.when=(fu.when||[]).filter(w=>w!==lbl));
+      eachCond(c=>{ if(c.key===it.key) c.values=(c.values||[]).filter(v=>v!==lbl); }); return changed(); }
+    case 'fuAdd': { const kind=t.dataset.kind; const failing=it.options.filter(o=>o.fail).map(o=>o.label);
+      (it.followUps ||= []).push({ type:kind, key:uniqueKey(it.key+(kind==='photo'?'_photo':'_comment')), label:kind==='photo'?'Photograph of non-conformance':'Please provide details', when:failing.length?failing:optionLabels(it) });
+      return changed(); }
+    case 'fuDel': it.followUps.splice(+t.dataset.f,1); return changed();
+    case 'grpAdd': it.groups.push({ key:uniqueKey('g'), label:'', options:[] }); return changed();
+    case 'grpDel': it.groups.splice(+t.dataset.g,1); return changed();
+  }
+});
+
+function clearCondsFor(key){
+  form().sections.forEach(s=>{ if(s.showIf?.key===key) delete s.showIf; s.items.forEach(it=>(it.groups||[]).forEach(g=>{ if(g.showIf?.key===key) delete g.showIf; })); });
+}
+
+// typing – update the model without re-rendering so focus is kept
+$('editor').addEventListener('input',e=>{
+  const t=e.target, p=t.dataset.p;
+  if(t.matches('[data-sec-title]')){ form().sections[+t.dataset.s].title=t.value; return changed(false); }
+  if(!p) return;
+  const it=itemAt(p);
+  if(t.dataset.bind==='label'){ it.label=t.value; refreshSummary(it); return changed(false); }
+  if(t.matches('[data-fu-label]')){ it.followUps[+t.dataset.f].label=t.value; return changed(false); }
+  if(t.matches('[data-grp-label]')){ it.groups[+t.dataset.g].label=t.value; return changed(false); }
+  if(t.matches('[data-grp-opts]')){ it.groups[+t.dataset.g].options=t.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); refreshSummary(it); return changed(false); }
+  if(t.matches('[data-opt-label]')){
+    // rename an answer: keep photo requests and section rules pointing at it
+    const o=it.options[+t.dataset.o]; const old=o.label; o.label=t.value;
+    (it.followUps||[]).forEach(fu=>fu.when=(fu.when||[]).map(w=>w===old?t.value:w));
+    eachCond(c=>{ if(c.key===it.key) c.values=(c.values||[]).map(v=>v===old?t.value:v); });
+    refreshSummary(it); return changed(false);
+  }
+});
+// After renaming an answer, redraw so the photo-request / rule checkboxes show the new wording.
+// If the user is mid-click, wait until the click has been handled so it isn't lost.
+let pointerDown=false, pendingRender=false;
+document.addEventListener('pointerdown',()=>{ pointerDown=true; },true);
+document.addEventListener('click',()=>{ pointerDown=false; if(pendingRender){ pendingRender=false; setTimeout(render,0); } });
+$('editor').addEventListener('focusout',e=>{
+  if(!e.target.matches('[data-opt-label],[data-grp-opts]')) return;
+  if(pointerDown) pendingRender=true; else render();
+}, true);
+
+$('editor').addEventListener('change',e=>{
+  const t=e.target, p=t.dataset.p;
+  // show/hide rules
+  const condBox=t.closest('[data-cond]');
+  if(condBox){
+    const path=condBox.dataset.cond; let holder;
+    if(path.startsWith('s:')) holder=form().sections[+path.slice(2)];
+    else { const [,ip,gi]=path.split(':'); holder=itemAt(ip).groups[+gi]; }
+    if(t.matches('[data-cond-key]')){
+      if(!t.value) delete holder.showIf;
+      else { const src=conditionSources(form(),type).find(s=>s.key===t.value); holder.showIf={ key:t.value, op:'in', values:src?.options.slice(0,1)||[] }; }
+    } else if(t.matches('[data-cond-op]')) holder.showIf.op=t.value;
+    else if(t.matches('[data-cond-val]')) holder.showIf.values=[...condBox.querySelectorAll('[data-cond-val]:checked')].map(c=>c.value);
+    return changed();
+  }
+  if(!p) return;
+  const it=itemAt(p);
+  if(t.dataset.bind==='required'){ it.required=t.checked; refreshSummary(it); return changed(false); }
+  if(t.matches('[data-opt-fail]')){ it.options[+t.dataset.o].fail=t.checked; refreshSummary(it); return changed(false); }
+  if(t.matches('[data-fu-when]')){ const fu=it.followUps[+t.dataset.f]; fu.when=[...t.closest('.vals').querySelectorAll('input:checked')].map(c=>c.value); return changed(false); }
+  if(t.matches('[data-fu-req]')){ it.followUps[+t.dataset.f].required=t.checked; return changed(false); }
+  if(t.matches('[data-move-section]')){
+    const [si,ii]=p.split('.').map(Number); const to=+t.value; if(to===si) return;
+    form().sections[si].items.splice(ii,1); form().sections[to].items.push(it); open.add(it.key); changed();
+    setTimeout(()=>document.querySelector(`.item[data-key="${CSS.escape(it.key)}"]`)?.scrollIntoView({ behavior:'smooth', block:'center' }),30);
+  }
+});
+document.addEventListener('click',e=>{ if(menuOpen!==null && !e.target.closest('.add-menu')){ menuOpen=null; render(); } });
+
+$('addSectionBtn').onclick=()=>{ form().sections.push({ id:uniqueKey('s'), title:'New section', items:[] }); changed(); setTimeout(()=>{ const inputs=document.querySelectorAll('[data-sec-title]'); const last=inputs[inputs.length-1]; last?.scrollIntoView({ behavior:'smooth', block:'center' }); last?.select(); },30); };
+
+/* ------------------------------------------------------------------ TOOLBAR */
+$('saveBtn').onclick=async()=>{
+  const errs=validateForm(form());
+  if(errs.length){
+    $('errors').innerHTML=`<strong>Please fix these before saving:</strong><ul>${errs.slice(0,12).map(e=>`<li>${esc(e)}</li>`).join('')}${errs.length>12?`<li>…and ${errs.length-12} more</li>`:''}</ul>`;
+    $('errors').classList.remove('hidden'); $('errors').scrollIntoView({ behavior:'smooth', block:'center' }); return;
+  }
+  const btn=$('saveBtn'); btn.disabled=true; btn.textContent='Saving…';
+  try{
+    const data=clone(form());
+    const version=(meta[type]?.version||0)+1; const iso=new Date().toISOString();
+    await setDoc(doc(db,FORMS_COLLECTION,type),{ sections:data.sections, version, updatedAtISO:iso, updatedAt:serverTimestamp() });
+    meta[type]={ version, updatedAtISO:iso, isDefault:false };
+    saved[type]=JSON.stringify(form());
+    toast(`${TYPE_NAMES[type]} questions saved`); renderTabs(); updateToolbar();
+  }catch(e){ console.error(e); toast('Could not save – check your connection','err'); btn.disabled=false; }
+  finally{ btn.textContent='Save changes'; updateToolbar(); }
+};
+$('discardBtn').onclick=()=>{ if(!confirm('Discard your unsaved changes to these questions?')) return; forms[type]=JSON.parse(saved[type]); open.clear(); changed(); renderTabs(); };
+$('resetBtn').onclick=()=>{ if(!confirm(`Replace the ${TYPE_NAMES[type]} questions with the original Cognito questions?\n\nNothing changes for auditors until you press Save.`)) return; forms[type]=defaultForm(type); open.clear(); changed(); renderTabs(); };
+$('copyBtn').onclick=()=>{
+  const others=AUDIT_TYPES.filter(t=>t!==type);
+  const choice=prompt(`Copy all questions from which audit type into ${TYPE_NAMES[type]}?\n\n${others.map((t,i)=>`${i+1} = ${TYPE_NAMES[t]}`).join('\n')}\n\nType the number:`);
+  const src=others[+choice-1]; if(!src) return;
+  if(!confirm(`Replace the ${TYPE_NAMES[type]} questions with a copy of ${TYPE_NAMES[src]}'s?\n\nNothing changes for auditors until you press Save.`)) return;
+  forms[type]=clone(forms[src]); open.clear(); changed(); renderTabs();
+};
+window.addEventListener('beforeunload',e=>{ if(AUDIT_TYPES.some(dirty)){ e.preventDefault(); e.returnValue=''; } });
+
+load();
+</script>
+</body>
+</html>

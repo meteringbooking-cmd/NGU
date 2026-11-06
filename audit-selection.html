@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGU - Compliance Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<style>
+:root{
+  --primary:#005EB8;--accent:#00A3E0;
+  --bg-dark:#0A1628;--bg-card:#1a2942;--bg-input:#0d1f3a;
+  --text-light:#f8fafc;--text-muted:#8b9bb4;
+  --border:rgba(0,163,224,0.2);
+  --success:#10b981;--error:#ef4444;--warning:#f59e0b;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Work Sans',sans-serif;background:var(--bg-dark);color:var(--text-light);min-height:100vh;padding:1.5rem 1rem 4rem}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 20%,rgba(0,163,224,.08) 0%,transparent 55%),radial-gradient(circle at 85% 75%,rgba(0,94,184,.07) 0%,transparent 55%);pointer-events:none;z-index:-1}
+.topbar{max-width:820px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.logo{width:120px}
+.nav{display:flex;gap:.5rem;flex-wrap:wrap}
+.nav a{color:var(--text-muted);text-decoration:none;font-weight:600;font-size:.9rem;padding:.55rem .9rem;border:1px solid var(--border);border-radius:10px;transition:all .2s}
+.nav a:hover,.nav a.active{color:var(--text-light);border-color:var(--accent);background:rgba(0,163,224,.1)}
+.container{max-width:820px;margin:0 auto}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.page-header{text-align:center;margin-bottom:2rem}
+.page-header h1{font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:.6rem;letter-spacing:-.03em}
+.page-header p{color:var(--text-muted);line-height:1.6}
+.hidden{display:none!important}
+
+/* Selection */
+.type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
+.type-btn{background:var(--bg-input);border:2px solid var(--border);border-radius:14px;padding:1.6rem 1.2rem;text-align:left;color:var(--text-light);cursor:pointer;font-family:inherit;transition:all .2s}
+.type-btn:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,163,224,.18)}
+.type-icon{font-size:1.8rem;margin-bottom:.8rem;display:block}
+.type-btn strong{display:block;font-size:1.15rem;margin-bottom:.35rem}
+.type-btn span.desc{color:var(--text-muted);font-size:.88rem;line-height:1.45}
+.draft-banner{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.5rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;color:#fcd34d;font-size:.92rem}
+.draft-banner .acts{display:flex;gap:.5rem}
+
+/* Form */
+.form-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.form-top h2{font-size:1.45rem;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.badge{font-family:'DM Mono',monospace;font-size:.75rem;background:rgba(0,163,224,.12);color:var(--accent);padding:.25rem .6rem;border-radius:6px}
+.form-intro{color:var(--text-muted);font-size:.92rem;line-height:1.5;margin:-0.8rem 0 1.5rem}
+.form-section{background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem}
+.section-title{font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:1.2rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 1rem}
+.form-group{margin-bottom:1.3rem}
+.form-group:last-child{margin-bottom:0}
+.two-col>.form-group,.two-col>.form-group:last-child{margin-bottom:1.3rem}
+.form-section>.two-col:last-child>.form-group{margin-bottom:0}
+.form-group.invalid label.q{color:#fca5a5}
+.form-group.invalid .pills,.form-group.invalid select,.form-group.invalid input,.form-group.invalid .sig-canvas{border-color:var(--error)!important}
+label.q{display:block;font-size:.95rem;font-weight:600;margin-bottom:.55rem;line-height:1.4}
+.req{color:var(--accent)}
+select,input[type=text],input[type=date],textarea{width:100%;padding:.85rem 1rem;background:var(--bg-input);border:2px solid var(--border);border-radius:10px;color:var(--text-light);font-size:1rem;font-family:inherit;outline:none;transition:all .2s}
+select:focus,input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,163,224,.15)}
+select option{background:var(--bg-input)}
+textarea{min-height:100px;resize:vertical}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8);cursor:pointer}
+.pills{display:flex;flex-wrap:wrap;gap:.5rem;border:2px solid transparent;border-radius:12px}
+.pill{position:relative}
+.pill input{position:absolute;opacity:0;pointer-events:none}
+.pill span{display:block;padding:.65rem 1.05rem;background:var(--bg-input);border:2px solid var(--border);border-radius:10px;cursor:pointer;font-weight:500;font-size:.92rem;transition:all .15s;user-select:none}
+.pill span:hover{border-color:var(--accent)}
+.pill input:checked+span{border-color:var(--accent);background:rgba(0,163,224,.18);color:#fff}
+.pill input:checked+span.fail{border-color:var(--error);background:rgba(239,68,68,.15)}
+.pill input:checked+span.pass{border-color:var(--success);background:rgba(16,185,129,.15)}
+.pill input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.checks{display:flex;flex-direction:column;gap:.45rem}
+.check{display:flex;gap:.7rem;align-items:flex-start;background:var(--bg-input);padding:.7rem .9rem;border-radius:10px;border:1px solid var(--border);cursor:pointer;font-size:.92rem}
+.check input{width:18px;height:18px;margin-top:1px;accent-color:var(--accent);flex-shrink:0}
+.sub-label{font-size:.8rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin:.9rem 0 .5rem}
+.followup{margin-top:.8rem;padding-left:1rem;border-left:3px solid var(--border)}
+.followup label.q{font-size:.88rem;color:var(--text-muted)}
+
+/* Photos */
+.photo-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.photo-btn{display:inline-flex;align-items:center;gap:.4rem;background:rgba(0,163,224,.1);border:2px dashed rgba(0,163,224,.4);color:var(--accent);border-radius:10px;padding:.65rem 1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.photo-btn:hover{background:rgba(0,163,224,.18);border-color:var(--accent)}
+.photo-btn input{display:none}
+.thumbs{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.7rem}
+.thumb{position:relative;width:96px;height:96px;border-radius:10px;overflow:hidden;background:var(--bg-input);border:2px solid var(--border)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.done{border-color:var(--success)}
+.thumb.error{border-color:var(--error)}
+.thumb .bar{position:absolute;left:0;bottom:0;height:5px;background:var(--accent);transition:width .2s}
+.thumb .state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;background:rgba(10,22,40,.55);text-align:center;padding:.3rem}
+.thumb.done .state{display:none}
+.thumb .x{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(10,22,40,.85);color:#fff;cursor:pointer;font-size:.75rem;line-height:22px}
+.thumb .retry{background:none;border:1px solid #fca5a5;color:#fca5a5;border-radius:6px;padding:.15rem .4rem;font-size:.7rem;cursor:pointer;margin-top:.25rem}
+.thumb .tick{position:absolute;left:4px;bottom:4px;background:var(--success);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.65rem;display:flex;align-items:center;justify-content:center}
+
+/* Signature */
+.sig-wrap{position:relative}
+.sig-canvas{width:100%;height:160px;border:2px solid var(--border);border-radius:10px;background:var(--bg-input);cursor:crosshair;touch-action:none;display:block}
+.btn-clear-sig{position:absolute;top:.5rem;right:.5rem;background:rgba(139,154,174,.15);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:.3rem .8rem;font-size:.8rem;cursor:pointer}
+
+/* Buttons & footer */
+.btn{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;border:none;border-radius:12px;padding:.85rem 1.4rem;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,163,224,.35)}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted);border-radius:10px;padding:.6rem 1rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-submit{width:100%;margin-top:1rem;padding:1rem;font-size:1.1rem}
+.upload-note{text-align:center;color:var(--text-muted);font-size:.85rem;margin-top:.7rem;min-height:1.2em}
+.saved-note{font-size:.78rem;color:var(--text-muted);font-family:'DM Mono',monospace}
+
+#successScreen{text-align:center;padding:3rem 1.5rem}
+#successScreen .icon{font-size:3rem;margin-bottom:1rem}
+#successScreen h2{color:#6ee7b7;font-size:1.8rem;margin-bottom:.8rem}
+#successScreen p{color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6}
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(160%);background:var(--bg-card);border:1px solid var(--error);color:#fca5a5;padding:.8rem 1.2rem;border-radius:12px;font-weight:600;font-size:.9rem;transition:transform .25s,opacity .25s;z-index:30;max-width:calc(100% - 2rem);text-align:center;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media (max-width:640px){.card{padding:1.3rem}.two-col{grid-template-columns:1fr}.page-header h1{font-size:1.6rem}.form-section{padding:1.1rem}.logo{width:100px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <img src="https://www.dropbox.com/scl/fi/kkujm1u6y7vvnp7luq8d7/ngu-main-white.png?rlkey=kgq2uh48qh4xssh4vlbz868lr&raw=1" alt="NGU Logo" class="logo">
+  <nav class="nav">
+    <a href="audit-selection.html" class="active">New Audit</a>
+    <a href="audit-review.html">Audit Review</a>
+    <a href="question-review.html">Questions</a>
+    <a href="addname.html">Lists</a>
+  </nav>
+</div>
+
+<div class="container">
+  <!-- STEP 1: choose audit type -->
+  <div class="card" id="selectScreen">
+    <div class="page-header">
+      <h1>Compliance Audit</h1>
+      <p>What type of audit is being carried out?</p>
+    </div>
+    <div id="draftBanner" class="draft-banner hidden">
+      <span id="draftText"></span>
+      <div class="acts">
+        <button class="btn-ghost" id="draftDiscard">Discard</button>
+        <button class="btn" id="draftResume" style="padding:.55rem 1rem;font-size:.9rem">Resume</button>
+      </div>
+    </div>
+    <div class="type-grid">
+      <button class="type-btn" data-type="Desktop">
+        <span class="type-icon">🖥️</span><strong>Desktop</strong>
+        <span class="desc">Remote quality check of completed work using the job photographs and records.</span>
+      </button>
+      <button class="type-btn" data-type="Post Completion">
+        <span class="type-icon">✅</span><strong>Post Completion</strong>
+        <span class="desc">On-site or investigation audit of an installation after the job is complete.</span>
+      </button>
+      <button class="type-btn" data-type="WIP">
+        <span class="type-icon">🦺</span><strong>Work In Progress</strong>
+        <span class="desc">On-site assessment or observation of an installer while the job is being carried out.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: the audit form -->
+  <div class="card hidden" id="formScreen">
+    <div class="form-top">
+      <div><h2 id="formTitle"></h2><span class="saved-note" id="savedNote"></span></div>
+      <button class="btn-ghost" id="backBtn">← Change audit type</button>
+    </div>
+    <p class="form-intro" id="formIntro"></p>
+    <div id="formBody"></div>
+    <button class="btn btn-submit" id="submitBtn">Submit Audit</button>
+    <div class="upload-note" id="uploadNote"></div>
+  </div>
+
+  <div class="card hidden" id="successScreen">
+    <div class="icon">✅</div>
+    <h2>Audit Submitted</h2>
+    <p id="successText"></p>
+    <button class="btn" id="anotherBtn">Start another audit</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, addDoc, doc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getStorage, ref, uploadBytesResumable, uploadString, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+import { FORMS_COLLECTION, OUTCOMES, defaultForm, condMet, isFailAnswer, isScored, validateForm } from './audit-forms.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCMmUOdW2uEIGVd6XQfWXKF8eaFmwEog1g",
+  authDomain: "oesperformance-a54c0.firebaseapp.com",
+  projectId: "oesperformance-a54c0",
+  storageBucket: "oesperformance-a54c0.firebasestorage.app",
+  messagingSenderId: "484894102454",
+  appId: "1:484894102454:web:17535ee497eac2d90d6717"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+const SUBMISSIONS = 'Compliance Audit Submissions';
+const LISTS_COLLECTION = 'Compliance Audit Lists';
+const STORAGE_ROOT = 'compliance_audits';
+const DRAFT_KEY = 'ngu_compliance_audit_draft_v1';
+
+const DEFAULT_LISTS = {
+  engineers: ["Aaron Shepherd","Adam Williams","Alessandro Cilia","Alex Duff","Ali Cavan","Allan Grant","Andrew Wallace","Authur Bumhira","Bilal Amin","Billy McDonough","Bryan McCabe","Calum Ballingal","Chanda Kasama","Chris Stein","Chris Timm","Clayton Spink","Craig O'Sullivan","Craig Steel","Daniel Leahy","Daniel Nally","Daniel Sanders","David Flint","David Williams","David Wilson","Dinis Cruz","Duncan Cairncross","Geoff Pymm","George Chapman","Hamza Safwan","Harris Saleem","Herve Ntwali","Ian Dobson","Ivan Rivers","James Fox","James Mclean","James Stott","Jamie Longland","Jon Convery","Jonathan Chyla","Jonny Thompson","Jordan Gray","Jordan Morrison","Kris Armstrong","Lee Parkin","Lee Robinson","Logan Baff","Lukasz Holysz","Mark Lavelle","Martin Bailes","Matti Chalkowski","Medhi Khamseh","Michael Douglass","Michael Seaman","Michael Timm","Morris Dow","Muhammad Shahroze","Muhammad Zafar","Neil Burns","Neil Lockwood","Nick Griffiths","Owain Sigsworth","Paul Davidson","Paul Day","Pedro Magalhaes","Richard Lang","Ryan Beekawa","Ryan Clark","Sammim Miah","Samuel Appiah","Scott Coyle","Simon Morris","Stephen Lawless","Stuart Shaw","Syed Ali","Thomas Green","Tomas Anderson","Zafar Mahmood"],
+  contracts: ["SESM - OES","SESM - SP","SESM - EDF","Energise","IMSERV"],
+  lineManagers: ["Stuart Whyte","Scott Carson","Thomas Green","Richard Wiecko"],
+  auditors: ["Ricky Johnson","Thomas Green","Scott Carson","Stuart Whyte","Darren Cook","Richard Wiecko","Phil Banks"]
+};
+let LISTS = { ...DEFAULT_LISTS };
+
+/* ------------------------------------------------------------------
+   QUESTIONS – loaded per audit type from Firestore (edited on
+   question-review.html); falls back to the original Cognito questions.
+------------------------------------------------------------------- */
+function headerSection(category){
+  return { id:'details', title:'Audit Details', fixed:true, items:[
+    { type:'select', key:'installerEngineerName', label:'Installer/Engineer name', list:'engineers', required:true },
+    { type:'select', key:'contract', label:'Contract', list:'contracts', required:true, half:true },
+    { type:'select', key:'lineManager', label:'Line Manager', list:'lineManagers', required:true, half:true },
+    { type:'date', key:'installationDate', label:'Installation date', required:true, half:true },
+    { type:'text', key:'jobReference', label:'Job reference', required:true, half:true, fixed:true },
+    { type:'select', key:'auditedBy', label:'Audited by', list:'auditors', required:true, half:true },
+    ...(category==='Post Completion' ? [{ type:'select', key:'auditType', label:'Audit type', options:['Post complete - site','Post complete - investigation'], required:true, half:true }] : []),
+    { type:'choice', key:'auditOutcome', label:'Audit outcome', required:true, outcome:true,
+      options:OUTCOMES[category].map(l=>({ label:l, fail:l!=='Pass' })), followUps:[] }
+  ]};
+}
+const HEADER_KEYS = ['installerEngineerName','contract','lineManager','installationDate','jobReference','auditedBy','auditType','auditOutcome'];
+
+const CATEGORIES = {
+  'Desktop':         { title:'Desktop Audit', formType:'post-completion', intro:'Quality assurance assessment of work completed by an NGU installer, carried out remotely.' },
+  'Post Completion': { title:'Post Completion Audit', formType:'post-completion', intro:'Quality assurance assessment of work that has been completed by an NGU installer.' },
+  'WIP':             { title:'Work In Progress Audit', formType:'wip', intro:'Record of an onsite assessment or observation carried out on an NGU installer.' }
+};
+const FORM_DEFS = {};   // category -> { sections, version, updatedAtISO }
+async function loadFormDef(category){
+  try{
+    const snap=await getDoc(doc(db,FORMS_COLLECTION,category));
+    if(snap.exists() && Array.isArray(snap.data().sections) && !validateForm({ sections:snap.data().sections }).length){
+      const d=snap.data(); return FORM_DEFS[category]={ sections:d.sections, version:d.version||1, updatedAtISO:d.updatedAtISO||'' };
+    }
+  }catch(e){ console.warn('Could not load questions, using the originals', e); }
+  return FORM_DEFS[category]={ ...defaultForm(category), version:0, updatedAtISO:'' };
+}
+
+/* ------------------------------------------------------------------ STATE */
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let current = null;          // { category, draftId, values:{}, photos:{key:[{id,url,path,name,status}]} }
+let sections = [];
+let sigPads = {};
+const uploads = new Map();   // id -> { task, file, key }
+
+function newDraft(category){
+  return { category, draftId: new Date().toISOString().slice(0,10)+'_'+Math.random().toString(36).slice(2,10), values:{}, photos:{}, startedAt:new Date().toISOString() };
+}
+function loadDraft(){ try{ return JSON.parse(localStorage.getItem(DRAFT_KEY)||'null'); }catch{ return null; } }
+let saveTimer;
+function saveDraft(){
+  if(!current) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{
+      const photos={};
+      for(const [k,arr] of Object.entries(current.photos)) photos[k]=arr.filter(p=>p.status==='done').map(({id,url,path,name})=>({id,url,path,name,status:'done'}));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...current, photos, savedAt:new Date().toISOString() }));
+      $('savedNote').textContent='Progress saved on this device · '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){ /* storage unavailable – form still works */ }
+  },400);
+}
+function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch{} }
+
+let toastTimer;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3500); }
+
+/* ------------------------------------------------------------------ LISTS */
+async function loadLists(){
+  await Promise.all(Object.keys(DEFAULT_LISTS).map(async id=>{
+    try{
+      const snap=await getDoc(doc(db,LISTS_COLLECTION,id));
+      if(snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length)
+        LISTS[id]=[...snap.data().items].sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base'}));
+    }catch(e){ console.warn('List load failed, using defaults',id,e); }
+  }));
+}
+const listsReady = loadLists();
+
+/* ------------------------------------------------------------------ RENDER */
+function fieldHtml(f){
+  const v=current.values[f.key];
+  const req=f.required?' <span class="req">*</span>':'';
+  const wrapOpen=`<div class="form-group" id="fg-${f.key}" data-key="${f.key}">`;
+  switch(f.type){
+    case 'select': {
+      let opts=f.options||LISTS[f.list]||[];
+      if(v && !opts.includes(v)) opts=[v,...opts];
+      return `${wrapOpen}<label class="q" for="in-${f.key}">${esc(f.label)}${req}</label>
+        <select id="in-${f.key}" data-field="${f.key}"><option value="">Select…</option>${opts.map(o=>`<option${o===v?' selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+    }
+    case 'date':
+      return `${wrapOpen}<label class="q" for="in-${f.key}">${esc(f.label)}${req}</label><input type="date" id="in-${f.key}" data-field="${f.key}" value="${esc(v||'')}"></div>`;
+    case 'text':
+      return `${wrapOpen}<label class="q" for="in-${f.key}">${esc(f.label)}${req}</label><input type="text" id="in-${f.key}" data-field="${f.key}" value="${esc(v||'')}" autocomplete="off"></div>`;
+    case 'textarea':
+      return `${wrapOpen}<label class="q" for="in-${f.key}">${esc(f.label)}${req}</label><textarea id="in-${f.key}" data-field="${f.key}">${esc(v||'')}</textarea></div>`;
+    case 'choice': {
+      const scored=f.outcome||isScored(f);
+      const pills=f.options.map(o=>{
+        const cls=scored?(o.fail?'fail':'pass'):'';
+        return `<label class="pill"><input type="radio" name="r-${f.key}" value="${esc(o.label)}" data-field="${f.key}"${o.label===v?' checked':''}><span class="${cls}">${esc(o.label)}</span></label>`;
+      }).join('');
+      const follow=(f.followUps||[]).map(fu=>{
+        const freq=fu.required?' <span class="req">*</span>':'';
+        return fu.type==='photo'
+          ? `<div class="followup form-group" id="fu-${fu.key}" data-key="${fu.key}">${photoHtml(fu,freq)}</div>`
+          : `<div class="followup form-group" id="fu-${fu.key}" data-key="${fu.key}"><label class="q" for="in-${fu.key}">${esc(fu.label)}${freq}</label><textarea id="in-${fu.key}" data-field="${fu.key}">${esc(current.values[fu.key]||'')}</textarea></div>`;
+      }).join('');
+      return `${wrapOpen}<label class="q">${esc(f.label)}${req}</label><div class="pills" role="radiogroup">${pills}</div>${follow}</div>`;
+    }
+    case 'photo':
+      return `${wrapOpen}${photoHtml(f,req)}</div>`;
+    case 'checkgroup':
+      return `${wrapOpen}<label class="q">${esc(f.label)}</label>${f.groups.map(g=>{
+        const sel=current.values[g.key]||[];
+        return `<div id="cg-${g.key}"><div class="sub-label">${esc(g.label)}</div><div class="checks">${g.options.map(o=>`<label class="check"><input type="checkbox" data-check="${g.key}" value="${esc(o)}"${sel.includes(o)?' checked':''}><span>${esc(o)}</span></label>`).join('')}</div></div>`;
+      }).join('')}</div>`;
+    case 'signature':
+      return `${wrapOpen}<label class="q">${esc(f.label)}${req}</label><div class="sig-wrap"><canvas class="sig-canvas" id="sig-${f.key}"></canvas><button type="button" class="btn-clear-sig" data-clear="${f.key}">Clear</button></div></div>`;
+  }
+  return '';
+}
+
+function photoHtml(p,req=''){
+  return `<label class="q">${esc(p.label)}${req}</label>
+    <div class="photo-actions">
+      <label class="photo-btn">📷 Take photo<input type="file" accept="image/*" capture="environment" data-photo="${p.key}"></label>
+      <label class="photo-btn">🖼️ Upload<input type="file" accept="image/*" multiple data-photo="${p.key}"></label>
+    </div>
+    <div class="thumbs" id="thumbs-${p.key}"></div>`;
+}
+
+function renderForm(){
+  const cat=CATEGORIES[current.category];
+  sections=[headerSection(current.category), ...FORM_DEFS[current.category].sections];
+  $('formTitle').textContent=cat.title;
+  $('formIntro').textContent=cat.intro;
+  $('formBody').innerHTML=sections.map((s,i)=>{
+    const half=[], rows=[];
+    // group consecutive half-width fields into two-column rows
+    let buf=[];
+    s.items.forEach(f=>{ if(f.half){ buf.push(fieldHtml(f)); } else { if(buf.length){ rows.push(`<div class="two-col">${buf.join('')}</div>`); buf=[]; } rows.push(fieldHtml(f)); } });
+    if(buf.length) rows.push(`<div class="two-col">${buf.join('')}</div>`);
+    return `<div class="form-section" id="sec-${i}"><div class="section-title">${esc(s.title)}</div>${rows.join('')}</div>`;
+  }).join('');
+
+  // existing photos from a resumed draft
+  for(const [k,arr] of Object.entries(current.photos)) arr.forEach(p=>renderThumb(k,p));
+
+  // signatures
+  sigPads={};
+  document.querySelectorAll('.sig-canvas').forEach(c=>{
+    const key=c.id.replace('sig-','');
+    sigPads[key]=new SignaturePad(c,{ backgroundColor:'rgba(0,0,0,0)', penColor:'#f8fafc' });
+    sigPads[key].addEventListener('endStroke',()=>clearInvalid(c));
+  });
+  document.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>sigPads[b.dataset.clear].clear());
+  resizeSigs();
+
+  applyVisibility();
+}
+
+function resizeSigs(){
+  Object.entries(sigPads).forEach(([k,pad])=>{
+    const c=pad.canvas; if(!c.offsetWidth) return;
+    const data=pad.isEmpty()?null:pad.toData();
+    const ratio=Math.max(window.devicePixelRatio||1,1);
+    c.width=c.offsetWidth*ratio; c.height=c.offsetHeight*ratio;
+    c.getContext('2d').scale(ratio,ratio);
+    pad.clear(); if(data) pad.fromData(data);
+  });
+}
+window.addEventListener('resize',()=>{ clearTimeout(window.__rs); window.__rs=setTimeout(resizeSigs,150); });
+
+/* ------------------------------------------------------------------ VISIBILITY */
+function eachField(cb){
+  sections.forEach((s,si)=>{
+    const secVisible=condMet(s.showIf,current.values);
+    s.items.forEach(f=>cb(f,secVisible,s));
+  });
+}
+const followUpShown=(f,fu)=>(fu.when||[]).includes(current.values[f.key]);
+function applyVisibility(){
+  const a=current.values;
+  sections.forEach((s,i)=>$('sec-'+i).classList.toggle('hidden', !condMet(s.showIf,a)));
+  eachField(f=>{
+    (f.followUps||[]).forEach(fu=>$('fu-'+fu.key)?.classList.toggle('hidden', !followUpShown(f,fu)));
+    if(f.groups) f.groups.forEach(g=>$('cg-'+g.key).classList.toggle('hidden', !condMet(g.showIf,a)));
+  });
+  setTimeout(resizeSigs,30);
+}
+
+/* ------------------------------------------------------------------ EVENTS */
+$('formBody').addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.field && (t.tagName==='TEXTAREA'||t.type==='text'||t.type==='date')){ current.values[t.dataset.field]=t.value; clearInvalid(t); saveDraft(); }
+});
+$('formBody').addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.field && (t.type==='radio'||t.tagName==='SELECT'||t.type==='date')){
+    current.values[t.dataset.field]=t.value; clearInvalid(t); applyVisibility(); saveDraft();
+  } else if(t.dataset.check){
+    const k=t.dataset.check; const set=new Set(current.values[k]||[]);
+    t.checked?set.add(t.value):set.delete(t.value); current.values[k]=[...set]; saveDraft();
+  } else if(t.dataset.photo){
+    [...t.files].forEach(f=>startUpload(t.dataset.photo,f)); t.value='';
+  }
+});
+function clearInvalid(el){ el.closest('.form-group')?.classList.remove('invalid'); }
+
+/* ------------------------------------------------------------------ PHOTOS: upload immediately */
+async function compressImage(file){
+  if(!file.type.startsWith('image/') || file.type==='image/gif') return file;
+  try{
+    const bmp=await createImageBitmap(file,{ imageOrientation:'from-image' });
+    const max=1920, scale=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement('canvas'); c.width=Math.round(bmp.width*scale); c.height=Math.round(bmp.height*scale);
+    c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+    const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.82));
+    return (blob && blob.size<file.size) ? blob : file;
+  }catch{ return file; }
+}
+
+function startUpload(key,file,existing){
+  const p=existing||{ id:Math.random().toString(36).slice(2,10), name:file.name, status:'uploading', progress:0, preview:URL.createObjectURL(file) };
+  p.status='uploading'; p.progress=0;
+  if(!existing){ (current.photos[key] ||= []).push(p); renderThumb(key,p); }
+  updateThumb(p); updateUploadNote();
+  const draftId=current.draftId;
+  compressImage(file).then(blob=>{
+    const isJpeg=blob!==file || /jpe?g$/i.test(file.name);
+    const safe=(file.name||'photo').replace(/\.[^.]+$/,'').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,40);
+    const ext=isJpeg?'jpg':((file.name.split('.').pop()||'jpg').toLowerCase());
+    p.path=`${STORAGE_ROOT}/${draftId}/${key}/${Date.now()}_${safe}.${ext}`;
+    const task=uploadBytesResumable(ref(storage,p.path),blob,{ contentType:blob.type||file.type||'image/jpeg' });
+    uploads.set(p.id,{ task, file, key });
+    task.on('state_changed',
+      s=>{ p.progress=s.bytesTransferred/(s.totalBytes||1); updateThumb(p); },
+      err=>{ console.error(err); if(p.status==='removed') return; p.status='error'; updateThumb(p); updateUploadNote(); toast('A photo failed to upload – tap Retry on it'); },
+      async()=>{ p.url=await getDownloadURL(task.snapshot.ref); p.status='done'; uploads.delete(p.id); updateThumb(p); updateUploadNote(); saveDraft(); }
+    );
+  });
+}
+
+function renderThumb(key,p){
+  const el=document.createElement('div');
+  el.className='thumb'; el.id='th-'+p.id;
+  el.innerHTML=`<img src="${esc(p.preview||p.url||'')}" alt=""><div class="bar"></div><div class="state"></div><button type="button" class="x" title="Remove">✕</button>`;
+  el.querySelector('.x').onclick=()=>removePhoto(key,p);
+  $('thumbs-'+key)?.appendChild(el);
+  if(!p.status) p.status='done';
+  updateThumb(p);
+}
+function updateThumb(p){
+  const el=$('th-'+p.id); if(!el) return;
+  el.className='thumb '+(p.status==='done'?'done':p.status==='error'?'error':'');
+  el.querySelector('.bar').style.width=(p.status==='uploading'?Math.round((p.progress||0)*100):0)+'%';
+  const st=el.querySelector('.state');
+  if(p.status==='uploading') st.textContent=Math.round((p.progress||0)*100)+'%';
+  else if(p.status==='error'){ st.innerHTML='Failed<br><button type="button" class="retry">Retry</button>'; st.querySelector('.retry').onclick=()=>{ const u=uploads.get(p.id); if(u) startUpload(u.key,u.file,p); }; }
+  else st.textContent='';
+  let tick=el.querySelector('.tick');
+  if(p.status==='done' && !tick){ tick=document.createElement('span'); tick.className='tick'; tick.textContent='✓'; el.appendChild(tick); }
+}
+function removePhoto(key,p){
+  const u=uploads.get(p.id);
+  if(u && p.status==='uploading'){ try{ u.task.cancel(); }catch{} }
+  uploads.delete(p.id);
+  if(p.status==='done' && p.path) deleteObject(ref(storage,p.path)).catch(()=>{});
+  p.status='removed';
+  current.photos[key]=(current.photos[key]||[]).filter(x=>x!==p);
+  $('th-'+p.id)?.remove();
+  updateUploadNote(); saveDraft();
+}
+function pendingCounts(){
+  let up=0, err=0;
+  Object.values(current?.photos||{}).flat().forEach(p=>{ if(p.status==='uploading') up++; if(p.status==='error') err++; });
+  return { up, err };
+}
+function updateUploadNote(){
+  const { up, err }=pendingCounts();
+  $('uploadNote').textContent = up ? `Uploading ${up} photo${up>1?'s':''}…` : err ? `${err} photo${err>1?'s':''} failed to upload – retry or remove before submitting` : '';
+}
+
+/* ------------------------------------------------------------------ SUBMIT */
+const donePhotos = key => (current.photos[key]||[]).filter(p=>p.status==='done');
+
+function validate(){
+  const a=current.values; const missing=[];
+  eachField((f,secVisible)=>{
+    if(!secVisible) return;
+    if(f.type==='signature'){ if(f.required && sigPads[f.key]?.isEmpty()) missing.push(f.key); return; }
+    if(f.type==='photo'){ if(f.required && !donePhotos(f.key).length) missing.push(f.key); return; }
+    if(f.type==='checkgroup') return;
+    if(f.required && !a[f.key]) missing.push(f.key);
+    (f.followUps||[]).forEach(fu=>{
+      if(!fu.required || !followUpShown(f,fu)) return;
+      if(fu.type==='photo' ? !donePhotos(fu.key).length : !(a[fu.key]||'').trim()) missing.push(fu.key);
+    });
+  });
+  document.querySelectorAll('.form-group.invalid').forEach(g=>g.classList.remove('invalid'));
+  missing.forEach(k=>($('fg-'+k)||$('fu-'+k))?.classList.add('invalid'));
+  if(missing.length){ ($('fg-'+missing[0])||$('fu-'+missing[0]))?.scrollIntoView({ behavior:'smooth', block:'center' }); toast(`Please complete ${missing.length} remaining item${missing.length>1?'s':''}`); }
+  return !missing.length;
+}
+
+function buildRecord(){
+  const a=current.values; const cat=CATEGORIES[current.category];
+  const answers={}; const questions=[]; const photos={}; const nonConformances={};
+  let pass=0, fail=0;
+  const photoEntry=(key,label,question)=>{
+    const list=donePhotos(key).map(p=>({ url:p.url, path:p.path, name:p.name }));
+    if(list.length) photos[key]={ label, question, files:list };
+    return list.map(p=>p.url);
+  };
+  eachField((f,secVisible,s)=>{
+    if(!secVisible || s.fixed) return;
+    if(f.type==='choice'){
+      const val=a[f.key]||'';
+      answers[f.key]=val;
+      const shown=(f.followUps||[]).filter(fu=>followUpShown(f,fu));
+      const comments=[]; const urls=[];
+      shown.forEach(fu=>{
+        if(fu.type==='text'){ answers[fu.key]=a[fu.key]||''; if(a[fu.key]) comments.push(a[fu.key]); }
+        else urls.push(...photoEntry(fu.key,fu.label,f.label));
+      });
+      if(val){
+        const q={ key:f.key, section:s.title, question:f.label, answer:val, result:isScored(f)?(isFailAnswer(f,val)?'fail':'pass'):'info' };
+        if(q.result==='fail') fail++; else if(q.result==='pass') pass++;
+        if(comments.length) q.comment=comments.join('\n');
+        if(urls.length) q.photos=urls;
+        questions.push(q);
+      }
+    } else if(f.type==='photo'){
+      photoEntry(f.key,f.label,f.label);
+    } else if(f.type==='checkgroup'){
+      f.groups.forEach(g=>{ if(!condMet(g.showIf,a)) return; const sel=a[g.key]||[]; if(sel.length) nonConformances[g.key]=sel; });
+    } else if(f.type==='textarea'||f.type==='text'){
+      answers[f.key]=a[f.key]||'';
+    }
+  });
+  // labels for anything that isn't a scored question, so reports can show the wording used
+  const labels={};
+  eachField((f,v,s)=>{ if(s.fixed) return; if(f.type==='textarea'||f.type==='text') labels[f.key]=f.label;
+    (f.followUps||[]).forEach(fu=>{ if(fu.type==='text') labels[fu.key]=fu.label; });
+    (f.groups||[]).forEach(g=>labels[g.key]=`${f.label} · ${g.label}`); });
+  const total=pass+fail;
+  const def=FORM_DEFS[current.category]||{};
+  return {
+    auditCategory: current.category,
+    formType: cat.formType,
+    auditType: current.category==='Desktop' ? 'Post complete - desktop' : current.category==='WIP' ? 'Work in progress' : (a.auditType||''),
+    installerEngineerName: a.installerEngineerName||'',
+    contract: a.contract||'',
+    lineManager: a.lineManager||'',
+    installationDate: a.installationDate||'',
+    jobReference: (a.jobReference||'').trim(),
+    auditedBy: a.auditedBy||'',
+    auditOutcome: a.auditOutcome||'',
+    isPass: a.auditOutcome==='Pass',
+    electricMeterInstalled: a.electricMeterInstalled||'',
+    gasMeterInstalled: a.gasMeterInstalled||'',
+    answers, labels, questions, photos, nonConformances,
+    nonConformanceCount: Object.values(nonConformances).reduce((n,l)=>n+l.length,0),
+    passCount: pass, failCount: fail, totalChecked: total,
+    complianceScore: total ? Math.round(pass/total*1000)/10 : null,
+    questionsVersion: def.version||0,
+    questionsUpdatedAt: def.updatedAtISO||'',
+    draftId: current.draftId,
+    startedAt: current.startedAt,
+    submittedAtISO: new Date().toISOString(),
+    submittedAt: serverTimestamp()
+  };
+}
+
+$('submitBtn').onclick=async()=>{
+  const { up, err }=pendingCounts();
+  if(up) return toast(`Please wait – ${up} photo${up>1?'s are':' is'} still uploading`);
+  if(err) return toast('Some photos failed to upload – retry or remove them first');
+  if(!validate()) return;
+  const btn=$('submitBtn'); btn.disabled=true; btn.textContent='Submitting…';
+  try{
+    const rec=buildRecord();
+    // signatures are small – upload them now
+    const sigs={};
+    for(const [k,pad] of Object.entries(sigPads)){
+      if(pad.isEmpty()) continue;
+      const path=`${STORAGE_ROOT}/${current.draftId}/signatures/${k}.png`;
+      const r=ref(storage,path);
+      await uploadString(r,pad.toDataURL('image/png'),'data_url');
+      sigs[k]=await getDownloadURL(r);
+    }
+    if(Object.keys(sigs).length) rec.signatures=sigs;
+    const docRef=await addDoc(collection(db,SUBMISSIONS),rec);
+    clearDraft();
+    $('successText').innerHTML=`${esc(rec.auditCategory)} audit for <strong>${esc(rec.installerEngineerName)}</strong> (job ${esc(rec.jobReference)}) has been saved.<br>Outcome: <strong>${esc(rec.auditOutcome)}</strong>${rec.totalChecked?` · ${rec.passCount}/${rec.totalChecked} checks passed`:''}<br><span class="saved-note">Ref ${docRef.id}</span>`;
+    show('successScreen'); current=null;
+  }catch(e){
+    console.error(e); toast('Could not submit – check your connection and try again. Your answers are saved.');
+  }finally{ btn.disabled=false; btn.textContent='Submit Audit'; }
+};
+
+/* ------------------------------------------------------------------ NAV */
+function show(id){ ['selectScreen','formScreen','successScreen'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); window.scrollTo(0,0); }
+
+async function openForm(draft){
+  current=draft;
+  $('formBody').innerHTML='<p style="color:var(--text-muted);text-align:center;padding:2rem">Loading…</p>';
+  $('savedNote').textContent='';
+  show('formScreen');
+  await Promise.all([listsReady, FORM_DEFS[draft.category] ? null : loadFormDef(draft.category)]);
+  if(current!==draft) return;
+  renderForm(); updateUploadNote(); saveDraft();
+}
+
+document.querySelectorAll('.type-btn').forEach(b=>b.onclick=()=>{
+  const d=loadDraft();
+  if(d && Object.keys(d.values||{}).length && !confirm('Starting a new audit will discard your unfinished one. Continue?')) return;
+  clearDraft(); openForm(newDraft(b.dataset.type));
+});
+$('backBtn').onclick=()=>{
+  if(Object.keys(current?.values||{}).length && !confirm('Go back to audit types? Your answers so far stay saved on this device and can be resumed.')) return;
+  saveDraft(); current=null; showDraftBanner(); show('selectScreen');
+};
+$('anotherBtn').onclick=()=>{ showDraftBanner(); show('selectScreen'); };
+
+function showDraftBanner(){
+  const d=loadDraft();
+  const has=d && CATEGORIES[d.category] && (Object.keys(d.values||{}).length || Object.keys(d.photos||{}).length);
+  $('draftBanner').classList.toggle('hidden',!has);
+  if(has){
+    const when=d.savedAt?new Date(d.savedAt).toLocaleString('en-GB',{ day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }):'';
+    const who=d.values.installerEngineerName?` for ${d.values.installerEngineerName}`:'';
+    $('draftText').textContent=`Unfinished ${d.category} audit${who}${when?' · last saved '+when:''}`;
+  }
+}
+$('draftResume').onclick=()=>{ const d=loadDraft(); if(d) openForm(d); };
+$('draftDiscard').onclick=()=>{ if(confirm('Discard the unfinished audit?')){ clearDraft(); showDraftBanner(); } };
+
+window.addEventListener('beforeunload',e=>{ if(current && pendingCounts().up){ e.preventDefault(); e.returnValue=''; } });
+
+showDraftBanner();
+</script>
+</body>
+</html>
